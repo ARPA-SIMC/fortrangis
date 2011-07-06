@@ -1,0 +1,107 @@
+dnl Process this file with autoconf to produce a configure script.
+
+AC_INIT(FortranGIS, 1.0,)
+AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_SRCDIR([configure.ac])
+AM_INIT_AUTOMAKE([foreign])
+AC_CONFIG_MACRO_DIR([m4])
+
+AC_LANG([C])
+dnl AC_C_BIGENDIAN
+dnl AC_DEFINE_UNQUOTED(_UNIX
+dnl AC_DEFINE_UNQUOTED(__PLACEMENT_NEW_INLINE
+AC_PATH_XTRA
+
+dnl capire perche' senza --enable-qualcosa objext='' e non va il copilatore
+
+AC_ARG_ENABLE(gdal, AC_HELP_STRING([--enable-gdal],
+[enable build of Fortran 2003 bindings for gdal]),,
+[enableval=no])dnl default disable
+AM_CONDITIONAL(GDAL, test "x$enableval" = "xyes")
+enablegdal=$enableval
+
+if test "x$enablegdal" = "xyes"; then
+AC_CHECK_LIB([gdal], [GDALAllRegister],
+ gdal=yes
+ GDAL_LIBS="-lgdal"
+ AC_SUBST(GDAL_LIBS)
+ AC_DEFINE(HAVE_LIBGDAL, 1, [Enable gdal]),
+ AC_MSG_RESULT([gdal library not found]), )
+fi
+
+AC_ARG_ENABLE(proj, AC_HELP_STRING([--enable-proj],
+[enable build of Fortran 2003 bindings for proj]),,
+[enableval=no])dnl default disable
+AM_CONDITIONAL(PROJ, test "x$enableval" = "xyes")
+enableproj=$enableval
+
+if test "x$enableproj" = "xyes"; then
+AC_CHECK_LIB([proj], [pj_init],
+ proj=yes
+ PROJ_LIBS="-lproj"
+ AC_SUBST(PROJ_LIBS)
+ AC_DEFINE(HAVE_LIBPROJ, 1, [Enable proj]),
+ AC_MSG_RESULT([proj library not found]), )
+fi
+
+AC_ARG_ENABLE(shapelib, AC_HELP_STRING([--enable-shapelib],
+[enable build of Fortran 2003 bindings for shapelib]),,
+[enableval=no])dnl default disable
+AM_CONDITIONAL(SHP, test "x$enableval" = "xyes")
+enableshp=$enableval
+
+if test "x$enableshp" = "xyes"; then
+AC_CHECK_LIB([shp], [SHPOpen],
+ shp=yes
+ SHP_LIBS="-lshp"
+ AC_SUBST(SHP_LIBS)
+ AC_DEFINE(HAVE_LIBSHP, 1, [Enable shp]),
+ AC_MSG_RESULT([shapelib library not found]), )
+fi
+
+dnl Locate Fortran 90 compiler among these if not specified
+AC_PROG_FC([gfortran g95 pgf90 ifort xlf90 f90])
+F77=$FC
+FFLAGS=$FCFLAGS
+
+AC_LANG_PUSH(Fortran)dnl Do the following checks in Fortran
+AC_FC_SRCEXT(f90)dnl and use .f90 extension
+
+dnl check for Fortran 2003 ISO_C_BINDING intrinsic module
+AC_COMPILE_IFELSE(
+[AC_LANG_PROGRAM(,[[       USE, INTRINSIC :: iso_c_binding]])],
+                          [AC_MSG_RESULT([Fortran 2003 C bindings found!])],
+                          [AC_MSG_ERROR([Fortran 2003 C bindings not found!
+Sorry, FortranGIS requires a fortran compiler
+with at least the ISO_C_BINDING module capabilities of Fortran 2003 standard]
+)])
+
+AC_LANG_POP()dnl back to C
+
+dnl check for debug mode
+AC_ARG_ENABLE(debug-mode, AC_HELP_STRING([--enable-debug-mode],
+  [enable debug mode]), , [enableval=no])dnl default disable
+if test "x$enableval" = "xyes"; then
+CFLAGS="$CFLAGS -g"
+CXXFLAGS="$CXXFLAGS -g"
+FCFLAGS="$FCFLAGS -g"
+AC_DEFINE(_DEBUG, 1, [Enable debugging mode])
+else
+CFLAGS="$CFLAGS -O"
+CXXFLAGS="$CXXFLAGS -O"
+FCFLAGS="$FCFLAGS -O"
+fi
+AM_CONDITIONAL(DEBUG, test "x$enableval" = "xyes")
+
+AC_PROG_LIBTOOL
+
+pkgdocdir='${datadir}/doc/${PACKAGE}-${VERSION}'
+AC_SUBST(pkgdocdir)
+
+AC_CONFIG_FILES([
+Makefile
+libfortranc/Makefile
+libfortrangis/Makefile
+])
+
+AC_OUTPUT
