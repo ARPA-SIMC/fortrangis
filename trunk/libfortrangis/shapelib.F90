@@ -1,7 +1,3 @@
-!> \mainpage shapelib-fortran fortran interface to the shapelib
-!! http://shapelib.maptools.org/ C library.
-!! 
-
 !> Fortran interface to the shapelib http://shapelib.maptools.org/ C
 !! library.  It defines two derived types: \a shpfileobject associated
 !! to a shapefile dataset, and \a shpobject associated to a single
@@ -14,16 +10,12 @@
 !!  - \a shpgetinfo accesses also .dbf information
 !!  - the \a DBFRead*Attribute and \a DBWrite*Attribute are converted
 !!    into two f90 interfaces called \a dbfreadattribute and \a
-!!    dbwriteattribute respectively
+!!    dbwriteattribute respectively.
 !!
 !! \ingroup base
 MODULE shapelib
 USE,INTRINSIC :: ISO_C_BINDING
 IMPLICIT NONE
-
-INTEGER,PARAMETER :: shp_fp_d=KIND(1.0D0) !< kind constant for defining a double precision \a REAL type compatible with shapelib
-
-INTEGER,PARAMETER :: shp_ptr_c=KIND(1)
 
 INTEGER,PARAMETER :: shpt_null = 0 !< Series of constants for specifying type of new shape datasets with \a shpcreate, null shape
 INTEGER,PARAMETER :: shpt_point = 1 !< points
@@ -53,8 +45,8 @@ INTEGER,PARAMETER :: ftinvalid = 4 !< not a recognised field TYPE
 !! directly.
 TYPE shpfileobject
   PRIVATE
-  TYPE(c_ptr) :: shpfile_orig=0
-  TYPE(c_ptr) :: dbffile_orig=0
+  TYPE(c_ptr) :: shpfile_orig=c_null_ptr
+  TYPE(c_ptr) :: dbffile_orig=c_null_ptr
 END TYPE shpfileobject
 
 
@@ -63,36 +55,37 @@ END TYPE shpfileobject
 !! shape; in the latter case the single values can be changed, but not
 !! the size of the arrays.
 TYPE shpobject
-  TYPE(c_ptr) :: shpobject_orig=0 !< pointer to C information, it should not be used
+  TYPE(c_ptr) :: shpobject_orig=c_null_ptr !< pointer to C information, it should not be used
   INTEGER :: nshptype=0 !< shape type, one of the \a shpt_* constants defined
   INTEGER :: nshapeid=-1 !< shape number (-1 is unknown/unassigned)
   INTEGER :: nparts=0 !< number of parts (0 implies single part with no info)
   INTEGER,POINTER :: panpartstart(:)=>NULL() !< starting vertex of each part
   INTEGER,POINTER :: panparttype(:)=>NULL() !< part type (SHPP_RING if not SHPT_MULTIPATCH)
   INTEGER :: nvertices !< number of vertices
-  REAL(kind=shp_fp_d),POINTER :: padfx(:)=>NULL() !< x coordinates of vertices
-  REAL(kind=shp_fp_d),POINTER :: padfy(:)=>NULL() !< y coordinates of vertices
-  REAL(kind=shp_fp_d),POINTER :: padfz(:)=>NULL() !< z coordinates of vertices
-  REAL(kind=shp_fp_d),POINTER :: padfm(:)=>NULL() !< measure of vertices
-  REAL(kind=shp_fp_d) :: dfxmin=0.0_shp_fp_d !< lower bound in x dimension
-  REAL(kind=shp_fp_d) :: dfymin=0.0_shp_fp_d !< lower bound in y dimension
-  REAL(kind=shp_fp_d) :: dfzmin=0.0_shp_fp_d !< lower bound in z dimension
-  REAL(kind=shp_fp_d) :: dfmmin=0.0_shp_fp_d !< lower bound in measure dimension
-  REAL(kind=shp_fp_d) :: dfxmax=0.0_shp_fp_d !< upper bound in x dimension
-  REAL(kind=shp_fp_d) :: dfymax=0.0_shp_fp_d !< upper bound in y dimension
-  REAL(kind=shp_fp_d) :: dfzmax=0.0_shp_fp_d !< upper bound in z dimension
-  REAL(kind=shp_fp_d) :: dfmmax=0.0_shp_fp_d !< upper bound in measure dimension
+  REAL(kind=c_double),POINTER :: padfx(:)=>NULL() !< x coordinates of vertices
+  REAL(kind=c_double),POINTER :: padfy(:)=>NULL() !< y coordinates of vertices
+  REAL(kind=c_double),POINTER :: padfz(:)=>NULL() !< z coordinates of vertices
+  REAL(kind=c_double),POINTER :: padfm(:)=>NULL() !< measure of vertices
+  REAL(kind=c_double) :: dfxmin=0.0_c_double !< lower bound in x dimension
+  REAL(kind=c_double) :: dfymin=0.0_c_double !< lower bound in y dimension
+  REAL(kind=c_double) :: dfzmin=0.0_c_double !< lower bound in z dimension
+  REAL(kind=c_double) :: dfmmin=0.0_c_double !< lower bound in measure dimension
+  REAL(kind=c_double) :: dfxmax=0.0_c_double !< upper bound in x dimension
+  REAL(kind=c_double) :: dfymax=0.0_c_double !< upper bound in y dimension
+  REAL(kind=c_double) :: dfzmax=0.0_c_double !< upper bound in z dimension
+  REAL(kind=c_double) :: dfmmax=0.0_c_double !< upper bound in measure dimension
 END TYPE shpobject
 
 !TYPE(shpfileobject),PARAMETER :: shpfileobject_null = shpfileobject(0, 0)
-TYPE(shpobject),PARAMETER,PRIVATE :: shpobject_null = shpobject(0, 0, -1, 0, &
+TYPE(shpobject),PARAMETER,PRIVATE :: shpobject_null = shpobject(c_null_ptr, &
+ 0, -1, 0, &
  NULL(), NULL(), 0, NULL(), NULL(), NULL(), NULL(), &
- 0.0_shp_fp_d, 0.0_shp_fp_d, 0.0_shp_fp_d, 0.0_shp_fp_d, &
- 0.0_shp_fp_d, 0.0_shp_fp_d, 0.0_shp_fp_d, 0.0_shp_fp_d)
+ 0.0_c_double, 0.0_c_double, 0.0_c_double, 0.0_c_double, &
+ 0.0_c_double, 0.0_c_double, 0.0_c_double, 0.0_c_double)
 
 !> Interface to SUBROUTINEs for reading dbf attributes.
 !! The type of the attribute can be either INTEGER,
-!! REAL(kind=shp_fp_d) (double) or CHARACTER. In case of CHARACTER
+!! REAL(kind=c_double) (double) or CHARACTER. In case of CHARACTER
 !! attributes it is important that the length of the string passed is
 !! big enough to contain the attribute. The maximum length for each
 !! field can be obtained with the \a dbfgetfieldinfo function, but it
@@ -103,7 +96,7 @@ TYPE(shpobject),PARAMETER,PRIVATE :: shpobject_null = shpobject(0, 0, -1, 0, &
 !! \param hshp TYPE(shpfileobject),INTENT(inout) shapefile object to query
 !! \param ishape INTEGER,INTENT(in) the number of shape to query
 !! \param ifield INTEGER,INTENT(in) the number of field to query
-!! \param attr INTEGER, CHARACTER or REAL(kind=shp_fp_d), INTENT(out) the value of the attribute
+!! \param attr INTEGER, CHARACTER or REAL(kind=c_double), INTENT(out) the value of the attribute
 INTERFACE dbfreadattribute
   MODULE PROCEDURE dbfreadintegerattribute_f, dbfreaddoubleattribute_f, &
    dbfreadstringattribute_f
@@ -112,7 +105,7 @@ END INTERFACE
 
 !> Interface to FUNCTIONs for setting dbf attributes.
 !! The type of the attribute can be either INTEGER,
-!! REAL(kind=shp_fp_d) (double) or CHARACTER. The type of the
+!! REAL(kind=c_double) (double) or CHARACTER. The type of the
 !! attribute provided may not coincide with the native type of the
 !! field, if possible a conversion will be performed. If the \a attr
 !! parameter is not provided the attribute will be set to a null
@@ -121,7 +114,7 @@ END INTERFACE
 !! \param hshp TYPE(shpfileobject),INTENT(inout) shapefile object to set
 !! \param ishape INTEGER,INTENT(in) the number of shape to set
 !! \param ifield INTEGER,INTENT(in) the number of field to set
-!! \param attr INTEGER, CHARACTER or REAL(kind=shp_fp_d), INTENT(in) the value of the attribute to set
+!! \param attr INTEGER, CHARACTER or REAL(kind=c_double), INTENT(in) the value of the attribute to set
 INTERFACE dbfwriteattribute
   MODULE PROCEDURE dbfwriteintegerattribute_f, dbfwritedoubleattribute_f, &
    dbfwritestringattribute_f, dbfwritenullattribute_f
@@ -133,7 +126,7 @@ INTERFACE
   IMPORT
   CHARACTER(kind=c_char) :: pszlayer(*)
   CHARACTER(kind=c_char) :: pszaccess(*)
-  TYPE(c_ptr) :: shpopen
+  TYPE(c_ptr) :: shpopen_orig
   END FUNCTION shpopen_orig
 
   SUBROUTINE shpclose_orig(psshp) BIND(C,name='SHPClose')
@@ -144,8 +137,8 @@ INTERFACE
   SUBROUTINE shpgetinfo_orig(psshp, pnentities, pnshapetype, padfminbound, padfmaxbound) BIND(C,name='SHPGetInfo')
   IMPORT
   TYPE(c_ptr),VALUE :: psshp
-  INTEGER(kind=c_int) :: pnentities(*)
-  INTEGER(kind=c_int) :: pnshapetype(*)
+  INTEGER(kind=c_int) :: pnentities
+  INTEGER(kind=c_int) :: pnshapetype
   REAL(kind=c_double) :: padfminbound(*)
   REAL(kind=c_double) :: padfmaxbound(*)
   END SUBROUTINE shpgetinfo_orig
@@ -154,15 +147,17 @@ INTERFACE
   IMPORT
   CHARACTER(kind=c_char) :: pszlayer(*)
   INTEGER(kind=c_int),VALUE :: nshapetype
-  TYPE(c_ptr) :: shpcreate
+  TYPE(c_ptr) :: shpcreate_orig
   END FUNCTION shpcreate_orig
 
-  SUBROUTINE shpcomputeextents_int(psobject) BIND(C,name='SHPComputeExtents')
+  SUBROUTINE shpcomputeextents_int(psobject, ftnobject) BIND(C,name='SHPComputeExtentsInt')
   IMPORT
   TYPE(c_ptr),VALUE :: psobject
+  TYPE(c_ptr),VALUE :: ftnobject
   END SUBROUTINE shpcomputeextents_int
 
-  FUNCTION shpcreateobject(nshptype, nshapeid, nparts, panpartstart, panparttype, nvertices, padfx, padfy, padfz, padfm, ftnobject) BIND(C,name='SHPCreateObject')
+  FUNCTION shpcreateobject_int(nshptype, nshapeid, nparts, panpartstart, panparttype, &
+   nvertices, padfx, padfy, padfz, padfm, ftnobject) BIND(C,name='SHPCreateObjectInt')
   IMPORT
   INTEGER(kind=c_int),VALUE :: nshptype
   INTEGER(kind=c_int),VALUE :: nshapeid
@@ -175,10 +170,10 @@ INTERFACE
   REAL(kind=c_double) :: padfz(*)
   REAL(kind=c_double) :: padfm(*)
   TYPE(c_ptr),VALUE :: ftnobject
-  INTEGER(kind=c_int) :: shpcreateobject
-  END FUNCTION shpcreateobject
+  INTEGER(kind=c_int) :: shpcreateobject_int
+  END FUNCTION shpcreateobject_int
 
-  FUNCTION shpcreatesimpleobject_int(nshptype, nvertices, padfx, padfy, padfz, ftnobject) BIND(C,name='SHPCreateSimpleObject')
+  FUNCTION shpcreatesimpleobject_int(nshptype, nvertices, padfx, padfy, padfz, ftnobject) BIND(C,name='SHPCreateSimpleObjectInt')
   IMPORT
   INTEGER(kind=c_int),VALUE :: nshptype
   INTEGER(kind=c_int),VALUE :: nvertices
@@ -186,7 +181,7 @@ INTERFACE
   REAL(kind=c_double) :: padfy(*)
   REAL(kind=c_double) :: padfz(*)
   TYPE(c_ptr),VALUE :: ftnobject
-  INTEGER(kind=c_int) :: shpcreatesimpleobject
+  INTEGER(kind=c_int) :: shpcreatesimpleobject_int
   END FUNCTION shpcreatesimpleobject_int
 
   FUNCTION shpwriteobject_orig(psshp, nshapeid, psobject) BIND(C,name='SHPWriteObject')
@@ -197,25 +192,13 @@ INTERFACE
   INTEGER(kind=c_int) :: shpwriteobject_orig
   END FUNCTION shpwriteobject_orig
 
-  FUNCTION shpreadobject_int(psshp, hentity, ftnobject) BIND(C,name='SHPReadObject_int')
+  FUNCTION shpreadobject_int(psshp, hentity, ftnobject) BIND(C,name='SHPReadObjectInt')
   IMPORT
   TYPE(c_ptr),VALUE :: psshp
   INTEGER(kind=c_int),VALUE :: hentity
   TYPE(c_ptr),VALUE :: ftnobject
   INTEGER(kind=c_int) :: shpreadobject_int
-  END FUNCTION shpreadobject
-
-  FUNCTION shptypename(nshptype) BIND(C,name='SHPTypeName')
-  IMPORT
-  INTEGER(kind=c_int),VALUE :: nshptype
-  TYPE(c_ptr) :: char
-  END FUNCTION shptypename
-
-  FUNCTION shpparttypename(nparttype) BIND(C,name='SHPPartTypeName')
-  IMPORT
-  INTEGER(kind=c_int),VALUE :: nparttype
-  TYPE(c_ptr) :: char
-  END FUNCTION shpparttypename
+  END FUNCTION shpreadobject_int
 
   SUBROUTINE shpdestroyobject_orig(psshape) BIND(C,name='SHPDestroyObject')
   IMPORT
@@ -230,7 +213,6 @@ INTERFACE
   INTEGER(kind=c_int) :: shprewindobject_orig
   END FUNCTION shprewindobject_orig
 #endif
-
 END INTERFACE
 
 INTERFACE
@@ -278,21 +260,21 @@ INTERFACE
   REAL(kind=c_double) :: dbfreaddoubleattribute_orig
   END FUNCTION dbfreaddoubleattribute_orig
 
-  FUNCTION dbfreadstringattribute_int(psdbf, irecord, ifield, attr) BIND(C,name='DBFReadStringAttribute')
+  SUBROUTINE dbfreadstringattribute_int(psdbf, irecord, ifield, attr, lattr) BIND(C,name='DBFReadStringAttributeInt')
   IMPORT
   TYPE(c_ptr),VALUE :: psdbf
   INTEGER(kind=c_int),VALUE :: irecord
   INTEGER(kind=c_int),VALUE :: ifield
   CHARACTER(kind=c_char) :: attr(*)
   INTEGER(kind=c_int),VALUE :: lattr
-  END FUNCTION dbfreadstringattribute_int
+  END SUBROUTINE dbfreadstringattribute_int
 
   FUNCTION dbfreadlogicalattribute(psdbf, irecord, ifield) BIND(C,name='DBFReadLogicalAttribute')
   IMPORT
   TYPE(c_ptr),VALUE :: psdbf
   INTEGER(kind=c_int),VALUE :: irecord
   INTEGER(kind=c_int),VALUE :: ifield
-  TYPE(c_ptr) :: char
+  CHARACTER(kind=c_char) :: dbfreadlogicalattribute
   END FUNCTION dbfreadlogicalattribute
 
 #ifdef SHAPELIB_1210
@@ -322,8 +304,8 @@ INTERFACE
   TYPE(c_ptr),VALUE :: psdbf
   INTEGER(kind=c_int),VALUE :: ifield
   CHARACTER(kind=c_char) :: pszfieldname(*)
-  INTEGER(kind=c_int) :: pnwidth(*)
-  INTEGER(kind=c_int) :: pndecimals(*)
+  INTEGER(kind=c_int) :: pnwidth
+  INTEGER(kind=c_int) :: pndecimals
   INTEGER(kind=c_int) :: dbfgetfieldinfo_orig
   END FUNCTION dbfgetfieldinfo_orig
 
@@ -410,7 +392,7 @@ CHARACTER(len=*),INTENT(in) :: pszaccess !< file access mode
 TYPE(shpfileobject) :: shpopen
 
 shpopen%shpfile_orig = shpopen_orig(pszshapefile, pszaccess)
-shpopen%dbffile_orig = dbfopen(pszshapefile, pszaccess)
+shpopen%dbffile_orig = dbfopen_orig(pszshapefile, pszaccess)
 
 END FUNCTION shpopen
 
@@ -467,8 +449,8 @@ SUBROUTINE shpgetinfo(hshp, nentities, shapetype, minbound, maxbound, &
 TYPE(shpfileobject),INTENT(in) :: hshp !< shapefile object to query
 INTEGER,INTENT(out) :: nentities !< number of shapes
 INTEGER,INTENT(out) :: shapetype !< type of shapes in the file, one of the \a shpt_* constants
-REAL(kind=shp_fp_d),INTENT(out) :: minbound(4) !< lower bounds of shape values
-REAL(kind=shp_fp_d),INTENT(out) :: maxbound(4) !< upper bounds of shape values
+REAL(kind=c_double),INTENT(out) :: minbound(4) !< lower bounds of shape values
+REAL(kind=c_double),INTENT(out) :: maxbound(4) !< upper bounds of shape values
 INTEGER,INTENT(out) :: dbffieldcount !< number of dbf fields
 INTEGER,INTENT(out) :: dbfrecordcount !< number of dbf records, it should be equal to \a nentities, but it is not guaranteed
 
@@ -502,7 +484,7 @@ END SUBROUTINE shpgetinfo
 FUNCTION shpreadobject(hshp, ishape)
 TYPE(shpfileobject),INTENT(inout) :: hshp !< shapefile object to read from
 INTEGER :: ishape !< number of shape to be read
-TYPE(shpobject) :: shpreadobject
+TYPE(shpobject),TARGET :: shpreadobject
 
 TYPE(shpobject) :: lshpobject
 
@@ -535,11 +517,11 @@ TYPE(shpfileobject),INTENT(inout) :: hshp !< shapefile object to be closed
 
 IF (.NOT.shpfileisnull(hshp)) THEN
   CALL shpclose_orig(hshp%shpfile_orig)
-  hshp%shpfile_orig = 0
+  hshp%shpfile_orig = c_null_ptr
 ENDIF
 IF (.NOT.dbffileisnull(hshp)) THEN
   CALL dbfclose(hshp%dbffile_orig)
-  hshp%dbffile_orig = 0
+  hshp%dbffile_orig = c_null_ptr
 ENDIF
 
 END SUBROUTINE shpclose
@@ -553,15 +535,15 @@ END SUBROUTINE shpclose
 FUNCTION shpcreatesimpleobject(nshptype, nvertices, padfx, padfy, padfz)
 INTEGER :: nshptype !< type of shape, one of the \a shpt_* constants
 INTEGER :: nvertices !< number of vertices
-REAL(kind=shp_fp_d) :: padfx(nvertices) !< x coordinates
-REAL(kind=shp_fp_d) :: padfy(nvertices) !< y coordinates
-REAL(kind=shp_fp_d),OPTIONAL :: padfz(nvertices) !< z coordinates, it can be skipped
-TYPE(shpobject) :: shpcreatesimpleobject
+REAL(kind=c_double) :: padfx(nvertices) !< x coordinates
+REAL(kind=c_double) :: padfy(nvertices) !< y coordinates
+REAL(kind=c_double),OPTIONAL :: padfz(nvertices) !< z coordinates, it can be skipped
+TYPE(shpobject),TARGET :: shpcreatesimpleobject
 
 TYPE(shpobject) :: lshpobject
 
 IF (shpcreatesimpleobject_int(nshptype, nvertices, padfx, padfy, padfz, &
- shpcreatesimpleobject) /= 0) THEN
+ C_LOC(shpcreatesimpleobject)) /= 0) THEN
   shpcreatesimpleobject = shpobject_null
 ENDIF
 
@@ -581,11 +563,11 @@ INTEGER :: nparts !< number of parts
 INTEGER :: nvertices !< number of vertices
 INTEGER :: panpartstart(nparts) !< start indices of each part
 INTEGER :: panparttype(nparts) !< type of each of the parts, this is only meaningful for \a MULTIPATCH files, for all other cases it will be assumed to be \a SHPP_RING
-REAL(kind=shp_fp_d) :: padfx(nvertices) !< x coordinates
-REAL(kind=shp_fp_d) :: padfy(nvertices) !< y coordinates
-REAL(kind=shp_fp_d),OPTIONAL :: padfz(nvertices) !< z coordinates, it can be skipped
-REAL(kind=shp_fp_d),OPTIONAL :: padfm(nvertices) !< measure, it can be skipped
-TYPE(shpobject) :: shpcreateobject
+REAL(kind=c_double) :: padfx(nvertices) !< x coordinates
+REAL(kind=c_double) :: padfy(nvertices) !< y coordinates
+REAL(kind=c_double),OPTIONAL :: padfz(nvertices) !< z coordinates, it can be skipped
+REAL(kind=c_double),OPTIONAL :: padfm(nvertices) !< measure, it can be skipped
+TYPE(shpobject),TARGET :: shpcreateobject
 
 TYPE(shpobject) :: lshpobject
 
@@ -605,7 +587,7 @@ END FUNCTION shpcreateobject
 !! existing object are altered it should be called again to fix up the
 !! extents.
 SUBROUTINE shpcomputeextents(psobject)
-TYPE(shpobject) :: psobject !< shape object to update
+TYPE(shpobject),TARGET :: psobject !< shape object to update
 
 CALL shpcomputeextents_int(psobject%shpobject_orig, C_LOC(psobject))
 
@@ -703,9 +685,12 @@ INTEGER,INTENT(out) :: pnwidth !< the width of the field in characters
 INTEGER,INTENT(out) :: pndecimals !< the number of decimals in a floating point representation, nonzero only for fields of type \a ftdouble
 INTEGER :: dbfgetfieldinfo
 
+CHARACTER(len=11) :: lpszfieldname
+
 IF (.NOT.dbffileisnull(hshp)) THEN
   dbfgetfieldinfo = dbfgetfieldinfo_orig(hshp%dbffile_orig, ifield, &
-   pszfieldname, pnwidth, pndecimals)
+   lpszfieldname, pnwidth, pndecimals)
+  pszfieldname = lpszfieldname ! must strip null here!
 ELSE
   dbfgetfieldinfo = -1
 ENDIF
@@ -753,12 +738,12 @@ END SUBROUTINE dbfreadintegerattribute_f
 SUBROUTINE dbfreaddoubleattribute_f(hshp, ishape, ifield, attr)
 TYPE(shpfileobject),INTENT(inout) :: hshp
 INTEGER,INTENT(in) :: ishape, ifield
-REAL(kind=shp_fp_d),INTENT(out) :: attr
+REAL(kind=c_double),INTENT(out) :: attr
 
 IF (.NOT.dbffileisnull(hshp)) THEN
   attr = dbfreaddoubleattribute_orig(hshp%dbffile_orig, ishape, ifield)
 ELSE
-  attr = 0.0_shp_fp_d
+  attr = 0.0_c_double
 ENDIF
 
 END SUBROUTINE dbfreaddoubleattribute_f
@@ -820,7 +805,7 @@ END FUNCTION dbfwriteintegerattribute_f
 FUNCTION dbfwritedoubleattribute_f(hshp, ishape, ifield, attr) RESULT(dbfwriteattribute)
 TYPE(shpfileobject),INTENT(inout) :: hshp
 INTEGER,INTENT(in) :: ishape, ifield
-REAL(kind=shp_fp_d),INTENT(in) :: attr
+REAL(kind=c_double),INTENT(in) :: attr
 INTEGER :: dbfwriteattribute
 
 IF (.NOT.dbffileisnull(hshp)) THEN
@@ -891,28 +876,29 @@ END FUNCTION dbfgetnativefieldtype
 #endif
 
 
-SUBROUTINE shpset_object(obj, obj_orig, nshptype, nshapeid, &
+SUBROUTINE shpsetobjectfortran(ftnobject, cobject, nshptype, nshapeid, &
  nparts, panpartstart, panparttype, &
  nvertices, padfx, padfy, padfz, padfm, &
  dfxmin, dfymin, dfzmin, dfmmin, dfxmax, dfymax, dfzmax, dfmmax) &
- BIND(C,name='shpset_object')
-USE shplib, ONLY: shpobject, shp_ptr_c, shp_fp_d
-IMPLICIT NONE
-
-TYPE(shpobject) :: obj
-TYPE(c_ptr),VALUE :: obj_orig
-INTEGER :: nshptype ! Shape Type (SHPT_* - see list above)
-INTEGER :: nshapeid ! Shape Number (-1 is unknown/unassigned)
-INTEGER :: nparts ! # of Parts (0 implies single part with no info)
-INTEGER, TARGET :: panpartstart(nparts), & ! Start Vertex of part
+ BIND(C,name='SHPSetObjectFortran')
+TYPE(c_ptr),VALUE :: ftnobject
+TYPE(c_ptr),VALUE :: cobject
+INTEGER(kind=c_int) :: nshptype ! Shape Type (SHPT_* - see list above)
+INTEGER(kind=c_int) :: nshapeid ! Shape Number (-1 is unknown/unassigned)
+INTEGER(kind=c_int) :: nparts ! # of Parts (0 implies single part with no info)
+INTEGER(kind=c_int),TARGET :: panpartstart(nparts), & ! Start Vertex of part
  panparttype(nparts) ! Part Type (SHPP_RING if not SHPT_MULTIPATCH)
-INTEGER :: nvertices ! Vertex list 
-REAL(kind=shp_fp_d), TARGET ::  padfx(nvertices), padfy(nvertices), &
+INTEGER(kind=c_int) :: nvertices ! Vertex list 
+REAL(kind=c_double),TARGET ::  padfx(nvertices), padfy(nvertices), &
  padfz(nvertices), padfm(nvertices) ! (all zero if not provided)
-REAL(kind=shp_fp_d) :: & ! Bounds in X, Y, Z and M dimensions
+REAL(kind=c_double) :: & ! Bounds in X, Y, Z and M dimensions
  dfxmin, dfymin, dfzmin, dfmmin, dfxmax, dfymax, dfzmax, dfmmax
 
-obj%shpobject_orig = obj_orig
+TYPE(shpobject),POINTER :: obj
+
+CALL C_F_POINTER(ftnobject, obj)
+
+obj%shpobject_orig = cobject
 obj%nshptype = nshptype
 obj%nshapeid = nshapeid
 obj%nparts = nparts
@@ -932,7 +918,7 @@ obj%dfymax = dfymax
 obj%dfzmax = dfzmax
 obj%dfmmax = dfmmax
 
-END SUBROUTINE shpset_object
+END SUBROUTINE shpsetobjectfortran
 
 END MODULE shapelib
 
