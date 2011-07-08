@@ -1,14 +1,14 @@
 #include <string.h>
-#include "shapefil.h"
+#include "libshp/shapefil.h"
 
-void SHPAPI SHPSetObjectFortran(void*, SHPObject*, 
+void SHPAPI_CALL SHPSetObjectFortran(void*, SHPObject*, 
  int*, int*, int*, int*, int*, int*,
  double*, double*, double*, double*,
  double*, double*, double*, double*,
  double*, double*, double*, double*);
 
 
-int SHPAPI SHPReadObjectInt(SHPHandle hshp, int iShape, void *ftnobject) {
+int SHPAPI_CALL SHPReadObjectInt(SHPHandle hshp, int iShape, void *ftnobject) {
   SHPObject *psObject;
 
   psObject = SHPReadObject(hshp, iShape);
@@ -22,7 +22,7 @@ int SHPAPI SHPReadObjectInt(SHPHandle hshp, int iShape, void *ftnobject) {
 }
 
 
-int SHPAPI SHPCreateSimpleObjectInt(int nSHPType, int nVertices,
+int SHPAPI_CALL SHPCreateSimpleObjectInt(int nSHPType, int nVertices,
    double *padfX, double *padfY, double *padfZ, void *ftnobject) {
   SHPObject *psObject;
 
@@ -36,7 +36,7 @@ int SHPAPI SHPCreateSimpleObjectInt(int nSHPType, int nVertices,
 }
 						 
 
-int SHPAPI SHPCreateObjectInt(int nSHPType, int iShape,
+int SHPAPI_CALL SHPCreateObjectInt(int nSHPType, int iShape,
    int nParts, int *panPartStart, int *panPartType,
    int nVertices, double *padfX, double *padfY, double *padfZ, double *padfM,
    void *ftnobject) {
@@ -53,15 +53,15 @@ int SHPAPI SHPCreateObjectInt(int nSHPType, int iShape,
 }
 						 
 
-void SHPAPI SHPComputeExtentsInt(SHPObject *psObject, void *ftnobject) {
+void SHPAPI_CALL SHPComputeExtentsInt(SHPObject *psObject, void *ftnobject) {
 
   SHPComputeExtents(psObject);
-  shpset_object_int(ftnobject, psObject);
+  SHPSetObjectInt(ftnobject, psObject);
 
 }
 
 
-void SHPSetObjectInt(SHPObject *psObject, void *ftnobject) {
+void SHPSetObjectInt(void *ftnobject, SHPObject *psObject) {
   SHPSetObjectFortran(ftnobject, psObject,
 		      &psObject->nSHPType, &psObject->nShapeId, &psObject->nParts,
 		      psObject->panPartStart, psObject->panPartType,
@@ -75,14 +75,14 @@ void SHPSetObjectInt(SHPObject *psObject, void *ftnobject) {
 }
 
 
-/* void SHPAPI shpdestroyobject_int(SHPObject **psObject) { */
+/* void SHPAPI_CALL shpdestroyobject_int(SHPObject **psObject) { */
 
 /*   SHPDestroyObject(*psObject); */
 
 /* } */
 
 
-/* int SHPAPI shprewindobject_int(SHPHandle *hSHP, SHPObject *psObject) { */
+/* int SHPAPI_CALL shprewindobject_int(SHPHandle *hSHP, SHPObject *psObject) { */
 
 /*    return SHPRewindObject(*hSHP, psObject); */
 /*   return 0; */
@@ -90,7 +90,7 @@ void SHPSetObjectInt(SHPObject *psObject, void *ftnobject) {
 /* } */
 
 
-void SHPAPI DBFReadStringAttributeInt(DBFHandle hDBF, int iShape, int iField,
+void SHPAPI_CALL DBFReadStringAttributeInt(DBFHandle hDBF, int iShape, int iField,
 				      char *attr, int lattr) {
   const char *lstr;
   int i;
