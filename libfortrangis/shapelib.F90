@@ -205,7 +205,7 @@ INTERFACE
   TYPE(c_ptr),VALUE :: psshape
   END SUBROUTINE shpdestroyobject_orig
 
-#ifdef SHAPELIB_1210
+#ifndef SHAPELIB_PRE10
   FUNCTION shprewindobject_orig(hshp, psobject) BIND(C,name='SHPRewindObject')
   IMPORT
   TYPE(c_ptr),VALUE :: hshp
@@ -216,12 +216,12 @@ INTERFACE
 END INTERFACE
 
 INTERFACE
-  FUNCTION dbfopen_orig(pszfilename, pszaccess) BIND(C,name='DBFOpen')
+  FUNCTION dbfopen(pszfilename, pszaccess) BIND(C,name='DBFOpen')
   IMPORT
   CHARACTER(kind=c_char) :: pszfilename(*)
   CHARACTER(kind=c_char) :: pszaccess(*)
-  TYPE(c_ptr) :: dbfopen_orig
-  END FUNCTION dbfopen_orig
+  TYPE(c_ptr) :: dbfopen
+  END FUNCTION dbfopen
 
   SUBROUTINE dbfclose(psdbf) BIND(C,name='DBFClose')
   IMPORT
@@ -277,14 +277,14 @@ INTERFACE
   CHARACTER(kind=c_char) :: dbfreadlogicalattribute
   END FUNCTION dbfreadlogicalattribute
 
-#ifdef SHAPELIB_1210
-  FUNCTION dbfisattributenull(psdbf, irecord, ifield) BIND(C,name='DBFIsAttributeNULL')
+#ifndef SHAPELIB_PRE10
+  FUNCTION dbfisattributenull_orig(psdbf, irecord, ifield) BIND(C,name='DBFIsAttributeNULL')
   IMPORT
   TYPE(c_ptr),VALUE :: psdbf
   INTEGER(kind=c_int),VALUE :: irecord
   INTEGER(kind=c_int),VALUE :: ifield
-  INTEGER(kind=c_int) :: dbfisattributenull
-  END FUNCTION dbfisattributenull
+  INTEGER(kind=c_int) :: dbfisattributenull_orig
+  END FUNCTION dbfisattributenull_orig
 #endif
 
   FUNCTION dbfgetfieldcount(psdbf) BIND(C,name='DBFGetFieldCount')
@@ -353,20 +353,20 @@ INTERFACE
   INTEGER(kind=c_int) :: dbfwritelogicalattribute
   END FUNCTION dbfwritelogicalattribute
 
-#ifdef SHAPELIB_1210
-  FUNCTION dbfgetnativefieldtype(psdbf, ifield) BIND(C,name='DBFGetNativeFieldType')
+#ifndef SHAPELIB_PRE10
+  FUNCTION dbfgetnativefieldtype_orig(psdbf, ifield) BIND(C,name='DBFGetNativeFieldType')
   IMPORT
   TYPE(c_ptr),VALUE :: psdbf
   INTEGER(kind=c_int),VALUE :: ifield
-  CHARACTER(kind=c_char) :: dbfgetnativefieldtype
-  END FUNCTION dbfgetnativefieldtype
+  INTEGER(kind=c_signed_char) :: dbfgetnativefieldtype_orig
+  END FUNCTION dbfgetnativefieldtype_orig
 
-  FUNCTION dbfgetfieldindex(psdbf, pszfieldname) BIND(C,name='DBFGetFieldIndex')
+  FUNCTION dbfgetfieldindex_orig(psdbf, pszfieldname) BIND(C,name='DBFGetFieldIndex')
   IMPORT
   TYPE(c_ptr),VALUE :: psdbf
   CHARACTER(kind=c_char) :: pszfieldname(*)
-  INTEGER(kind=c_int) :: dbfgetfieldindex
-  END FUNCTION dbfgetfieldindex
+  INTEGER(kind=c_int) :: dbfgetfieldindex_orig
+  END FUNCTION dbfgetfieldindex_orig
 #endif
 
 END INTERFACE
@@ -391,8 +391,8 @@ CHARACTER(len=*),INTENT(in) :: pszshapefile !< filename without extension
 CHARACTER(len=*),INTENT(in) :: pszaccess !< file access mode
 TYPE(shpfileobject) :: shpopen
 
-shpopen%shpfile_orig = shpopen_orig(pszshapefile, pszaccess)
-shpopen%dbffile_orig = dbfopen_orig(pszshapefile, pszaccess)
+shpopen%shpfile_orig = shpopen_orig(TRIM(pszshapefile)//CHAR(0), TRIM(pszaccess)//CHAR(0))
+shpopen%dbffile_orig = dbfopen(TRIM(pszshapefile)//CHAR(0), TRIM(pszaccess)//CHAR(0))
 
 END FUNCTION shpopen
 
@@ -434,8 +434,8 @@ CHARACTER(len=*),INTENT(in) :: pszshapefile !< filename without extension
 INTEGER,INTENT(in) :: nshapetype !< type of shapes in the dataset
 TYPE(shpfileobject) :: shpcreate
 
-shpcreate%shpfile_orig = shpcreate_orig(pszshapefile, nshapetype)
-shpcreate%dbffile_orig = dbfcreate(pszshapefile)
+shpcreate%shpfile_orig = shpcreate_orig(TRIM(pszshapefile)//CHAR(0), nshapetype)
+shpcreate%dbffile_orig = dbfcreate(TRIM(pszshapefile)//CHAR(0))
 
 END FUNCTION shpcreate
 
@@ -624,7 +624,7 @@ psobject = shpobject_null
 END SUBROUTINE shpdestroyobject
 
 
-#ifdef SHAPELIB_1210
+#ifndef SHAPELIB_PRE10
 !> It sets the correct ring order.
 !! This function will reverse any ring necessary in order to enforce
 !! the shapefile restrictions on the required order of inner and outer
@@ -662,7 +662,7 @@ CHARACTER(len=*),INTENT(in) :: pszfieldname !< field name to search
 INTEGER :: dbfgetfieldindex
 
 IF (.NOT.dbffileisnull(hshp)) THEN
-  dbfgetfieldindex = dbfgetfieldindex_orig(hshp%dbffile_orig, pszfieldname)
+  dbfgetfieldindex = dbfgetfieldindex_orig(hshp%dbffile_orig, TRIM(pszfieldname)//CHAR(0))
 ELSE
   dbfgetfieldindex = -1
 ENDIF
@@ -712,7 +712,7 @@ INTEGER,INTENT(in) :: ndecimals !< the number of decimals in a floating point re
 INTEGER :: dbfaddfield
 
 IF (.NOT.dbffileisnull(hshp)) THEN
-  dbfaddfield = dbfaddfield_orig(hshp%dbffile_orig, pszfieldname, &
+  dbfaddfield = dbfaddfield_orig(hshp%dbffile_orig, TRIM(pszfieldname)//CHAR(0), &
    etype, nwidth, ndecimals)
 ELSE
   dbfaddfield = -1
@@ -763,7 +763,7 @@ ENDIF
 END SUBROUTINE dbfreadstringattribute_f
 
 
-#ifdef SHAPELIB_1210
+#ifndef SHAPELIB_PRE10
 !> It returns \c .TRUE. if the requested attribute is NULL valued.
 !! Note that NULL fields are represented in the .dbf file as having
 !! all spaces in the field. Reading NULL fields will result in a value
@@ -846,7 +846,7 @@ ENDIF
 END FUNCTION dbfwritenullattribute_f
 
 
-#ifdef SHAPELIB_1210
+#ifndef SHAPELIB_PRE10
 !> It returns the dbf type code of the requested field.
 !! The return value is a single character and it can assume the
 !! following values:
