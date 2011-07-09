@@ -1,5 +1,5 @@
 #include <string.h>
-#include "libshp/shapefil.h"
+#include "shapefil.h"
 
 void SHPAPI_CALL SHPSetObjectFortran(void*, SHPObject*, 
  int*, int*, int*, int*, int*, int*,
@@ -82,12 +82,23 @@ void SHPSetObjectInt(void *ftnobject, SHPObject *psObject) {
 /* } */
 
 
-/* int SHPAPI_CALL shprewindobject_int(SHPHandle *hSHP, SHPObject *psObject) { */
+int SHPAPI_CALL SHPRewindObjectInt(SHPHandle *hSHP, SHPObject *psObject,
+				   void *ftnobject) {
+  int res;
+  res = SHPRewindObject(*hSHP, psObject);
+  SHPSetObjectFortran(ftnobject, psObject,
+		      &psObject->nSHPType, &psObject->nShapeId, &psObject->nParts,
+		      psObject->panPartStart, psObject->panPartType,
+		      &psObject->nVertices,
+		      psObject->padfX, psObject->padfY,
+		      psObject->padfZ, psObject->padfM,
+		      &psObject->dfXMin, &psObject->dfYMin,
+		      &psObject->dfZMin, &psObject->dfMMin,
+		      &psObject->dfXMax, &psObject->dfYMax,
+		      &psObject->dfZMax, &psObject->dfMMax);
+  return res;
 
-/*    return SHPRewindObject(*hSHP, psObject); */
-/*   return 0; */
-
-/* } */
+}
 
 
 void SHPAPI_CALL DBFReadStringAttributeInt(DBFHandle hDBF, int iShape, int iField,

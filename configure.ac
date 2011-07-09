@@ -12,11 +12,11 @@ dnl AC_DEFINE_UNQUOTED(_UNIX
 dnl AC_DEFINE_UNQUOTED(__PLACEMENT_NEW_INLINE
 AC_PATH_XTRA
 
-dnl capire perche' senza --enable-qualcosa objext='' e non va il copilatore
+dnl capire perche' senza --enable-qualcosa objext='' e non va il compilatore
 
-AC_ARG_ENABLE(gdal, AC_HELP_STRING([--enable-gdal],
+AC_ARG_ENABLE(gdal, AC_HELP_STRING([--disable-gdal],
 [enable build of Fortran 2003 bindings for gdal]),,
-[enableval=no])dnl default disable
+[enableval=yes])dnl default enable
 AM_CONDITIONAL(GDAL, test "x$enableval" = "xyes")
 enablegdal=$enableval
 
@@ -26,12 +26,12 @@ AC_CHECK_LIB([gdal], [GDALAllRegister],
  GDAL_LIBS="-lgdal"
  AC_SUBST(GDAL_LIBS)
  AC_DEFINE(HAVE_LIBGDAL, 1, [Enable gdal]),
- AC_MSG_RESULT([gdal library not found]), )
+ AC_MSG_ERROR([gdal library not found]), )
 fi
 
-AC_ARG_ENABLE(proj, AC_HELP_STRING([--enable-proj],
+AC_ARG_ENABLE(proj, AC_HELP_STRING([--disable-proj],
 [enable build of Fortran 2003 bindings for proj]),,
-[enableval=no])dnl default disable
+[enableval=yes])dnl default enable
 AM_CONDITIONAL(PROJ, test "x$enableval" = "xyes")
 enableproj=$enableval
 
@@ -41,12 +41,12 @@ AC_CHECK_LIB([proj], [pj_init],
  PROJ_LIBS="-lproj"
  AC_SUBST(PROJ_LIBS)
  AC_DEFINE(HAVE_LIBPROJ, 1, [Enable proj]),
- AC_MSG_RESULT([proj library not found]), )
+ AC_MSG_ERROR([proj library not found]), )
 fi
 
-AC_ARG_ENABLE(shapelib, AC_HELP_STRING([--enable-shapelib],
+AC_ARG_ENABLE(shapelib, AC_HELP_STRING([--disable-shapelib],
 [enable build of Fortran 2003 bindings for shapelib]),,
-[enableval=no])dnl default disable
+[enableval=yes])dnl default enable
 AM_CONDITIONAL(SHP, test "x$enableval" = "xyes")
 enableshp=$enableval
 
@@ -56,7 +56,15 @@ AC_CHECK_LIB([shp], [SHPOpen],
  SHP_LIBS="-lshp"
  AC_SUBST(SHP_LIBS)
  AC_DEFINE(HAVE_LIBSHP, 1, [Enable shp]),
- AC_MSG_RESULT([shapelib library not found]), )
+ AC_MSG_ERROR([shapelib library not found]), )
+shpheader=no
+AC_CHECK_HEADER([shapefil.h],,shpheader=yes)
+dnl retry in libshp subdir
+if test "x$shpheader" = "xno"; then
+ CPPFLAGS="$CPPFLAGS -I/usr/include/libshp"
+ AC_CHECK_HEADER([shapefil.h],,
+  AC_MSG_ERROR([shapefil.h header file not found please provide correct FCFLAGS=-I... option]))
+fi
 fi
 
 dnl Locate Fortran 90 compiler among these if not specified

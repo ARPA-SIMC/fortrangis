@@ -206,12 +206,13 @@ INTERFACE
   END SUBROUTINE shpdestroyobject_orig
 
 #ifndef SHAPELIB_PRE10
-  FUNCTION shprewindobject_orig(hshp, psobject) BIND(C,name='SHPRewindObject')
+  FUNCTION shprewindobject_int(hshp, psobject, ftnobject) BIND(C,name='SHPRewindObjectInt')
   IMPORT
   TYPE(c_ptr),VALUE :: hshp
   TYPE(c_ptr),VALUE :: psobject
-  INTEGER(kind=c_int) :: shprewindobject_orig
-  END FUNCTION shprewindobject_orig
+  TYPE(c_ptr),VALUE :: ftnobject
+  INTEGER(kind=c_int) :: shprewindobject_int
+  END FUNCTION shprewindobject_int
 #endif
 END INTERFACE
 
@@ -635,12 +636,13 @@ END SUBROUTINE shpdestroyobject
 !! later.
 FUNCTION shprewindobject(hshp, psobject)
 TYPE(shpfileobject),INTENT(inout) :: hshp !< shapefile object (not used)
-TYPE(shpobject),INTENT(inout) :: psobject !< shape object to be rewound
+TYPE(shpobject),INTENT(inout),TARGET :: psobject !< shape object to be rewound
 LOGICAL :: shprewindobject
 
 INTEGER :: ier
 
-ier = shprewindobject_orig(hshp%shpfile_orig, psobject%shpobject_orig)
+ier = shprewindobject_int(hshp%shpfile_orig, psobject%shpobject_orig, &
+ C_LOC(psobject))
 IF (ier == 0) THEN
   shprewindobject = .FALSE.
 ELSE
