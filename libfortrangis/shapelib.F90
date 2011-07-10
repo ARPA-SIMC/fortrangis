@@ -262,6 +262,14 @@ INTERFACE
   REAL(kind=c_double) :: dbfreaddoubleattribute_orig
   END FUNCTION dbfreaddoubleattribute_orig
 
+  FUNCTION dbfreadstringattribute_orig(psdbf, irecord, ifield) BIND(C,name='DBFReadStringAttribute')
+  IMPORT
+  TYPE(c_ptr),VALUE :: psdbf
+  INTEGER(kind=c_int),VALUE :: irecord
+  INTEGER(kind=c_int),VALUE :: ifield
+  TYPE(c_ptr) :: dbfreadstringattribute_orig
+  END FUNCTION dbfreadstringattribute_orig
+
   SUBROUTINE dbfreadstringattribute_int(psdbf, irecord, ifield, attr, lattr) BIND(C,name='DBFReadStringAttributeInt')
   IMPORT
   TYPE(c_ptr),VALUE :: psdbf
@@ -757,7 +765,13 @@ TYPE(shpfileobject),INTENT(inout) :: hshp
 INTEGER,INTENT(in) :: ishape, ifield
 CHARACTER(len=*),INTENT(out) :: attr
 
+TYPE(c_ptr) :: lptr
+INTEGER :: i
+
 IF (.NOT.dbffileisnull(hshp)) THEN
+!  lptr = dbfreadstringattribute_orig(hshp%dbffile_orig, ishape, ifield)
+!  i = MIN(LEN(attr), strlen(lptr))
+!  attr(1:i) = strtofchar(lptr)
   CALL dbfreadstringattribute_int(hshp%dbffile_orig, ishape, ifield, attr, LEN(attr))
 ELSE
   attr = ''
