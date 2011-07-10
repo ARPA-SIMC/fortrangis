@@ -12,9 +12,10 @@
 !!    into two f90 interfaces called \a dbfreadattribute and \a
 !!    dbwriteattribute respectively.
 !!
-!! \ingroup base
+!! \ingroup libfortrangis
 MODULE shapelib
 USE,INTRINSIC :: ISO_C_BINDING
+USE fortranc
 IMPLICIT NONE
 
 INTEGER,PARAMETER :: shpt_null = 0 !< Series of constants for specifying type of new shape datasets with \a shpcreate, null shape
@@ -392,8 +393,8 @@ CHARACTER(len=*),INTENT(in) :: pszshapefile !< filename without extension
 CHARACTER(len=*),INTENT(in) :: pszaccess !< file access mode
 TYPE(shpfileobject) :: shpopen
 
-shpopen%shpfile_orig = shpopen_orig(TRIM(pszshapefile)//CHAR(0), TRIM(pszaccess)//CHAR(0))
-shpopen%dbffile_orig = dbfopen(TRIM(pszshapefile)//CHAR(0), TRIM(pszaccess)//CHAR(0))
+shpopen%shpfile_orig = shpopen_orig(fchartrimtostr(pszshapefile), fchartrimtostr(pszaccess))
+shpopen%dbffile_orig = dbfopen(fchartrimtostr(pszshapefile), fchartrimtostr(pszaccess))
 
 END FUNCTION shpopen
 
@@ -435,8 +436,8 @@ CHARACTER(len=*),INTENT(in) :: pszshapefile !< filename without extension
 INTEGER,INTENT(in) :: nshapetype !< type of shapes in the dataset
 TYPE(shpfileobject) :: shpcreate
 
-shpcreate%shpfile_orig = shpcreate_orig(TRIM(pszshapefile)//CHAR(0), nshapetype)
-shpcreate%dbffile_orig = dbfcreate(TRIM(pszshapefile)//CHAR(0))
+shpcreate%shpfile_orig = shpcreate_orig(fchartrimtostr(pszshapefile), nshapetype)
+shpcreate%dbffile_orig = dbfcreate(fchartrimtostr(pszshapefile))
 
 END FUNCTION shpcreate
 
@@ -664,7 +665,7 @@ CHARACTER(len=*),INTENT(in) :: pszfieldname !< field name to search
 INTEGER :: dbfgetfieldindex
 
 IF (.NOT.dbffileisnull(hshp)) THEN
-  dbfgetfieldindex = dbfgetfieldindex_orig(hshp%dbffile_orig, TRIM(pszfieldname)//CHAR(0))
+  dbfgetfieldindex = dbfgetfieldindex_orig(hshp%dbffile_orig, fchartrimtostr(pszfieldname))
 ELSE
   dbfgetfieldindex = -1
 ENDIF
@@ -714,7 +715,7 @@ INTEGER,INTENT(in) :: ndecimals !< the number of decimals in a floating point re
 INTEGER :: dbfaddfield
 
 IF (.NOT.dbffileisnull(hshp)) THEN
-  dbfaddfield = dbfaddfield_orig(hshp%dbffile_orig, TRIM(pszfieldname)//CHAR(0), &
+  dbfaddfield = dbfaddfield_orig(hshp%dbffile_orig, fchartrimtostr(pszfieldname), &
    etype, nwidth, ndecimals)
 ELSE
   dbfaddfield = -1
@@ -826,7 +827,7 @@ CHARACTER(len=*),INTENT(in) :: attr
 INTEGER :: dbfwriteattribute
 
 IF (.NOT.dbffileisnull(hshp)) THEN
-  dbfwriteattribute = dbfwritestringattribute(hshp%dbffile_orig, ishape, ifield, attr//CHAR(0))
+  dbfwriteattribute = dbfwritestringattribute(hshp%dbffile_orig, ishape, ifield, fchartostr(attr))
 ELSE
   dbfwriteattribute = 0
 ENDIF

@@ -1,6 +1,7 @@
 lib_LTLIBRARIES = libfortrangis.la
 libfortrangis_la_SOURCES = 
-libfortrangis_la_LIBADD =
+libfortrangis_la_LIBADD = ../libfortranc/libfortranc.la
+libfortrangis_la_CPPFLAGS = -I../libfortranc
 nodist_include_HEADERS = 
 
 check_PROGRAMS =
@@ -29,4 +30,4 @@ nodist_include_HEADERS += gdal.mod
 endif
 
 mostlyclean-compile:
-	-rm -f *.$(OBJEXT) *.mod
+	-rm -f *.$(OBJEXT) *.mod testshape.dbf testshape.shp testshape.shx

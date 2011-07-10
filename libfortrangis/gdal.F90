@@ -1,7 +1,8 @@
 !> Fortran 2003 interface to gdal library (C interface). This module includes
 !! the interface to a very basic subset of gdal functions, enough to
 !! read data of any kind from a file format supported by gdal.
-!! \ingroup base
+!!
+!! \ingroup libfortrangis
 MODULE gdal
 USE,INTRINSIC :: ISO_C_BINDING
 IMPLICIT NONE
