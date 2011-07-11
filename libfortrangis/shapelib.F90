@@ -765,14 +765,8 @@ TYPE(shpfileobject),INTENT(inout) :: hshp
 INTEGER,INTENT(in) :: ishape, ifield
 CHARACTER(len=*),INTENT(out) :: attr
 
-TYPE(c_ptr) :: lptr
-INTEGER :: i
-
 IF (.NOT.dbffileisnull(hshp)) THEN
-!  lptr = dbfreadstringattribute_orig(hshp%dbffile_orig, ishape, ifield)
-!  i = MIN(LEN(attr), strlen(lptr))
-!  attr(1:i) = strtofchar(lptr)
-  CALL dbfreadstringattribute_int(hshp%dbffile_orig, ishape, ifield, attr, LEN(attr))
+  attr = strtofchar(dbfreadstringattribute_orig(hshp%dbffile_orig, ishape, ifield))
 ELSE
   attr = ''
 ENDIF

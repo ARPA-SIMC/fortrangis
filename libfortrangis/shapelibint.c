@@ -100,14 +100,3 @@ int SHPAPI_CALL SHPRewindObjectInt(SHPHandle *hSHP, SHPObject *psObject,
 
 }
 
-
-void SHPAPI_CALL DBFReadStringAttributeInt(DBFHandle hDBF, int iShape, int iField,
-				      char *attr, int lattr) {
-  const char *lstr;
-  int i;
-
-  lstr = DBFReadStringAttribute(hDBF, iShape, iField);
-  for(i = 0; i < lattr && lstr[i] != '\0'; i++) attr[i] = lstr[i];
-  for(;i < lattr; i++) attr[i] = ' ';
-
-}
