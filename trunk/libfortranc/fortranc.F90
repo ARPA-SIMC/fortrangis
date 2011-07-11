@@ -22,6 +22,17 @@ END INTERFACE
 !! CHARACTER of length one, as an array of 1-byte integers or as a C
 !! pointer to char (\a char \a *).
 !!
+!! It is typically used for:
+!!
+!!  - converting a string created/modified by a C function and passed
+!!    as a \n char \n * argument, interfaced as \n
+!!    CHARACTER(kind=c_char,len=*) \n :: \n fchar for its subsequent
+!!    use in Fortran
+!!
+!!  - (more frequently) converting a string returned by a C function
+!!    declared as \n char \n * , interfaced as \n TYPE(c_ptr) for its
+!!    subsequent use in Fortran
+!!
 !! \param string null-terminated C-style string to convert
 INTERFACE strtofchar
   MODULE PROCEDURE strtofchar_char, strtofchar_chararr, strtofchar_intarr, &
@@ -78,7 +89,7 @@ END FUNCTION strlen_intarr
 
 
 PURE FUNCTION strlen_ptr(string) RESULT(strlen)
-TYPE(c_ptr),VALUE,INTENT(in) :: string
+TYPE(c_ptr),INTENT(in) :: string
 INTEGER :: strlen
 
 INTEGER(kind=c_signed_char),POINTER :: pstring(:)
@@ -130,7 +141,7 @@ END FUNCTION strtofchar_intarr
 
 
 FUNCTION strtofchar_ptr(string) RESULT(fchar)
-TYPE(c_ptr),VALUE :: string
+TYPE(c_ptr) :: string
 CHARACTER(len=strlen(string)) :: fchar
 
 CHARACTER(len=strlen(string)),POINTER :: pfchar

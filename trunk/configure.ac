@@ -57,14 +57,8 @@ AC_CHECK_LIB([shp], [SHPOpen],
  AC_SUBST(SHP_LIBS)
  AC_DEFINE(HAVE_LIBSHP, 1, [Enable shp]),
  AC_MSG_ERROR([shapelib library not found]), )
-shpheader=no
-AC_CHECK_HEADER([shapefil.h],,shpheader=yes)
-dnl retry in libshp subdir
-if test "x$shpheader" = "xno"; then
- CPPFLAGS="$CPPFLAGS -I/usr/include/libshp"
- AC_CHECK_HEADER([shapefil.h],,
-  AC_MSG_ERROR([shapefil.h header file not found please provide correct FCFLAGS=-I... option]))
-fi
+AC_CHECK_HEADER([shapefil.h],,
+ AC_MSG_ERROR([you probably have to provide the correct CPPFLAGS=-I... option e.g. CPPFLAGS=-I/usr/include/libshp]))
 fi
 
 dnl Locate Fortran 90 compiler among these if not specified
