@@ -1,6 +1,7 @@
-!> Fortran 2003 interface to gdal library (C interface). This module includes
-!! the interface to a very basic subset of gdal functions, enough to
-!! read data of any kind from a file format supported by gdal.
+!> Fortran 2003 interface to the gdal http://www.gdal.org/ library.
+!! This module includes the interface to a very basic subset of gdal C
+!! API functions, enough to read data of any kind from a file format
+!! supported by gdal.
 !!
 !! \ingroup libfortrangis
 MODULE gdal
@@ -51,14 +52,14 @@ INTEGER(kind=c_int),PARAMETER :: & ! GDALRATFieldUsage
  GFU_BlueMin = 12, GFU_AlphaMin = 13, GFU_RedMax = 14, &
  GFU_GreenMax = 15, GFU_BlueMax = 16, GFU_AlphaMax = 17, GFU_MaxCount = 18
 
-!< Derived type defining a gdal dataset. No operations should be
+!> Derived type defining a gdal dataset. No operations should be
 !! performed on it except checking the null state with \a
 !! C_ASSOCIATED(hds%ptr).
 TYPE, BIND(C) :: gdaldataseth
   TYPE(c_ptr) :: ptr
 END TYPE gdaldataseth
 
-!< Derived type defining a gdal raster band. No operations should be
+!> Derived type defining a gdal raster band. No operations should be
 !! performed on it except checking the null state with \a
 !! C_ASSOCIATED(hband%ptr).
 TYPE, BIND(C) :: gdalrasterbandh

@@ -1,9 +1,7 @@
-!> Fortran interface to the shapelib http://shapelib.maptools.org/ C
-!! library.  It defines two derived types: \a shpfileobject associated
-!! to a shapefile dataset, and \a shpobject associated to a single
-!! shape within a dataset. Access to database (.dbf) information is
-!! done by accessing the file object only. The API reflects the
-!! original shapelib C API with some modifications:
+!> Fortran 2003 interface to the shapelib http://shapelib.maptools.org/
+!! library.
+!! This module defines an API which reflects the original shapelib C
+!! API with some modifications:
 !!
 !!  - \a shpopen, \a shpcreate and \a shpclose functions act also on
 !!    .dbf files
@@ -11,6 +9,11 @@
 !!  - the \a DBFRead*Attribute and \a DBWrite*Attribute are converted
 !!    into two f90 interfaces called \a dbfreadattribute and \a
 !!    dbwriteattribute respectively.
+!!
+!! The module defines two derived types: \a shpfileobject associated
+!! to a shapefile dataset, and \a shpobject associated to a single
+!! shape within a dataset. Access to database (.dbf) information is
+!! done by accessing the file object only.
 !!
 !! \ingroup libfortrangis
 MODULE shapelib
@@ -78,7 +81,7 @@ TYPE shpobject
 END TYPE shpobject
 
 !TYPE(shpfileobject),PARAMETER :: shpfileobject_null = shpfileobject(0, 0)
-TYPE(shpobject),PARAMETER,PRIVATE :: shpobject_null = shpobject(c_null_ptr, &
+TYPE(shpobject),PARAMETER :: shpobject_null = shpobject(c_null_ptr, &
  0, -1, 0, &
  NULL(), NULL(), 0, NULL(), NULL(), NULL(), NULL(), &
  0.0_c_double, 0.0_c_double, 0.0_c_double, 0.0_c_double, &
@@ -381,6 +384,18 @@ INTERFACE
 
 END INTERFACE
 
+PRIVATE
+PUBLIC shpt_null, shpt_point, shpt_arc, shpt_polygon, shpt_multipoint, &
+ shpt_pointz, shpt_arcz, shpt_polygonz, shpt_multipointz, shpt_pointm, &
+ shpt_arcm, shpt_polygonm, shpt_multipointm, shpt_multipatch, &
+ ftstring, ftinteger, ftdouble, ftlogical, ftinvalid
+PUBLIC shpfileobject, shpobject
+PUBLIC dbfreadattribute, dbfwriteattribute
+PUBLIC shpopen, shpfileisnull, dbffileisnull, shpcreate, shpgetinfo, &
+ shpreadobject, shpisnull, shpclose, shpcreatesimpleobject, shpcreateobject, &
+ shpcomputeextents, shpwriteobject, shpdestroyobject, &
+ dbfgetfieldindex, dbfgetfieldinfo, dbfaddfield, dbfisattributenull, &
+ dbfgetnativefieldtype
 
 CONTAINS
 
@@ -572,7 +587,7 @@ INTEGER :: ishape !< shapeid to be recorded with this shape
 INTEGER :: nparts !< number of parts
 INTEGER :: nvertices !< number of vertices
 INTEGER :: panpartstart(nparts) !< start indices of each part
-INTEGER :: panparttype(nparts) !< type of each of the parts, this is only meaningful for \a MULTIPATCH files, for all other cases it will be assumed to be \a SHPP_RING
+INTEGER :: panparttype(nparts) !< type of each of the parts, this is only meaningful for \a MULTIPATCH files, for all other cases it will be assumed to be \a SHPP_RING 
 REAL(kind=c_double) :: padfx(nvertices) !< x coordinates
 REAL(kind=c_double) :: padfy(nvertices) !< y coordinates
 REAL(kind=c_double),OPTIONAL :: padfz(nvertices) !< z coordinates, it can be skipped
