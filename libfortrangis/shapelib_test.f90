@@ -1,4 +1,5 @@
 PROGRAM shp_write_test
+USE,INTRINSIC :: ISO_C_BINDING
 USE shapelib
 IMPLICIT NONE
 

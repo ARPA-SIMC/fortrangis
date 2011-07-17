@@ -80,6 +80,24 @@ with at least the ISO_C_BINDING module capabilities of Fortran 2003 standard]
 
 AC_LANG_POP()dnl back to C
 
+AC_ARG_ENABLE(versioninfo, AC_HELP_STRING([--disable-versioninfo],
+  [disable version information in shared libraries]),,[enableval=yes])dnl default enable
+AM_CONDITIONAL(VERSIONINFO, test "x$enableval" = "xyes")
+
+AC_ARG_ENABLE(doxydoc, AC_HELP_STRING([--disable-doxydoc],
+  [disable generation of doxygen documentation]),,[enableval=yes])dnl default enable
+
+DOXYBIN=
+if test "x$enableval" = "xyes"; then
+ AC_CHECK_PROG(DOXYBIN, doxygen, yes, no)
+ if test "x$DOXYBIN" = "xno"; then
+   AC_MSG_ERROR([doxygen not found use --disable-doxydoc to disable documentation generation])
+ fi
+fi
+AM_CONDITIONAL(DOXYDOC, test "x$DOXYBIN" = "xyes")
+
+
+
 dnl check for debug mode
 AC_ARG_ENABLE(debug-mode, AC_HELP_STRING([--enable-debug-mode],
   [enable debug mode]), , [enableval=no])dnl default disable
@@ -104,6 +122,8 @@ AC_CONFIG_FILES([
 Makefile
 libfortranc/Makefile
 libfortrangis/Makefile
+doc/Doxyfile
+doc/Makefile
 ])
 
 AC_OUTPUT
