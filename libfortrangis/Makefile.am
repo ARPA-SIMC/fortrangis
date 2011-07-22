@@ -4,6 +4,10 @@ libfortrangis_la_LIBADD = ../libfortranc/libfortranc.la
 libfortrangis_la_CPPFLAGS = -I../libfortranc
 nodist_include_HEADERS = 
 
+if VERSIONINFO
+libfortrangis_la_LDFLAGS = -version-info @VERSIONLIB@
+endif
+
 check_PROGRAMS =
 TESTS = $(check_PROGRAMS)
 

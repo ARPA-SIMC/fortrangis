@@ -33,6 +33,11 @@
 !! shape within a dataset. Access to database (.dbf) information is
 !! done by accessing the file object only.
 !!
+!! For an example of application of the \a shapelib module, have a
+!! look at the following test program, which creates a shapefile and
+!! successively reads it:
+!! \include shapelib_test.f90
+!!
 !! \ingroup libfortrangis
 MODULE shapelib
 USE,INTRINSIC :: ISO_C_BINDING
