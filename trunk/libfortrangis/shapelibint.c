@@ -1,3 +1,4 @@
+/*
     Copyright 2011 Davide Cesari <dcesari69 at gmail dot com>
 
     This file is part of FortranGIS.
@@ -15,6 +16,7 @@
     You should have received a copy of the GNU Lesser General Public
     License along with FortranGIS.  If not, see
     <http://www.gnu.org/licenses/>.
+*/
 
 #include <string.h>
 #include "shapefil.h"
