@@ -22,7 +22,7 @@ PROJECT_NAME           = @PACKAGE_NAME@
 # This could be handy for archiving the generated documentation or 
 # if some version control system is used.
 
-PROJECT_NUMBER         = Versione @PACKAGE_VERSION@
+PROJECT_NUMBER         = Version @PACKAGE_VERSION@
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) 
 # base path where the generated documentation will be put. 
@@ -515,7 +515,7 @@ EXCLUDE_PATTERNS       =
 # directories that contain example code fragments that are included (see 
 # the \include command).
 
-EXAMPLE_PATH           = @top_srcdir@/examples
+EXAMPLE_PATH           = @top_srcdir@/libfortrangis
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the 
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 

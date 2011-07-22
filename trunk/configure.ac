@@ -1,15 +1,15 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT(FortranGIS, 1.0,)
+AC_INIT(FortranGIS, 1.0, [dcesari69@gmail.com])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([configure.ac])
 AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_MACRO_DIR([m4])
 
+VERSIONLIB=`echo $VERSION | awk -F. '{printf "%d:%d", $1, $2}'`
+AC_SUBST(VERSIONLIB)
+
 AC_LANG([C])
-dnl AC_C_BIGENDIAN
-dnl AC_DEFINE_UNQUOTED(_UNIX
-dnl AC_DEFINE_UNQUOTED(__PLACEMENT_NEW_INLINE
 AC_PATH_XTRA
 
 dnl capire perche' senza --enable-qualcosa objext='' e non va il compilatore
