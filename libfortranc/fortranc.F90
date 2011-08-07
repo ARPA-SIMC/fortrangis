@@ -26,6 +26,12 @@ MODULE fortranc
 USE,INTRINSIC :: ISO_C_BINDING
 IMPLICIT NONE
 
+TYPE charpp
+!  TYPE(c_ptr) :: charpp_orig = C_NULL_PTR
+  TYPE(c_ptr),POINTER :: elem(:) => NULL()
+!  INTEGER :: nelem = 0
+END TYPE charpp
+
 !> Equivalent of the strlen C function.
 !!
 !! \param string null-terminated C-style string to test
@@ -193,5 +199,24 @@ string = TRIM(fchar)//CHAR(0)
 
 END FUNCTION fchartrimtostr
 
+
+FUNCTION charpp_new(charpp_orig) RESULT(this)
+TYPE(c_ptr),VALUE :: charpp_orig
+!TYPE(c_ptr),INTENT(in) :: charpp_orig
+TYPE(charpp) :: this
+
+INTEGER :: i
+TYPE(c_ptr),POINTER :: charp(:)
+
+IF (C_ASSOCIATED(charpp_orig)) THEN
+  CALL C_F_POINTER(charpp_orig, charp, (/HUGE(1)/))
+  DO i = 1, SIZE(charp)
+    IF (.NOT.C_ASSOCIATED(charp(i))) THEN
+      CALL C_F_POINTER(charpp_orig, this%elem, (/i-1/))
+      RETURN
+    ENDIF
+  ENDDO
+ENDIF
+END FUNCTION charpp_new
 
 END MODULE fortranc
