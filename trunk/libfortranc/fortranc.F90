@@ -219,4 +219,19 @@ IF (C_ASSOCIATED(charpp_orig)) THEN
 ENDIF
 END FUNCTION charpp_new
 
+
+FUNCTION charpp_getchar(this, n)
+TYPE(charpp),INTENT(in) :: this
+INTEGER,INTENT(in) :: n
+CHARACTER(len=256) :: charpp_getchar
+
+charpp_getchar = ''
+IF (ASSOCIATED(this%elem)) THEN
+  IF (n <= SIZE(this%elem)) THEN
+    charpp_getchar = strtofchar(this%elem(n))
+  ENDIF
+ENDIF
+
+END FUNCTION charpp_getchar
+
 END MODULE fortranc
