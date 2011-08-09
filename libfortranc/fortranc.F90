@@ -26,10 +26,15 @@ MODULE fortranc
 USE,INTRINSIC :: ISO_C_BINDING
 IMPLICIT NONE
 
+
+!> Fortran class for handling char** C objects.
+!! This class allows Fortran programs to extract the data pointed by
+!! every single pointer in a C char** object (or in principle a C
+!! array of pointers to any kind of data), provided that the array of
+!! pointers is terminated by a NULL pointer.
 TYPE charpp
-!  TYPE(c_ptr) :: charpp_orig = C_NULL_PTR
+  PRIVATE
   TYPE(c_ptr),POINTER :: elem(:) => NULL()
-!  INTEGER :: nelem = 0
 END TYPE charpp
 
 !> Equivalent of the strlen C function.
@@ -65,7 +70,7 @@ END INTERFACE
 
 PRIVATE
 PUBLIC strlen, strtofchar, fchartostr, fchartrimtostr
-
+PUBLIC charpp, charpp_new, charpp_getsize, charpp_getptr
 
 CONTAINS
 
@@ -199,7 +204,9 @@ string = TRIM(fchar)//CHAR(0)
 
 END FUNCTION fchartrimtostr
 
-
+!> Constructor for the charpp class.
+!! It must be initialized by a C array of pointers (char** cobj or
+!! char*cobj[]), typically the result of a function.
 FUNCTION charpp_new(charpp_orig) RESULT(this)
 TYPE(c_ptr),VALUE :: charpp_orig
 !TYPE(c_ptr),INTENT(in) :: charpp_orig
@@ -220,18 +227,44 @@ ENDIF
 END FUNCTION charpp_new
 
 
-FUNCTION charpp_getchar(this, n)
+!> Return the number of valid pointers in the array pointer \a this.
+!! If the object has not been initialized or has been initialized with
+!! errors, zero is returned.
+FUNCTION charpp_getsize(this)
+TYPE(charpp),INTENT(in) :: this
+INTEGER :: charpp_getsize
+
+IF (ASSOCIATED(this%elem)) THEN
+  charpp_getsize = SIZE(this%elem)
+ELSE
+  charpp_getsize = 0
+ENDIF
+
+END FUNCTION charpp_getsize
+
+!> Returns the nth pointer in the array pointer \a this.
+!! IF the object has not been initialized, or \a n is out of bounds a
+!! NULL pointer is returned, this condition can be checked by menas of
+!! the \a C_ASSOCIATED() function. If \a this is an array of pointers
+!! to C null-terminated strings, the string can be returned as a
+!! Fortran \a CHARACTER variable of the proper length by using the
+!! strtofchar function, for example:
+!!
+!! \code
+!! PRINT*,strtofchar(charpp_getptr(envp, 2))
+!! \endcode
+FUNCTION charpp_getptr(this, n)
 TYPE(charpp),INTENT(in) :: this
 INTEGER,INTENT(in) :: n
-CHARACTER(len=256) :: charpp_getchar
+TYPE(c_ptr) :: charpp_getptr
 
-charpp_getchar = ''
+charpp_getptr = C_NULL_PTR
 IF (ASSOCIATED(this%elem)) THEN
   IF (n <= SIZE(this%elem)) THEN
-    charpp_getchar = strtofchar(this%elem(n))
+    charpp_getptr = this%elem(n)
   ENDIF
 ENDIF
 
-END FUNCTION charpp_getchar
+END FUNCTION charpp_getptr
 
 END MODULE fortranc
