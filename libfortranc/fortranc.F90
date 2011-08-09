@@ -206,10 +206,9 @@ END FUNCTION fchartrimtostr
 
 !> Constructor for the charpp class.
 !! It must be initialized by a C array of pointers (char** cobj or
-!! char*cobj[]), typically the result of a function.
+!! char*cobj[n]), typically the result of a C function.
 FUNCTION charpp_new(charpp_orig) RESULT(this)
 TYPE(c_ptr),VALUE :: charpp_orig
-!TYPE(c_ptr),INTENT(in) :: charpp_orig
 TYPE(charpp) :: this
 
 INTEGER :: i
@@ -243,7 +242,7 @@ ENDIF
 END FUNCTION charpp_getsize
 
 !> Returns the nth pointer in the array pointer \a this.
-!! IF the object has not been initialized, or \a n is out of bounds a
+!! If the object has not been initialized, or \a n is out of bounds, a
 !! NULL pointer is returned, this condition can be checked by menas of
 !! the \a C_ASSOCIATED() function. If \a this is an array of pointers
 !! to C null-terminated strings, the string can be returned as a
@@ -251,7 +250,8 @@ END FUNCTION charpp_getsize
 !! strtofchar function, for example:
 !!
 !! \code
-!! PRINT*,strtofchar(charpp_getptr(envp, 2))
+!! CHARACTER(len=256) :: str
+!! str = 'hello, '//strtofchar(charpp_getptr(envp, 2))//'!'
 !! \endcode
 FUNCTION charpp_getptr(this, n)
 TYPE(charpp),INTENT(in) :: this
