@@ -21,12 +21,19 @@ AM_CONDITIONAL(GDAL, test "x$enableval" = "xyes")
 enablegdal=$enableval
 
 if test "x$enablegdal" = "xyes"; then
+AC_CHECK_PROG(gdal_config, [gdal-config], [yes], [no],,)
+if test "x$gdal_config" = "xyes"; then
+  GDAL_LIBS=`gdal-config --libs`
+  AC_SUBST(GDAL_LIBS)
+  AC_DEFINE(HAVE_LIBGDAL, 1, [Enable gdal])
+else
 AC_CHECK_LIB([gdal], [GDALAllRegister],
  gdal=yes
  GDAL_LIBS="-lgdal"
  AC_SUBST(GDAL_LIBS)
  AC_DEFINE(HAVE_LIBGDAL, 1, [Enable gdal]),
  AC_MSG_ERROR([gdal library not found]), )
+fi
 fi
 
 AC_ARG_ENABLE(proj, AC_HELP_STRING([--disable-proj],
