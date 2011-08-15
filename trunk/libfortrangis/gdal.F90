@@ -74,6 +74,7 @@ INTEGER(kind=c_int),PARAMETER :: & ! GDALRATFieldUsage
 !! performed on it except checking the null state with \a
 !! C_ASSOCIATED(hds%ptr).
 TYPE, BIND(C) :: gdaldataseth
+  PRIVATE
   TYPE(c_ptr) :: ptr
 END TYPE gdaldataseth
 
@@ -81,6 +82,7 @@ END TYPE gdaldataseth
 !! performed on it except checking the null state with \a
 !! C_ASSOCIATED(hband%ptr).
 TYPE, BIND(C) :: gdalrasterbandh
+  PRIVATE
   TYPE(c_ptr) :: ptr
 END TYPE gdalrasterbandh
 
