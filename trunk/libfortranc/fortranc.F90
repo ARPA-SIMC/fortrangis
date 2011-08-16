@@ -21,6 +21,11 @@
 !! of character variables between Fortran and C when using the \a
 !! ISO_C_BINDING intrinsic module of Fortran 2003.
 !!
+!! For an example of application of the \a fortranc module, have a
+!! look at the following test program, which decodes the output of a C
+!! function returning a char** result:
+!! \include fortranc_test.F90
+!!
 !! \ingroup libfortranc
 MODULE fortranc
 USE,INTRINSIC :: ISO_C_BINDING
