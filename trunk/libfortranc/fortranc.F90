@@ -32,9 +32,9 @@ USE,INTRINSIC :: ISO_C_BINDING
 IMPLICIT NONE
 
 
-!> Fortran class for handling char** C objects.
-!! This class allows Fortran programs to extract the data pointed by
-!! every single pointer in a C char** object (or in principle a C
+!> Fortran derived type for handling \a char** C objects.
+!! This object allows Fortran programs to extract the data pointed by
+!! every single pointer in a C \a char** object (or in principle a C
 !! array of pointers to any kind of data), provided that the array of
 !! pointers is terminated by a NULL pointer.
 TYPE charpp
@@ -129,16 +129,17 @@ INTEGER :: strlen
 INTEGER(kind=c_signed_char),POINTER :: pstring(:)
 INTEGER :: i
 
-!IF (c_associated(string)) THEN
-  CALL c_f_pointer(string, pstring, (/HUGE(i)/))
+!IF (c_associated(string)) THEN ! conflicts with PURE
+CALL C_F_POINTER(string, pstring, (/HUGE(i)/))
 
+IF (ASSOCIATED(pstring)) THEN
   DO i = 1, SIZE(pstring)
     IF (pstring(i) == 0) EXIT
   ENDDO
   strlen = i - 1
-!ELSE
-!  strlen = 0 !-1?
-!ENDIF
+ELSE
+  strlen = 0
+ENDIF
 
 END FUNCTION strlen_ptr
 
@@ -180,9 +181,13 @@ CHARACTER(len=strlen(string)) :: fchar
 
 CHARACTER(len=strlen(string)),POINTER :: pfchar
 
-IF (c_associated(string)) THEN
+IF (C_ASSOCIATED(string)) THEN
   CALL c_f_pointer(string, pfchar)
   fchar(:) = pfchar(:)
+!ELSE
+! silently return an empty string probably useless because
+! strlen is zero in this case (to be tested)
+!  fchar = ''
 ENDIF
 
 END FUNCTION strtofchar_ptr
@@ -209,21 +214,23 @@ string = TRIM(fchar)//CHAR(0)
 
 END FUNCTION fchartrimtostr
 
-!> Constructor for the charpp class.
-!! It must be initialized by a C array of pointers (char** cobj or
-!! char*cobj[n]), typically the result of a C function.
-FUNCTION charpp_new(charpp_orig) RESULT(this)
-TYPE(c_ptr),VALUE :: charpp_orig
+!> Constructor for the a \a charpp object.
+!! The argument, a generic C pointer, must be a C array of pointers
+!! (char** charpp_c or char* charpp_c[n]), typically the result of a C
+!! function.
+FUNCTION charpp_new(charpp_c) RESULT(this)
+TYPE(c_ptr),VALUE :: charpp_c
 TYPE(charpp) :: this
 
 INTEGER :: i
 TYPE(c_ptr),POINTER :: charp(:)
 
-IF (C_ASSOCIATED(charpp_orig)) THEN
-  CALL C_F_POINTER(charpp_orig, charp, (/HUGE(1)/))
+IF (C_ASSOCIATED(charpp_c)) THEN
+  ! HUGE() here is ugly, but we must set a finite size
+  CALL C_F_POINTER(charpp_c, charp, (/HUGE(1)/))
   DO i = 1, SIZE(charp)
     IF (.NOT.C_ASSOCIATED(charp(i))) THEN
-      CALL C_F_POINTER(charpp_orig, this%elem, (/i-1/))
+      CALL C_F_POINTER(charpp_c, this%elem, (/i-1/))
       RETURN
     ENDIF
   ENDDO
@@ -248,14 +255,18 @@ END FUNCTION charpp_getsize
 
 !> Returns the nth pointer in the array pointer \a this.
 !! If the object has not been initialized, or \a n is out of bounds, a
-!! NULL pointer is returned, this condition can be checked by menas of
+!! NULL pointer is returned, this condition can be checked by means of
 !! the \a C_ASSOCIATED() function. If \a this is an array of pointers
 !! to C null-terminated strings, the string can be returned as a
 !! Fortran \a CHARACTER variable of the proper length by using the
 !! strtofchar function, for example:
 !!
 !! \code
+!! TYPE(charpp) :: envp
 !! CHARACTER(len=256) :: str
+!! ...
+!! envp = charpp_new(charpp_c)
+!! ...
 !! str = 'hello, '//strtofchar(charpp_getptr(envp, 2))//'!'
 !! \endcode
 FUNCTION charpp_getptr(this, n)

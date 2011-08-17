@@ -157,13 +157,6 @@ JAVADOC_AUTOBRIEF      = YES
 
 MULTILINE_CPP_IS_BRIEF = NO
 
-# If the DETAILS_AT_TOP tag is set to YES then Doxygen 
-# will output the detailed description near the top, like JavaDoc.
-# If set to NO, the detailed description appears after the member 
-# documentation.
-
-DETAILS_AT_TOP         = NO
-
 # If the INHERIT_DOCS tag is set to YES (the default) then an undocumented 
 # member inherits the documentation from any documented member that it 
 # re-implements.
@@ -203,12 +196,6 @@ OPTIMIZE_OUTPUT_FOR_C  = NO
 # will look different, etc.
 
 OPTIMIZE_OUTPUT_JAVA   = NO
-
-# Set the OPTIMIZE_OUTPUT_FORTRAN tag to YES if your project consists of Fortran 
-# sources only. Doxygen will then generate output that is more tailored for Fortran. 
-# For instance, namespaces will be presented as modules
-
-OPTIMIZE_OUTPUT_FORTRAN= YES
 
 # If you use STL classes (i.e. std::string, std::vector, etc.) but do not want to 
 # include (a tag file for) the STL sources as input, then you should 
