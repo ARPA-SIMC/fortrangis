@@ -70,24 +70,24 @@ INTEGER(kind=c_int),PARAMETER :: & ! GDALRATFieldUsage
  GFU_BlueMin = 12, GFU_AlphaMin = 13, GFU_RedMax = 14, &
  GFU_GreenMax = 15, GFU_BlueMax = 16, GFU_AlphaMax = 17, GFU_MaxCount = 18
 
-!> Derived type defining a gdal dataset. No operations should be
-!! performed on it except checking the null state with \a
-!! C_ASSOCIATED(hds%ptr).
+!> Derived type defining a gdal dataset. It is an opaque object, thus
+!! its contents can be accessed only through the proper library
+!! methods.
 TYPE, BIND(C) :: gdaldataseth
   PRIVATE
-  TYPE(c_ptr) :: ptr
+  TYPE(c_ptr) :: ptr = C_NULL_PTR
 END TYPE gdaldataseth
 
-!> Derived type defining a gdal raster band. No operations should be
-!! performed on it except checking the null state with \a
-!! C_ASSOCIATED(hband%ptr).
+!> Derived type defining a gdal raster band. It is an opaque object, thus
+!! its contents can be accessed only through the proper library
+!! methods.
 TYPE, BIND(C) :: gdalrasterbandh
   PRIVATE
-  TYPE(c_ptr) :: ptr
+  TYPE(c_ptr) :: ptr = C_NULL_PTR
 END TYPE gdalrasterbandh
 
 
-!> Direct interface to the corresponding gdal C functions.
+!> Direct interfaces to the corresponding gdal C functions.
 INTERFACE
 !> Equivalent of the C function GDALAllRegister().
   SUBROUTINE gdalallregister() BIND(C,name="GDALAllRegister")
@@ -332,14 +332,22 @@ INTERFACE
 
 END INTERFACE
 
-!> This function returns \a .TRUE. if the corresponding argument
+!> Interface to FUNCTIONs returning the state of a gdal object.
+!! They return \a .TRUE. if the corresponding argument
 !! has been correctly associated or \a .FALSE. if it is a NULL pointer.
+!!
+!! LOGICAL FUNCTION gdalassociated(hobj)
+!! \param hobj TYPE(gdaldataseth) or TYPE(gdalrasterbandh) object to be checked
 INTERFACE gdalassociated
   MODULE PROCEDURE gdaldataseth_associated, gdalrasterbandh_associated
 END INTERFACE
 
-!> This subroutine can be used to set the corresponding argument to a
-!! NULL pointer.
+!> Interface to SUBROUTINEs for nullifying a gdal object.
+!! They set the internal pointer of the provided argument to a NULL C
+!! pointer.
+!!
+!! SUBROUTINE gdalnullify(hobj)
+!! \param hobj TYPE(gdaldataseth) or TYPE(gdalrasterbandh) object to be nullified
 INTERFACE gdalnullify
   MODULE PROCEDURE gdaldataseth_nullify, gdalrasterbandh_nullify
 END INTERFACE
@@ -364,11 +372,11 @@ FUNCTION gdaldataseth_associated(hds1, hds2) RESULT(associated_)
 TYPE(gdaldataseth),INTENT(in) :: hds1
 TYPE(gdaldataseth),INTENT(in),OPTIONAL :: hds2
 LOGICAL :: associated_
-IF (PRESENT(hds2)) THEN
+!IF (PRESENT(hds2)) THEN
   associated_ = C_ASSOCIATED(hds1%ptr, hds2%ptr)
-ELSE
-  associated_ = C_ASSOCIATED(hds1%ptr)
-ENDIF
+!ELSE
+!  associated_ = C_ASSOCIATED(hds1%ptr)
+!ENDIF
 END FUNCTION gdaldataseth_associated
 
 
@@ -376,11 +384,11 @@ FUNCTION gdalrasterbandh_associated(hband1, hband2) RESULT(associated_)
 TYPE(gdalrasterbandh),INTENT(in) :: hband1
 TYPE(gdalrasterbandh),INTENT(in),OPTIONAL :: hband2
 LOGICAL :: associated_
-IF(PRESENT(hband2)) THEN
+!IF(PRESENT(hband2)) THEN
   associated_ = C_ASSOCIATED(hband1%ptr, hband2%ptr)
-ELSE
-  associated_ = C_ASSOCIATED(hband1%ptr)
-ENDIF
+!ELSE
+!  associated_ = C_ASSOCIATED(hband1%ptr)
+!ENDIF
 END FUNCTION gdalrasterbandh_associated
 
 
