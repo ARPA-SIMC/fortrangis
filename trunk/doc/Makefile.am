@@ -5,7 +5,7 @@ if DOXYDOC
 all: html/index.html
 
 html/index.html: $(cdoxdeps)
-	[ -x /usr/local/bin/doxygen-f ] && doxygen-f  $< || [ -x /usr/bin/doxygen ] && doxygen  $<
+	doxygen $<
 
 install-data-local:
 	for pkg in html ; do \
