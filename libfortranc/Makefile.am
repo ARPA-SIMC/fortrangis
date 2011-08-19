@@ -9,7 +9,7 @@ endif
 TESTS = $(check_PROGRAMS)
 check_PROGRAMS = fortranc_test
 
-fortranc_test_SOURCES = fortranc_test.f90 c_test.c
+fortranc_test_SOURCES = fortranc_test.F90 c_test.c
 fortranc_test_LDADD = libfortranc.la
 
 

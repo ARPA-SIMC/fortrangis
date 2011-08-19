@@ -1,6 +1,6 @@
 Summary: FortranGIS Fortran interfaces Open Source GIS libraries 
 Name: fortrangis
-VERSION: 1.0
+VERSION: 1.1
 Release: 1
 License: LGPL
 Group: Applications/GIS

@@ -27,4 +27,4 @@ clean-local:
 
 endif
 
-EXTRA_DIST = Doxyfile.in fpp mainpage.dox footer.html
+EXTRA_DIST = Doxyfile.in fpp mainpage.dox
