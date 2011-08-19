@@ -18,6 +18,7 @@ nodist_include_HEADERS += shapelib.mod
 
 check_PROGRAMS += shapelib_test
 shapelib_test_SOURCES = shapelib_test.f90
+#shapelib_test_CPPFLAGS = -I../libfortranc
 shapelib_test_LDADD = libfortrangis.la
 endif
 

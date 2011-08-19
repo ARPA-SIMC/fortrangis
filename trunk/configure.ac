@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT(FortranGIS, 1.0, [dcesari69@gmail.com])
+AC_INIT(FortranGIS, 1.1, [dcesari69@gmail.com])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([configure.ac])
 AM_INIT_AUTOMAKE([foreign])
@@ -11,6 +11,7 @@ AC_SUBST(VERSIONLIB)
 
 AC_LANG([C])
 AC_PATH_XTRA
+dnl PKG_PROG_PKG_CONFIG()
 
 dnl capire perche' senza --enable-qualcosa objext='' e non va il compilatore
 
@@ -18,9 +19,8 @@ AC_ARG_ENABLE(gdal, AC_HELP_STRING([--disable-gdal],
 [enable build of Fortran 2003 bindings for gdal]),,
 [enableval=yes])dnl default enable
 AM_CONDITIONAL(GDAL, test "x$enableval" = "xyes")
-enablegdal=$enableval
 
-if test "x$enablegdal" = "xyes"; then
+if test "x$enableval" = "xyes"; then
 AC_CHECK_PROG(gdal_config, [gdal-config], [yes], [no],,)
 if test "x$gdal_config" = "xyes"; then
   GDAL_LIBS=`gdal-config --libs`
@@ -40,9 +40,8 @@ AC_ARG_ENABLE(proj, AC_HELP_STRING([--disable-proj],
 [enable build of Fortran 2003 bindings for proj]),,
 [enableval=yes])dnl default enable
 AM_CONDITIONAL(PROJ, test "x$enableval" = "xyes")
-enableproj=$enableval
 
-if test "x$enableproj" = "xyes"; then
+if test "x$enableval" = "xyes"; then
 AC_CHECK_LIB([proj], [pj_init],
  proj=yes
  PROJ_LIBS="-lproj"
@@ -55,9 +54,8 @@ AC_ARG_ENABLE(shapelib, AC_HELP_STRING([--disable-shapelib],
 [enable build of Fortran 2003 bindings for shapelib]),,
 [enableval=yes])dnl default enable
 AM_CONDITIONAL(SHP, test "x$enableval" = "xyes")
-enableshp=$enableval
 
-if test "x$enableshp" = "xyes"; then
+if test "x$enableval" = "xyes"; then
 AC_CHECK_LIB([shp], [SHPOpen],
  shp=yes
  SHP_LIBS="-lshp"
