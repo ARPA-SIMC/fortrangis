@@ -75,20 +75,20 @@ ENDIF
 
 ! get the content of selected pointers as a Fortran CHARACTER variable
 ! of the right length, count starts from 1
-IF (strtofchar(charpp_getptr(strarrp, 1)) /= 'first') THEN
-  PRINT*,'Error in charpp_getptr:',strtofchar(charpp_getptr(strarrp, 1)),':first'
+IF (strtofchar(charpp_getptr(strarrp, 1),100) /= 'first') THEN
+  PRINT*,'Error in charpp_getptr:',strtofchar(charpp_getptr(strarrp, 1),100),':first'
   STOP 1
 ENDIF
-IF (strtofchar(charpp_getptr(strarrp, 2)) /= 'segundo') THEN
-  PRINT*,'Error in charpp_getptr:',strtofchar(charpp_getptr(strarrp, 2)),':segundo'
+IF (strtofchar(charpp_getptr(strarrp, 2),100) /= 'segundo') THEN
+  PRINT*,'Error in charpp_getptr:',strtofchar(charpp_getptr(strarrp, 2),100),':segundo'
   STOP 1
 ENDIF
-IF (strtofchar(charpp_getptr(strarrp, 3)) /= 'troisieme') THEN
-  PRINT*,'Error in charpp_getptr:',strtofchar(charpp_getptr(strarrp, 3)),':troisieme'
+IF (strtofchar(charpp_getptr(strarrp, 3),100) /= 'troisieme') THEN
+  PRINT*,'Error in charpp_getptr:',strtofchar(charpp_getptr(strarrp, 3),100),':troisieme'
   STOP 1
 ENDIF
-IF (strtofchar(charpp_getptr(strarrp, 4)) /= '') THEN
-  PRINT*,'Error in charpp_getptr: out of bound request should return empty string:',strtofchar(charpp_getptr(strarrp, 4))
+IF (strtofchar(charpp_getptr(strarrp, 4),100) /= '') THEN
+  PRINT*,'Error in charpp_getptr: out of bound request should return empty string:',strtofchar(charpp_getptr(strarrp, 4),100)
   STOP 1
 ENDIF
 
