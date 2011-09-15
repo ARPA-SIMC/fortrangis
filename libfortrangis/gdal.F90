@@ -24,6 +24,7 @@
 !! \ingroup libfortrangis
 MODULE gdal
 USE,INTRINSIC :: ISO_C_BINDING
+USE fortranc
 IMPLICIT NONE
 
 ! GDALDataType
@@ -87,42 +88,26 @@ TYPE, BIND(C) :: gdalrasterbandh
 END TYPE gdalrasterbandh
 
 
-!> Direct interfaces to the corresponding gdal C functions.
+! Direct interfaces to the corresponding gdal C functions.
 INTERFACE
 !> Equivalent of the C function GDALAllRegister().
   SUBROUTINE gdalallregister() BIND(C,name="GDALAllRegister")
   END SUBROUTINE gdalallregister
-END INTERFACE
 
-INTERFACE
-!> Equivalent of the C function GDALOpen().
-!! The filename must be trimmed and null-terminated, e.g.  hds =
-!! gdalopen(TRIM(filename)//C_NULL_CHAR, GA_ReadOnly).  The result
-!! must be declared as \a TYPE(gdaldataseth) . In case of failure it
-!! returns a NULL pointer, this condition has to be checked with the
-!! gdalassociated() function.
   FUNCTION gdalopen_c(pszfilename, eaccess) BIND(C,name="GDALOpen")
   IMPORT
-  CHARACTER(kind=c_char),INTENT(in) :: pszfilename(*) !< filename, must be explicitly null-terminated
-  INTEGER(kind=c_int),VALUE :: eaccess !< one of \a GA_ReadOnly, \a GA_Update
-!  TYPE(gdaldataseth) :: gdalopen
-  TYPE(c_ptr) :: gdalopen_c
+  CHARACTER(kind=c_char),INTENT(in) :: pszfilename(*)
+  INTEGER(kind=c_int),VALUE :: eaccess
+  TYPE(gdaldataseth) :: gdalopen_c
+!  TYPE(c_ptr) :: gdalopen_c
   END FUNCTION gdalopen_c
-END INTERFACE
 
-INTERFACE
-!> Equivalent of the C function GDALOpenShared().
-!! The filename must be trimmed and null-terminated, e.g.  hds =
-!! gdalopen(TRIM(filename)//C_NULL_CHAR, GA_ReadOnly) The result must
-!! be declared as \a TYPE(gdaldataseth) . In case of failure it
-!! returns a NULL pointer, this condition has to be checked with the
-!! gdalassociated() function.
-  FUNCTION gdalopenshared(pszfilename, eaccess) BIND(C,name="GDALOpenShared")
+  FUNCTION gdalopenshared_c(pszfilename, eaccess) BIND(C,name="GDALOpenShared")
   IMPORT
   CHARACTER(kind=c_char) :: pszfilename(*) !< filename, must be explicitly null-terminated
   INTEGER(kind=c_int),VALUE :: eaccess !< one of \a GA_ReadOnly, \a GA_Update
-  TYPE(gdaldataseth) :: gdalopenshared
-  END FUNCTION gdalopenshared
+  TYPE(gdaldataseth) :: gdalopenshared_c
+  END FUNCTION gdalopenshared_c
 
 !> Equivalent of the C function GDALGetGeoTransform().
 !! The output argument \a padfgeotransform is a 6-element array
@@ -404,16 +389,34 @@ hband%ptr = C_NULL_PTR
 END SUBROUTINE gdalrasterbandh_nullify
 
 
-! trick to avoid bug in gfortran 4.3.2 with bind(c) on function
-! returning a derived type
+!> Equivalent of the C function GDALOpen().
+!! The filename will be trimmed and null-terminated automatically.
+!! The result must be declared as \a TYPE(gdaldataseth) . In case of
+!! failure it returns a NULL pointer, this condition has to be checked
+!! with the gdalassociated() function.
 FUNCTION gdalopen(pszfilename, eaccess)
-CHARACTER(kind=c_char),INTENT(in) :: pszfilename(*) ! filename, must be explicitly null-terminated
-INTEGER(kind=c_int) :: eaccess ! one of \a GA_ReadOnly, \a GA_Update
+CHARACTER(LEN=*),INTENT(in) :: pszfilename !< filename
+INTEGER(kind=c_int) :: eaccess !< one of \a GA_ReadOnly, \a GA_Update
 TYPE(gdaldataseth) :: gdalopen
 
-gdalopen%ptr = gdalopen_c(pszfilename, eaccess)
+gdalopen = gdalopen_c(fchartrimtostr(pszfilename), eaccess)
 
 END FUNCTION gdalopen
+
+
+!> Equivalent of the C function GDALOpenShared().
+!! The filename will be trimmed and null-terminated automatically.
+!! The result must be declared as \a TYPE(gdaldataseth) . In case of
+!! failure it returns a NULL pointer, this condition has to be checked
+!! with the gdalassociated() function.
+FUNCTION gdalopenshared(pszfilename, eaccess)
+CHARACTER(LEN=*),INTENT(in) :: pszfilename !< filename
+INTEGER(kind=c_int) :: eaccess !< one of \a GA_ReadOnly, \a GA_Update
+TYPE(gdaldataseth) :: gdalopenshared
+
+gdalopenshared = gdalopenshared_c(fchartrimtostr(pszfilename), eaccess)
+
+END FUNCTION gdalopenshared
 
 
 FUNCTION gdaldatasetrasterio_byte(hds, erwflag, ndsxoff, ndsyoff, &

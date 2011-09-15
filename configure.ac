@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_INIT(FortranGIS, 1.1, [dcesari69@gmail.com])
+AC_INIT(FortranGIS, 1.2, [dcesari69@gmail.com])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([configure.ac])
 AM_INIT_AUTOMAKE([foreign])
