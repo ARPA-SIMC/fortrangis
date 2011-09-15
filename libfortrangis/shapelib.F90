@@ -804,7 +804,7 @@ INTEGER,INTENT(in) :: ishape, ifield
 CHARACTER(len=*),INTENT(out) :: attr
 
 IF (.NOT.dbffileisnull(hshp)) THEN
-  attr = strtofchar(dbfreadstringattribute_orig(hshp%dbffile_orig, ishape, ifield))
+  attr = strtofchar(dbfreadstringattribute_orig(hshp%dbffile_orig, ishape, ifield), LEN(attr))
 ELSE
   attr = ''
 ENDIF

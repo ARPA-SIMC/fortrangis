@@ -70,7 +70,7 @@ END INTERFACE
 !! \param string null-terminated C-style string to convert
 INTERFACE strtofchar
   MODULE PROCEDURE strtofchar_char, strtofchar_chararr, strtofchar_intarr, &
-   strtofchar_ptr
+   strtofchar_ptr_2
 END INTERFACE
 
 PRIVATE
@@ -122,17 +122,17 @@ strlen = i - 1
 END FUNCTION strlen_intarr
 
 
-PURE FUNCTION strlen_ptr(string) RESULT(strlen)
+FUNCTION strlen_ptr(string) RESULT(strlen)
 TYPE(c_ptr),INTENT(in) :: string
 INTEGER :: strlen
 
 INTEGER(kind=c_signed_char),POINTER :: pstring(:)
 INTEGER :: i
 
-!IF (c_associated(string)) THEN ! conflicts with PURE
-CALL C_F_POINTER(string, pstring, (/HUGE(i)/))
-
-IF (ASSOCIATED(pstring)) THEN
+IF (C_ASSOCIATED(string)) THEN ! conflicts with PURE
+! null C pointer does not produce unassociated Fortran pointer with Intel
+  CALL C_F_POINTER(string, pstring, (/HUGE(i)/))
+! IF (ASSOCIATED(pstring)) THEN
   DO i = 1, SIZE(pstring)
     IF (pstring(i) == 0) EXIT
   ENDDO
@@ -175,22 +175,41 @@ fchar(:) = TRANSFER(string(1:LEN(fchar)), fchar)
 END FUNCTION strtofchar_intarr
 
 
-FUNCTION strtofchar_ptr(string) RESULT(fchar)
-TYPE(c_ptr) :: string
-CHARACTER(len=strlen(string)) :: fchar
+!FUNCTION strtofchar_ptr(string) RESULT(fchar)
+!TYPE(c_ptr),INTENT(in) :: string
+!CHARACTER(len=strlen(string)) :: fchar
+!
+!CHARACTER(len=strlen(string)),POINTER :: pfchar
+!
+!IF (C_ASSOCIATED(string)) THEN
+!  CALL c_f_pointer(string, pfchar)
+!  fchar(:) = pfchar(:)
+!!ELSE
+!! silently return an empty string probably useless because
+!! strlen is zero in this case (to be tested)
+!!  fchar = ''
+!ENDIF
+!
+!END FUNCTION strtofchar_ptr
 
-CHARACTER(len=strlen(string)),POINTER :: pfchar
 
+FUNCTION strtofchar_ptr_2(string, fixlen) RESULT(fchar)
+TYPE(c_ptr),INTENT(in) :: string
+INTEGER,INTENT(in) :: fixlen
+CHARACTER(len=fixlen) :: fchar
+
+CHARACTER(len=fixlen),POINTER :: pfchar
+INTEGER :: safelen
+
+safelen = MIN(strlen(string), fixlen)
+
+fchar = ''
 IF (C_ASSOCIATED(string)) THEN
   CALL c_f_pointer(string, pfchar)
-  fchar(:) = pfchar(:)
-!ELSE
-! silently return an empty string probably useless because
-! strlen is zero in this case (to be tested)
-!  fchar = ''
+  fchar(1:safelen) = pfchar(1:safelen)
 ENDIF
 
-END FUNCTION strtofchar_ptr
+END FUNCTION strtofchar_ptr_2
 
 
 !> Convert a Fortran \a CHARACTER variable into a null-terminated C
