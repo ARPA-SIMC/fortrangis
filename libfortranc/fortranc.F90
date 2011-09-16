@@ -18,8 +18,8 @@
 
 !> Utility module for supporting Fortran 2003 C language interface module.
 !! This module contains various utilties for simplifying the exchange
-!! of character variables between Fortran and C when using the \a
-!! ISO_C_BINDING intrinsic module of Fortran 2003.
+!! of character variables between Fortran and C when using the
+!! <tt>ISO_C_BINDING</tt> intrinsic module of Fortran 2003.
 !!
 !! For an example of application of the \a fortranc module, have a
 !! look at the following test program, which decodes the output of a C
@@ -32,11 +32,11 @@ USE,INTRINSIC :: ISO_C_BINDING
 IMPLICIT NONE
 
 
-!> Fortran derived type for handling \a char** C objects.
+!> Fortran derived type for handling <tt>char**</tt> C objects.
 !! This object allows Fortran programs to extract the data pointed by
-!! every single pointer in a C \a char** object (or in principle a C
-!! array of pointers to any kind of data), provided that the array of
-!! pointers is terminated by a NULL pointer.
+!! every single pointer in a C <tt>char**</tt> object (or in principle
+!! a C array of pointers to any kind of data), provided that the array
+!! of pointers is terminated by a <tt>NULL</tt> pointer.
 TYPE charpp
   PRIVATE
   TYPE(c_ptr),POINTER :: elem(:) => NULL()
@@ -50,22 +50,22 @@ INTERFACE strlen
    strlen_ptr
 END INTERFACE
 
-!> Convert a null-terminated C string into a Fortran \a CHARACTER
+!> Convert a null-terminated C string into a Fortran <tt>CHARACTER</tt>
 !! variable of the proper length.  The input can be provided as a
-!! Fortran \a CHARACTER scalar of any length, as a Fortran array of \a
-!! CHARACTER of length one, as an array of 1-byte integers or as a C
-!! pointer to char (\a char \a *).
+!! Fortran <tt>CHARACTER</tt> scalar of any length, as a Fortran array
+!! of <tt>CHARACTER</tt> of length one, as an array of 1-byte integers or as
+!! a C pointer to char (<tt>char*</tt>).
 !!
 !! It is typically used for:
 !!
 !!  - converting a string created/modified by a C function and passed
-!!    as a \n char \n * argument, interfaced as \n
-!!    CHARACTER(kind=c_char,len=*) \n :: \n fchar for its subsequent
-!!    use in Fortran
+!!    as a <tt>char *</tt> argument, interfaced as
+!!    <tt>CHARACTER(kind=c_char,len=*) :: fchar</tt> for its
+!!    subsequent use in Fortran
 !!
 !!  - (more frequently) converting a string returned by a C function
-!!    declared as \n char \n * , interfaced as \n TYPE(c_ptr) for its
-!!    subsequent use in Fortran
+!!    declared as <tt>char*</tt>, interfaced as <tt>TYPE(c_ptr)</tt>
+!!    for its subsequent use in Fortran
 !!
 !! \param string null-terminated C-style string to convert
 INTERFACE strtofchar
@@ -213,7 +213,9 @@ END FUNCTION strtofchar_ptr_2
 
 
 !> Convert a Fortran \a CHARACTER variable into a null-terminated C
-!! string.
+!! string. The result is still of type \a CHARACTER but it is
+!! interoperable with a C null-terminated string argument <tt>const
+!! char*</tt> interfaced as <tt>CHARACTER(kind=c_char) :: cstr</tt>.
 FUNCTION fchartostr(fchar) RESULT(string)
 CHARACTER(len=*),INTENT(in) :: fchar !< Fortran \a CHARACTER variable to convert
 CHARACTER(kind=c_char,len=LEN(fchar)+1) :: string
@@ -224,7 +226,10 @@ END FUNCTION fchartostr
 
 
 !> Trim trailing blanks and convert a Fortran \a CHARACTER variable
-!! into a null-terminated C string.
+!! into a null-terminated C string. The result is still of type \a
+!! CHARACTER but it is interoperable with a C null-terminated string
+!! argument <tt>const char*</tt> interfaced as
+!! <tt>CHARACTER(kind=c_char) :: cstr</tt>.
 FUNCTION fchartrimtostr(fchar) RESULT(string)
 CHARACTER(len=*),INTENT(in) :: fchar !< Fortran \a CHARACTER variable to convert
 CHARACTER(kind=c_char,len=LEN_TRIM(fchar)+1) :: string
@@ -233,10 +238,10 @@ string = TRIM(fchar)//CHAR(0)
 
 END FUNCTION fchartrimtostr
 
-!> Constructor for the a \a charpp object.
+!> Constructor for a \a charpp object.
 !! The argument, a generic C pointer, must be a C array of pointers
-!! (char** charpp_c or char* charpp_c[n]), typically the result of a C
-!! function.
+!! (<tt>char** charpp_c</tt> or <tt>char* charpp_c[n]</tt>), typically
+!! the result of a C function.
 FUNCTION charpp_new(charpp_c) RESULT(this)
 TYPE(c_ptr),VALUE :: charpp_c
 TYPE(charpp) :: this
@@ -275,10 +280,10 @@ END FUNCTION charpp_getsize
 !> Returns the nth pointer in the array pointer \a this.
 !! If the object has not been initialized, or \a n is out of bounds, a
 !! NULL pointer is returned, this condition can be checked by means of
-!! the \a C_ASSOCIATED() function. If \a this is an array of pointers
-!! to C null-terminated strings, the string can be returned as a
-!! Fortran \a CHARACTER variable of the proper length by using the
-!! strtofchar function, for example:
+!! the <tt>C_ASSOCIATED()</tt> function. If \a this is an array of
+!! pointers to C null-terminated strings, the string can be returned
+!! as a Fortran \a CHARACTER variable of the proper length by using
+!! the \a strtofchar function, for example:
 !!
 !! \code
 !! TYPE(charpp) :: envp
