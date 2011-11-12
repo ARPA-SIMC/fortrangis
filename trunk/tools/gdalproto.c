@@ -208,21 +208,21 @@ double GDALDecToPackedDMS(double dfDec);
 
 int GDALExtractRPCInfo(char **papszMD,GDALRPCInfo *psRPC);
 
-GDALColorTableH GDALCreateColorTable(GDALPaletteInterp);
+GDALColorTableH GDALCreateColorTable(GDALPaletteInterp eInterp);
 
-void GDALDestroyColorTable(GDALColorTableH);
+void GDALDestroyColorTable(GDALColorTableH hTable);
 
-GDALColorTableH GDALCloneColorTable(GDALColorTableH);
+GDALColorTableH GDALCloneColorTable(GDALColorTableH hTable);
 
-GDALPaletteInterp GDALGetPaletteInterpretation(GDALColorTableH);
+GDALPaletteInterp GDALGetPaletteInterpretation(GDALColorTableH hTable);
 
-int GDALGetColorEntryCount(GDALColorTableH);
+int GDALGetColorEntryCount(GDALColorTableH hTable);
 
-const GDALColorEntry * GDALGetColorEntry(GDALColorTableH, int);
+const GDALColorEntry * GDALGetColorEntry(GDALColorTableH hTable, int i);
 
-int GDALGetColorEntryAsRGB(GDALColorTableH, int, GDALColorEntry *);
+int GDALGetColorEntryAsRGB(GDALColorTableH hTable, int i, GDALColorEntry *poEntry);
 
-void GDALSetColorEntry(GDALColorTableH, int, const GDALColorEntry *);
+void GDALSetColorEntry(GDALColorTableH hTable, int i, const GDALColorEntry *poEntry);
 
 void GDALCreateColorRamp(GDALColorTableH hTable, int nStartIndex, const GDALColorEntry *psStartColor, int nEndIndex, const GDALColorEntry *psEndColor);
 
