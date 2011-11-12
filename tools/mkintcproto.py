@@ -29,6 +29,7 @@ dertypes_ptr = {
 }
 dertypes = {
     'GDAL_GCP':'TYPE(gdal_gcp)',
+    'GDALRPCInfo':'TYPE(gdalrpcinfo)',
     'GDALColorEntry':'TYPE(gdalcolorentry)',
 }
 
