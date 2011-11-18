@@ -3,6 +3,7 @@ libfortrangis_la_SOURCES =
 libfortrangis_la_LIBADD = ../libfortranc/libfortranc.la
 libfortrangis_la_CPPFLAGS = -I../libfortranc
 nodist_include_HEADERS = 
+noinst_PROGRAMS =
 
 if VERSIONINFO
 libfortrangis_la_LDFLAGS = -version-info @VERSIONLIB@
@@ -20,6 +21,10 @@ check_PROGRAMS += shapelib_test
 shapelib_test_SOURCES = shapelib_test.f90
 #shapelib_test_CPPFLAGS = -I../libfortranc
 shapelib_test_LDADD = libfortrangis.la
+
+noinst_PROGRAMS += ung2shp
+ung2shp_SOURCES = ung2shp.f90
+ung2shp_LDADD = libfortrangis.la
 endif
 
 if PROJ
