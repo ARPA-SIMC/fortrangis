@@ -81,10 +81,17 @@ def makearg(carg, valuetag=',VALUE', result=False):
         intent = ',INTENT(in)'
     return (type+refval+intent+' :: '+name+arr+comm, name)
 
-print "MODULE X"
+print "MODULE gdal"
 print "USE,INTRINSIC :: ISO_C_BINDING"
 print "IMPLICIT NONE"
+print "INCLUDE 'gdaltypes.f90'"
 print
+
+for ctype,ftype in dertypes_ptr.iteritems():
+    print "TYPE,BIND(C) ::",ctype
+    print "  TYPE(c_ptr) :: ptr"
+    print "END TYPE",ctype
+    print
 
 for line in sys.stdin.readlines():
     declmatch = declre.search(line)
@@ -127,4 +134,4 @@ for line in sys.stdin.readlines():
         print "END INTERFACE"
         print
 
-print "END MODULE X"
+print "END MODULE gdal"
