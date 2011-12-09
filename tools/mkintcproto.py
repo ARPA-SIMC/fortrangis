@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import sys
 import re
+import textwrap
 
 # usage:
 # cpp -Ixx src.c | cproto | ../mkintcproto.py > interface.f90
@@ -122,8 +123,10 @@ for line in sys.stdin.readlines():
             if arglist == '': arglist = fname
             else: arglist = arglist+', '+fname
 
-        print ("  %s %s(%s) BIND(C,name='%s')") % \
-            (proc, name.lower(), arglist, name)
+        print " &\n".join(textwrap.wrap( \
+            ("%s %s(%s) BIND(C,name='%s')") % \
+            (proc, name.lower(), arglist, name),\
+                width=127, initial_indent="  ", subsequent_indent="   "))
         print "  IMPORT"
 
         for line in argdecllist: print "  "+line
