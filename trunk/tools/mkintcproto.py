@@ -82,19 +82,20 @@ def makearg(carg, valuetag=',VALUE', result=False):
         intent = ',INTENT(in)'
     return (type+refval+intent+' :: '+name+arr+comm, name)
 
-print "MODULE gdal"
-print "USE,INTRINSIC :: ISO_C_BINDING"
-print "IMPLICIT NONE"
-print "INCLUDE 'gdaltypes.f90'"
-print
+ic = open(sys.argv[1])
+dot = sys.argv[1].rfind('.')
+if dot == -1: dot=len(sys.argv[1])
+otype = open(sys.argv[1][:dot]+'_type.f90', "w")
+ointerf = open(sys.argv[1][:dot]+'_interf.f90', "w")
 
 for ctype,ftype in dertypes_ptr.iteritems():
-    print "TYPE,BIND(C) ::",ctype
-    print "  TYPE(c_ptr) :: ptr"
-    print "END TYPE",ctype
-    print
+    otype.write("""TYPE,BIND(C) :: %s
+  TYPE(c_ptr) :: ptr
+END TYPE %s
 
-for line in sys.stdin.readlines():
+""" % (ctype, ctype))
+
+for line in ic.readlines():
     declmatch = declre.search(line)
     if declmatch is not None:
         gr = declmatch.groups()
@@ -104,15 +105,13 @@ for line in sys.stdin.readlines():
             args = ()
         else:
             args = tuple(arg.strip() for arg in gr[3].split(','))
-        print "INTERFACE"
+        ointerf.write("INTERFACE\n")
         if type == 'void': 
             proc = 'SUBROUTINE'
             proctype = ''
         else:
             if gr[0] == 'const ':
-#                print 'quiqui',gr[0]
                 type = gr[0]+type
-#                print 'quiqui',':'+type+' '+name+':'
             proc = 'FUNCTION'
             proctype, dummy = makearg(type+' '+name, valuetag='', result=True)
         arglist = ''
@@ -123,18 +122,17 @@ for line in sys.stdin.readlines():
             if arglist == '': arglist = fname
             else: arglist = arglist+', '+fname
 
-        print " &\n".join(textwrap.wrap( \
+        ointerf.write(" &\n".join(textwrap.wrap( \
             ("%s %s(%s) BIND(C,name='%s')") % \
             (proc, name.lower(), arglist, name),\
-                width=127, initial_indent="  ", subsequent_indent="   "))
-        print "  IMPORT"
+                width=127, initial_indent="  ", subsequent_indent="   ")))
+        ointerf.write("\n  IMPORT\n")
 
-        for line in argdecllist: print "  "+line
+        for line in argdecllist: ointerf.write("  "+line+"\n")
 
         if proctype != '':
-            print "  "+proctype
-        print "  END %s %s" % (proc,name.lower())
-        print "END INTERFACE"
-        print
+                ointerf.write("  "+proctype+"\n")
+        ointerf.write("""  END %s %s
+END INTERFACE
 
-print "END MODULE gdal"
+""" % (proc,name.lower()))

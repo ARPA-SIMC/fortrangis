@@ -12,6 +12,6 @@ TYPE,BIND(C) :: gdalrpcinfo
 END TYPE gdalrpcinfo
 
 TYPE,BIND(C) :: gdalcolorentry
- INTEGER(kind=c_short) :: c1, c2, c3, c4
+  INTEGER(kind=c_short) :: c1, c2, c3, c4
 END TYPE gdalcolorentry
 
