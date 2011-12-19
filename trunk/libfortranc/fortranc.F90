@@ -15,6 +15,7 @@
 !    You should have received a copy of the GNU Lesser General Public
 !    License along with FortranGIS.  If not, see
 !    <http://www.gnu.org/licenses/>.
+#include "config.h"
 
 !> Utility module for supporting Fortran 2003 C language interface module.
 !! This module contains various utilties for simplifying the exchange
@@ -29,6 +30,9 @@
 !! \ingroup libfortranc
 MODULE fortranc
 USE,INTRINSIC :: ISO_C_BINDING
+#ifdef WITH_VARYING_STRING
+USE iso_varying_string
+#endif
 IMPLICIT NONE
 
 
@@ -48,6 +52,9 @@ END TYPE charpp
 INTERFACE strlen
   MODULE PROCEDURE strlen_char, strlen_chararr, strlen_intarr, &
    strlen_ptr
+#ifdef WITH_VARYING_STRING
+  MODULE PROCEDURE strlen_var_str
+#endif
 END INTERFACE
 
 !> Convert a null-terminated C string into a Fortran <tt>CHARACTER</tt>
@@ -144,6 +151,17 @@ ENDIF
 END FUNCTION strlen_ptr
 
 
+#ifdef WITH_VARYING_STRING
+PURE FUNCTION strlen_var_str(string) RESULT(strlen)
+TYPE(varying_string),INTENT(in) :: string
+INTEGER :: strlen
+
+strlen = len(string)
+
+END FUNCTION strlen_var_str
+#endif
+
+
 FUNCTION strtofchar_char(string) RESULT(fchar)
 CHARACTER(kind=c_char,len=*),INTENT(in) :: string
 CHARACTER(len=strlen(string)) :: fchar
@@ -174,6 +192,9 @@ fchar(:) = TRANSFER(string(1:LEN(fchar)), fchar)
 
 END FUNCTION strtofchar_intarr
 
+
+! this unfortunately works only with gfortran where c_f_pointer is
+! "erroneously" declared as PURE thus strlen_ptr can be PURE as well
 
 !FUNCTION strtofchar_ptr(string) RESULT(fchar)
 !TYPE(c_ptr),INTENT(in) :: string

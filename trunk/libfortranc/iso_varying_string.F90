@@ -199,6 +199,7 @@ USE,INTRINSIC :: iso_c_binding
 
   interface var_str
      module procedure var_str_
+     module procedure var_str_c_ptr
   end interface var_str
 
   interface get
@@ -361,6 +362,7 @@ USE,INTRINSIC :: iso_c_binding
   private :: verify_CH_VS
   private :: verify_VS_CH
   private :: var_str_
+  private :: var_str_c_ptr
   private :: get_
   private :: get_unit
   private :: get_set_VS
