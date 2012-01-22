@@ -90,7 +90,8 @@ ointerf = open(sys.argv[1][:dot]+'_interf.f90', "w")
 
 for ctype,ftype in dertypes_ptr.iteritems():
     otype.write("""TYPE,BIND(C) :: %s
-  TYPE(c_ptr) :: ptr
+  PRIVATE
+  TYPE(c_ptr) :: ptr = C_NULL_PTR
 END TYPE %s
 
 """ % (ctype, ctype))
