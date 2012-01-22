@@ -62,6 +62,13 @@ END INTERFACE
 ! Machine made interface definitions
 INCLUDE 'gdalproto_interf.f90'
 
+! fortran style interfaces
+INTERFACE gdalrasterio_f
+  MODULE PROCEDURE gdalrasterio_byte, gdalrasterio_int32, &
+   gdalrasterio_float32, gdalrasterio_float64, &
+   gdalrasterio_cfloat32, gdalrasterio_cfloat64
+END INTERFACE
+
 CONTAINS
 
 ! Fortran specific version of some functions
@@ -74,5 +81,22 @@ INTEGER(kind=c_int) :: gdalgcpstogeotransform_f
 gdalgcpstogeotransform_f = gdalgcpstogeotransform(SIZE(pasgcps), pasgcps(1), padfgeotransform, bapproxok)
 
 END FUNCTION gdalgcpstogeotransform_f
+
+
+FUNCTION gdalrasterio_byte(hband, erwflag, ndsxoff, ndsyoff, &
+ ndsxsize, ndsysize, pbuffer) RESULT(err)
+TYPE(gdalrasterbandh),VALUE :: hband
+INTEGER(kind=c_int),INTENT(in) :: erwflag
+INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
+INTEGER(kind=c_int),INTENT(in) :: ndsxsize, ndsysize
+INTEGER(kind=c_char),TARGET,INTENT(inout) :: pbuffer(:,:)
+INTEGER(kind=c_int) :: err ! CPLErr
+
+err = gdalrasterio_c(hband, erwflag, ndsxoff, ndsyoff, &
+   ndsxsize, ndsysize, C_LOC(pbuffer(1,1)), SIZE(pbuffer,1), SIZE(pbuffer,2), &
+   GDT_Byte, 0, SIZE(pbuffer,2)*1)
+
+END FUNCTION gdalrasterio_byte
+
 
 END MODULE gdal
