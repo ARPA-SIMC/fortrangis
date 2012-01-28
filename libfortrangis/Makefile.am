@@ -1,7 +1,7 @@
 lib_LTLIBRARIES = libfortrangis.la
 libfortrangis_la_SOURCES = 
 libfortrangis_la_LIBADD = ../libfortranc/libfortranc.la
-libfortrangis_la_CPPFLAGS = -I../libfortranc
+libfortrangis_la_CPPFLAGS = -I../libfortranc -I../include
 nodist_include_HEADERS = 
 noinst_PROGRAMS =
 
