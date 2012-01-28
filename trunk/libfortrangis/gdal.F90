@@ -17,16 +17,15 @@
 !    <http://www.gnu.org/licenses/>.
 
 !> Fortran 2003 interface to the gdal http://www.gdal.org/ library.
-!! This module includes the interface to a very basic subset of gdal C
-!! API functions, enough to read data of any kind from a file format
-!! supported by gdal.
+!! This module includes the interface to most of the public gdal C
+!! API plus a more "Fortranic" version of some functions.
 !!
 !! \ingroup libfortrangis
 MODULE gdal
-USE,INTRINSIC :: ISO_C_BINDING
-USE fortranc
+USE,INTRINSIC :: iso_c_binding
 IMPLICIT NONE
 
+! Hand made symbolic constant definitions
 ! GDALDataType
 INTEGER(kind=c_int),PARAMETER :: GDT_Unknown = 0 !< constant defining the native data type of a dataset data: unknown
 INTEGER(kind=c_int),PARAMETER :: GDT_Byte = 1 !< byte, in Fortran it can be declared as \a INTEGER(kind=C_INT_8_T)
@@ -71,869 +70,669 @@ INTEGER(kind=c_int),PARAMETER :: & ! GDALRATFieldUsage
  GFU_BlueMin = 12, GFU_AlphaMin = 13, GFU_RedMax = 14, &
  GFU_GreenMax = 15, GFU_BlueMax = 16, GFU_AlphaMax = 17, GFU_MaxCount = 18
 
-!> Derived type defining a gdal dataset. It is an opaque object, thus
-!! its contents can be accessed only through the proper library
-!! methods.
-TYPE, BIND(C) :: gdaldataseth
-  PRIVATE
-  TYPE(c_ptr) :: ptr = C_NULL_PTR
-END TYPE gdaldataseth
+! Hand made type definitions strictly reflecting C definitions
+TYPE,BIND(C) :: gdal_gcp
+  TYPE(c_ptr) :: pszid, pszinfo
+  REAL(kind=c_double) :: dfGCPPixel, dfGCPLine, dfGCPX, dfGCPY, dfGCPZ
+END TYPE gdal_gcp
 
-!> Derived type defining a gdal raster band. It is an opaque object, thus
-!! its contents can be accessed only through the proper library
-!! methods.
-TYPE, BIND(C) :: gdalrasterbandh
-  PRIVATE
-  TYPE(c_ptr) :: ptr = C_NULL_PTR
-END TYPE gdalrasterbandh
+TYPE,BIND(C) :: gdalrpcinfo
+  REAL(kind=c_double) :: dfline_off, dfsamp_off, dflat_off, dflong_off, dfheight_off
+  REAL(kind=c_double) :: dfline_scale, dfsamp_scale, dflat_scale, dflong_scale, dfheight_scale
+  REAL(kind=c_double) :: adfline_num_coeff(20), adfline_den_coeff(20), &
+   adfsamp_num_coeff(20), adfsamp_den_coeff(20)
+  REAL(kind=c_double) :: dfmin_long, dfmin_lat, dfmax_long, dfmax_lat
+END TYPE gdalrpcinfo
 
+TYPE,BIND(C) :: gdalcolorentry
+  INTEGER(kind=c_short) :: c1, c2, c3, c4
+END TYPE gdalcolorentry
 
-! Direct interfaces to the corresponding gdal C functions.
+! Machine made type definitions
+INCLUDE 'gdalproto_type.f90'
+
+! Hand made interface definitions
 INTERFACE
-!> Equivalent of the C function GDALAllRegister().
-  SUBROUTINE gdalallregister() BIND(C,name="GDALAllRegister")
-  END SUBROUTINE gdalallregister
-
-  FUNCTION gdalopen_c(pszfilename, eaccess) BIND(C,name="GDALOpen")
+  FUNCTION gdalgcpstogeotransform(ngcpcount, pasgcps, padfgeotransform, bapproxok) &
+   BIND(C,name='GDALGCPsToGeoTransform')
   IMPORT
-  CHARACTER(kind=c_char),INTENT(in) :: pszfilename(*)
-  INTEGER(kind=c_int),VALUE :: eaccess
-  TYPE(gdaldataseth) :: gdalopen_c
-!  TYPE(c_ptr) :: gdalopen_c
-  END FUNCTION gdalopen_c
-
-  FUNCTION gdalopenshared_c(pszfilename, eaccess) BIND(C,name="GDALOpenShared")
-  IMPORT
-  CHARACTER(kind=c_char) :: pszfilename(*) !< filename, must be explicitly null-terminated
-  INTEGER(kind=c_int),VALUE :: eaccess !< one of \a GA_ReadOnly, \a GA_Update
-  TYPE(gdaldataseth) :: gdalopenshared_c
-  END FUNCTION gdalopenshared_c
-
-!> Equivalent of the C function GDALGetGeoTransform().
-!! The output argument \a padfgeotransform is a 6-element array
-!! specifying the affine transformation from dataset array index space
-!! to the projection coordinate space. See also
-!! gdalapplygeotransform().  The result is 0 for success or 1 for
-!! failure (in these cases an identity transformation is returned
-!! anyway).
-  FUNCTION gdalgetgeotransform(hds, padfgeotransform) &
-   BIND(C,name="GDALGetGeoTransform")
-  IMPORT
-  TYPE(gdaldataseth),VALUE :: hds !< a gdal dataset object, returned by, e.g., gdalopen()
-  REAL(kind=c_double),INTENT(out) :: padfgeotransform(6) !< the output affine transformation associated with the dataset
-  INTEGER(kind=c_int) :: gdalgetgeotransform ! CPLErr
-  END FUNCTION gdalgetgeotransform
-
-!> Equivalent of the C function GDALInvGeoTransform().
-!! The arguments are 6-element arrays specifying the affine
-!! transformation from dataset array index space to the projection
-!! coordinate space and vice-versa. See also gdalapplygeotransform().
-!! The result is 1 for success or 0 when the transformation cannot be
-!! inverted.
-  FUNCTION gdalinvgeotransform(padfgeotransformin, padfinvgeotransformout) &
-   BIND(C,name="GDALInvGeoTransform")
-  IMPORT
-  REAL(kind=c_double),INTENT(in) :: padfgeotransformin(6) !< input affine transformation
-  REAL(kind=c_double),INTENT(out) :: padfinvgeotransformout(6) !< output inverted affine transformation
-  INTEGER(kind=c_int) :: gdalinvgeotransform
-  END FUNCTION gdalinvgeotransform
-
-!> Equivalent of the C function GDALApplyGeoTransform().
-!! Applies the specified transformation to (\a dfpixel, \a dfline).
-  SUBROUTINE gdalapplygeotransform(padfgeotransform, dfpixel, dfline, &
-   pdfgeox, pdfgeoy) BIND(C,name="GDALApplyGeoTransform")
-  IMPORT
-  REAL(kind=c_double),INTENT(in) :: padfgeotransform(6) !< affine transformation
-  REAL(kind=c_double),VALUE :: dfpixel !< input x coordinate, typically an array index
-  REAL(kind=c_double),VALUE :: dfline !< input y coordinate, typically an array index
-  REAL(kind=c_double),INTENT(out) :: pdfgeox !< output x coordinate, typically a georeferenced longitude/easting
-  REAL(kind=c_double),INTENT(out) :: pdfgeoy !< output x coordinate, typically a georeferenced latitude/northing
-  END SUBROUTINE gdalapplygeotransform
-
-!> Equivalent of the C function GDALClose().
-!! Closes the specified dataset and associated files.
-  SUBROUTINE gdalclose(hds) BIND(C,name="GDALClose")
-  IMPORT
-  TYPE(gdaldataseth),VALUE :: hds !< dataset
-  END SUBROUTINE gdalclose
-
-!> Equivalent of the C function GDALGetRasterXSize().
-!! It returns the number of pixels along X axis in a dataset.
-  FUNCTION gdalgetrasterxsize(hds) BIND(C,name="GDALGetRasterXSize")
-  IMPORT
-  TYPE(gdaldataseth),VALUE :: hds !< dataset
-  INTEGER(kind=c_int) :: gdalgetrasterxsize
-  END FUNCTION gdalgetrasterxsize
-
-!> Equivalent of the C function GDALGetRasterYSize().
-!! It returns the number of lines along Y axis in a dataset.
-  FUNCTION gdalgetrasterysize(hds) BIND(C,name="GDALGetRasterYSize")
-  IMPORT
-  TYPE(gdaldataseth),VALUE :: hds !< dataset
-  INTEGER(kind=c_int) :: gdalgetrasterysize
-  END FUNCTION gdalgetrasterysize
-
-!> Equivalent of the C function GDALGetRasterCount().
-!! It returns the number of bands in a dataset.
-  FUNCTION gdalgetrastercount(hds) BIND(C,name="GDALGetRasterCount")
-  IMPORT
-  TYPE(gdaldataseth),VALUE :: hds !< dataset
-  INTEGER(kind=c_int) :: gdalgetrastercount
-  END FUNCTION gdalgetrastercount
-
-!> Equivalent of the C function GDALGetRasterBand().
-!! It returns a band object from a dataset.  The result must be
-!! declared as \a TYPE(gdalrasterbandh) . In case of failure it
-!! returns a NULL pointer, this condition has to be checked with the
-!! gdalassociated() function.
-  FUNCTION gdalgetrasterband(hds, nbandid) BIND(C,name="GDALGetRasterBand")
-  IMPORT
-  TYPE(gdaldataseth),VALUE :: hds !< dataset
-  INTEGER(kind=c_int),VALUE :: nbandid !< number of band
-!  TYPE(gdalrasterbandh) :: gdalgetrasterband
-  TYPE(c_ptr) :: gdalgetrasterband
-  END FUNCTION gdalgetrasterband
-
-!> Equivalent of the C function GDALGetRasterDataType().
-  FUNCTION gdalgetrasterdatatype(hband) BIND(C,name="GDALGetRasterDataType")
-  IMPORT
-  TYPE(gdalrasterbandh),VALUE :: hband
-  INTEGER(kind=c_int) :: gdalgetrasterdatatype
-  END FUNCTION gdalgetrasterdatatype
-
-!> Equivalent of the C function GDALGetRasterBandXSize().
-  FUNCTION gdalgetrasterbandxsize(hband) BIND(C,name="GDALGetRasterBandXSize")
-  IMPORT
-  TYPE(gdalrasterbandh),VALUE :: hband
-  INTEGER(kind=c_int) :: gdalgetrasterbandxsize
-  END FUNCTION gdalgetrasterbandxsize
-
-!> Equivalent of the C function GDALGetRasterBandYSize().
-  FUNCTION gdalgetrasterbandysize(hband) BIND(C,name="GDALGetRasterBandYSize")
-  IMPORT
-  TYPE(gdalrasterbandh),VALUE :: hband
-  INTEGER(kind=c_int) :: gdalgetrasterbandysize
-  END FUNCTION gdalgetrasterbandysize
-
-!> Equivalent of the C function GDALGetRasterAccess().
-  FUNCTION gdalgetrasteraccess(hband) BIND(C,name="GDALGetRasterAccess")
-  IMPORT
-  TYPE(gdalrasterbandh),VALUE :: hband
-  INTEGER(kind=c_int) :: gdalgetrasteraccess
-  END FUNCTION gdalgetrasteraccess
-
-!> Equivalent of the C function GDALGetBandNumber().
-  FUNCTION gdalgetbandnumber(hband) BIND(C,name="GDALGetBandNumber")
-  IMPORT
-  TYPE(gdalrasterbandh),VALUE :: hband
-  INTEGER(kind=c_int) :: gdalgetbandnumber
-  END FUNCTION gdalgetbandnumber
-
-!> Equivalent of the C function GDALGetBandDataset().
-  FUNCTION gdalgetbanddataset(hband) BIND(C,name="GDALGetBandDataset")
-  IMPORT
-  TYPE(gdalrasterbandh),VALUE :: hband
-!  TYPE(gdaldataseth) :: gdalgetbanddataset
-  TYPE(c_ptr) :: gdalgetbanddataset
-  END FUNCTION gdalgetbanddataset
-
-!> Equivalent of the C function GDALGetRasterNoDataValue().
-  FUNCTION gdalgetrasternodatavalue(hband, pbsuccess) &
-   BIND(C,name="GDALGetRasterNoDataValue")
-  IMPORT
-  TYPE(gdalrasterbandh),VALUE :: hband
-  INTEGER(kind=c_int),INTENT(out) :: pbsuccess ! boolean indicating if a value is actually associated with this layer (!0 = true)
-  REAL(kind=c_double) :: gdalgetrasternodatavalue
-  END FUNCTION gdalgetrasternodatavalue
-
-!> Equivalent of the C function GDALGetRasterMinimum().
-  FUNCTION gdalgetrasterminimum(hband, pbsuccess) &
-   BIND(C,name="GDALGetRasterMinimum")
-  IMPORT
-  TYPE(gdalrasterbandh),VALUE :: hband
-  INTEGER(kind=c_int),INTENT(out) :: pbsuccess ! boolean indicating if a value is a tight minimum or not (!0 = true)
-  REAL(kind=c_double) :: gdalgetrasterminimum
-  END FUNCTION gdalgetrasterminimum
-
-!> Equivalent of the C function GDALGetRasterMaximum().
-  FUNCTION gdalgetrastermaximum(hband, pbsuccess) &
-   BIND(C,name="GDALGetRasterMaximum")
-  IMPORT
-  TYPE(gdalrasterbandh),VALUE :: hband
-  INTEGER(kind=c_int),INTENT(out) :: pbsuccess ! boolean indicating if a value is a tight maximum or not (!0 = true)
-  REAL(kind=c_double) :: gdalgetrastermaximum
-  END FUNCTION gdalgetrastermaximum
-
-! Units value = (raw value * scale) + offset
-!> Equivalent of the C function GDALGetRasterOffset().
-  FUNCTION gdalgetrasteroffset(hband, pbsuccess) &
-   BIND(C,name="GDALGetRasterOffset")
-  IMPORT
-  TYPE(gdalrasterbandh),VALUE :: hband
-  INTEGER(kind=c_int),INTENT(out) :: pbsuccess ! boolean indicating if the returned value is meaningful or not
-  REAL(kind=c_double) :: gdalgetrasteroffset
-  END FUNCTION gdalgetrasteroffset
-
-! Units value = (raw value * scale) + offset
-!> Equivalent of the C function GDALGetRasterScale().
-  FUNCTION gdalgetrasterscale(hband, pbsuccess) &
-   BIND(C,name="GDALGetRasterScale")
-  IMPORT
-  TYPE(gdalrasterbandh),VALUE :: hband
-  INTEGER(kind=c_int),INTENT(out) :: pbsuccess ! boolean indicating if the returned value is meaningful or not
-  REAL(kind=c_double) :: gdalgetrasterscale
-  END FUNCTION gdalgetrasterscale
-
-  FUNCTION gdaldatasetrasterio_c(hds, erwflag, ndsxoff, ndsyoff, &
-   ndsxsize, ndsysize, pbuffer, nbxsize, nbysize, ebdatatype, &
-   nbandcount, panbandcount, npixelspace, nlinespace, nbandspace) &
-   BIND(C,name="GDALDatasetRasterIO")
-  IMPORT
-  TYPE(gdaldataseth),VALUE :: hds
-  INTEGER(kind=c_int),VALUE :: erwflag
-  INTEGER(kind=c_int),VALUE :: ndsxoff, ndsyoff, ndsxsize, ndsysize
-  TYPE(c_ptr),VALUE :: pbuffer
-  INTEGER(kind=c_int),VALUE :: nbxsize, nbysize
-  INTEGER(kind=c_int),VALUE :: ebdatatype
-  INTEGER(kind=c_int),VALUE :: nbandcount
-  TYPE(c_ptr),VALUE :: panbandcount
-  INTEGER(kind=c_int),VALUE :: npixelspace, nlinespace, nbandspace
-  INTEGER(kind=c_int) :: gdaldatasetrasterio_c ! CPLErr
-  END FUNCTION gdaldatasetrasterio_c
-
-  FUNCTION gdalrasterio_c(hband, erwflag, ndsxoff, ndsyoff, &
-   ndsxsize, ndsysize, pbuffer, nbxsize, nbysize, ebdatatype, &
-   npixelspace, nlinespace) BIND(C,name="GDALRasterIO")
-  IMPORT
-  TYPE(gdalrasterbandh),VALUE :: hband
-  INTEGER(kind=c_int),VALUE :: erwflag
-  INTEGER(kind=c_int),VALUE :: ndsxoff, ndsyoff, ndsxsize, ndsysize
-  TYPE(c_ptr),VALUE :: pbuffer
-  INTEGER(kind=c_int),VALUE :: nbxsize, nbysize
-  INTEGER(kind=c_int),VALUE :: ebdatatype
-  INTEGER(kind=c_int),VALUE :: npixelspace, nlinespace
-  INTEGER(kind=c_int) :: gdalrasterio_c ! CPLErr
-  END FUNCTION gdalrasterio_c
-
+  INTEGER(kind=c_int),VALUE :: ngcpcount
+  TYPE(gdal_gcp),INTENT(in) :: pasgcps
+  REAL(kind=c_double) :: padfgeotransform(*)
+  INTEGER(kind=c_int),VALUE :: bapproxok
+  INTEGER(kind=c_int) :: gdalgcpstogeotransform
+  END FUNCTION gdalgcpstogeotransform
 END INTERFACE
 
-!> Interface to FUNCTIONs returning the state of a gdal object.
-!! They return \a .TRUE. if the corresponding argument
-!! has been correctly associated or \a .FALSE. if it is a NULL pointer.
+! Machine made interface definitions
+INCLUDE 'gdalproto_interf.f90'
+
+! Fortran style interfaces
+
+!> Interface to a Fortran version of gdalapplygeotransform
+!! working on scalars, 1-d, 2-d and 3-d arrays.  This is a Fortran
+!! reimplementation of \a gdalapplygeotransform, giving the same
+!! results but acting also on arrays of data with up to 3 dimensions
+!! in a single call.
 !!
-!! LOGICAL FUNCTION gdalassociated(hobj)
-!! \param hobj TYPE(gdaldataseth) or TYPE(gdalrasterbandh) object to be checked
-INTERFACE gdalassociated
-  MODULE PROCEDURE gdaldataseth_associated, gdalrasterbandh_associated
+!! SUBROUTINE gdalapplygeotransform_f_0d(padfgeotransform, dfpixel, dfline, pdfgeox, pdfgeoy)
+!! \param REAL(kind=c_double),INTENT(in) :: padfgeotransform(6) the affine transformation
+!! \param REAL(kind=c_double),INTENT(in) :: dfpixel a scalar or an arry with up to 3 dimensions
+!! \param REAL(kind=c_double),INTENT(in) :: dfline a scalar or an arry with up to 3 dimensions
+!! \param REAL(kind=c_double),INTENT(out) :: pdfgeox a scalar or an arry with up to 3 dimensions
+!! \param REAL(kind=c_double),INTENT(out) :: pdfgeoy a scalar or an arry with up to 3 dimensions
+INTERFACE gdalapplygeotransform_f
+  MODULE PROCEDURE gdalapplygeotransform_f_0d, gdalapplygeotransform_f_1d, &
+   gdalapplygeotransform_f_2d, gdalapplygeotransform_f_3d
 END INTERFACE
 
-!> Interface to SUBROUTINEs for nullifying a gdal object.
-!! They set the internal pointer of the provided argument to a NULL C
-!! pointer.
+PRIVATE gdalapplygeotransform_f_0d, gdalapplygeotransform_f_1d, &
+ gdalapplygeotransform_f_2d, gdalapplygeotransform_f_3d
+
+
+!> Simplified Fortran generic interface to the gdaldatasetrasterio C function.
+!! This interface manages calls to \a gdaldatasetrasterio for
+!! different Fortran data types. The size of the array provided
+!! determines also automatically the size of the area and the number
+!! of raster bands which are read or written from/to the dataset, so
+!! that the arguments \a ndsxsize, \a ndsysize, \a nbxsize, \a
+!! nbysize, \a nbandcount of the C interface are not needed and
+!! inferred from the shape of \a pbuffer, while \a panbandcount, \a
+!! npixelspace, \a nlinespace and \a nbandspace are set to default
+!! values, thus the number of requested raster bands is read starting
+!! from the first.. The remaining arguments have the same meaning as
+!! in the original \a gdaldatasetrasterio function which is still
+!! available to Fortran under the \c gdaldatasetrasterio name.
 !!
-!! SUBROUTINE gdalnullify(hobj)
-!! \param hobj TYPE(gdaldataseth) or TYPE(gdalrasterbandh) object to be nullified
-INTERFACE gdalnullify
-  MODULE PROCEDURE gdaldataseth_nullify, gdalrasterbandh_nullify
+!! INTEGER FUNCTION gdalrasterio_f(hband, erwflag, ndsxoff, ndsyoff, pbuffer)
+!! \param TYPE(gdalrasterbandh),VALUE :: hband
+!! \param INTEGER(kind=c_int),INTENT(in) :: erwflag
+!! \param INTEGER(kind=c_int),INTENT(in) :: ndsxoff
+!! \param INTEGER(kind=c_int),INTENT(in) :: ndsyoff
+!! \param INTEGER REAL COMPLEX,INTENT(inout) :: pbuffer(:,:,:) can be integer. real, or complex of different sizes
+INTERFACE gdaldatasetrasterio_f
+  MODULE PROCEDURE gdaldatasetrasterio_int8, gdaldatasetrasterio_int16, &
+   gdaldatasetrasterio_int32, &
+   gdaldatasetrasterio_float, gdaldatasetrasterio_double, &
+   gdaldatasetrasterio_float_cmplx, gdaldatasetrasterio_double_cmplx
 END INTERFACE
 
-INTERFACE gdaldatasetrasterio
-  MODULE PROCEDURE gdaldatasetrasterio_byte, gdaldatasetrasterio_int32, &
-   gdaldatasetrasterio_float32, gdaldatasetrasterio_float64, &
-   gdaldatasetrasterio_cfloat32, gdaldatasetrasterio_cfloat64
+PRIVATE gdaldatasetrasterio_int8, gdaldatasetrasterio_int16, &
+ gdaldatasetrasterio_int32, &
+ gdaldatasetrasterio_float, gdaldatasetrasterio_double, &
+ gdaldatasetrasterio_float_cmplx, gdaldatasetrasterio_double_cmplx
+
+!> Simplified Fortran generic interface to the gdalrasterio C function.
+!! This interface manages calls to \a gdalrasterio for different
+!! Fortran data types. The size of the array provided determines also
+!! automatically the size of the area which is read or written from/to
+!! the raster band, so that the arguments \a ndsxsize, \a ndsysize, \a
+!! nbxsize, \a nbysize of the C interface are not needed and inferred
+!! from the shape of \a pbuffer, while \a npixelspace and \a
+!! nlinespace are set to default values. The remaining arguments have
+!! the same meaning as in the original \a gdalrasterio function which
+!! is still available to Fortran under the \c gdalrasterio name.
+!!
+!! INTEGER FUNCTION gdalrasterio_f(hband, erwflag, ndsxoff, ndsyoff, pbuffer)
+!! \param TYPE(gdalrasterbandh),VALUE :: hband
+!! \param INTEGER(kind=c_int),INTENT(in) :: erwflag
+!! \param INTEGER(kind=c_int),INTENT(in) :: ndsxoff
+!! \param INTEGER(kind=c_int),INTENT(in) :: ndsyoff
+!! \param INTEGER REAL COMPLEX,INTENT(inout) :: pbuffer(:,:) can be integer. real, or complex of different sizes
+INTERFACE gdalrasterio_f
+  MODULE PROCEDURE gdalrasterio_int8, gdalrasterio_int16, &
+   gdalrasterio_int32, &
+   gdalrasterio_float, gdalrasterio_double, &
+   gdalrasterio_float_cmplx, gdalrasterio_double_cmplx
 END INTERFACE
 
-INTERFACE gdalrasterio
-  MODULE PROCEDURE gdalrasterio_byte, gdalrasterio_int32, &
-   gdalrasterio_float32, gdalrasterio_float64, &
-   gdalrasterio_cfloat32, gdalrasterio_cfloat64
-END INTERFACE
+PRIVATE gdalrasterio_int8, gdalrasterio_int16, &
+ gdalrasterio_int32, &
+ gdalrasterio_float, gdalrasterio_double, &
+ gdalrasterio_float_cmplx, gdalrasterio_double_cmplx
 
+! internal interfaces
+INTERFACE gdaldatasetrasterio_loc
+  MODULE PROCEDURE gdaldatasetrasterio_int8_loc, gdaldatasetrasterio_int16_loc, &
+   gdaldatasetrasterio_int32_loc, &
+   gdaldatasetrasterio_float_loc, gdaldatasetrasterio_double_loc, &
+   gdaldatasetrasterio_float_cmplx_loc, gdaldatasetrasterio_double_cmplx_loc
+END INTERFACE
+PRIVATE gdaldatasetrasterio_loc
+PRIVATE gdaldatasetrasterio_int8_loc, gdaldatasetrasterio_int16_loc, &
+ gdaldatasetrasterio_int32_loc, &
+ gdaldatasetrasterio_float_loc, gdaldatasetrasterio_double_loc, &
+ gdaldatasetrasterio_float_cmplx_loc, gdaldatasetrasterio_double_cmplx_loc
+
+INTERFACE gdalrasterio_loc
+  MODULE PROCEDURE gdalrasterio_int8_loc, gdalrasterio_int16_loc, &
+   gdalrasterio_int32_loc, &
+   gdalrasterio_float_loc, gdalrasterio_double_loc, &
+   gdalrasterio_float_cmplx_loc, gdalrasterio_double_cmplx_loc
+END INTERFACE
+PRIVATE gdalrasterio_loc
+PRIVATE gdalrasterio_int8_loc, gdalrasterio_int16_loc, &
+ gdalrasterio_int32_loc, &
+ gdalrasterio_float_loc, gdalrasterio_double_loc, &
+ gdalrasterio_float_cmplx_loc, gdalrasterio_double_cmplx_loc
 
 CONTAINS
 
+! Fortran specific version of some functions
+FUNCTION gdalgcpstogeotransform_f(pasgcps, padfgeotransform, bapproxok)
+TYPE(gdal_gcp),INTENT(in) :: pasgcps(:)
+REAL(kind=c_double),INTENT(out) :: padfgeotransform(6)
+INTEGER(kind=c_int),VALUE :: bapproxok
+INTEGER(kind=c_int) :: gdalgcpstogeotransform_f
 
-FUNCTION gdaldataseth_associated(hds1, hds2) RESULT(associated_)
-TYPE(gdaldataseth),INTENT(in) :: hds1
-TYPE(gdaldataseth),INTENT(in),OPTIONAL :: hds2
-LOGICAL :: associated_
-!IF (PRESENT(hds2)) THEN
-  associated_ = C_ASSOCIATED(hds1%ptr, hds2%ptr)
-!ELSE
-!  associated_ = C_ASSOCIATED(hds1%ptr)
-!ENDIF
-END FUNCTION gdaldataseth_associated
+gdalgcpstogeotransform_f = gdalgcpstogeotransform(SIZE(pasgcps), pasgcps(1), padfgeotransform, bapproxok)
 
-
-FUNCTION gdalrasterbandh_associated(hband1, hband2) RESULT(associated_)
-TYPE(gdalrasterbandh),INTENT(in) :: hband1
-TYPE(gdalrasterbandh),INTENT(in),OPTIONAL :: hband2
-LOGICAL :: associated_
-!IF(PRESENT(hband2)) THEN
-  associated_ = C_ASSOCIATED(hband1%ptr, hband2%ptr)
-!ELSE
-!  associated_ = C_ASSOCIATED(hband1%ptr)
-!ENDIF
-END FUNCTION gdalrasterbandh_associated
+END FUNCTION gdalgcpstogeotransform_f
 
 
-SUBROUTINE gdaldataseth_nullify(hds)
-TYPE(gdaldataseth),INTENT(inout) :: hds
-hds%ptr = C_NULL_PTR
-END SUBROUTINE gdaldataseth_nullify
+! ========================================
+! gdalapplygeotransform
+! ========================================
+! this unfortunately does not work as ELEMENTAL, padfgeotransform
+! should be a scalar derived type
+SUBROUTINE gdalapplygeotransform_f_0d(padfgeotransform, &
+ dfpixel, dfline, pdfgeox, pdfgeoy)
+REAL(kind=c_double),INTENT(in) :: padfgeotransform(6)
+REAL(kind=c_double),INTENT(in) :: dfpixel
+REAL(kind=c_double),INTENT(in) :: dfline
+REAL(kind=c_double),INTENT(out) :: pdfgeox
+REAL(kind=c_double),INTENT(out) :: pdfgeoy
+
+pdfGeoX = padfGeoTransform(1) + &
+ dfPixel * padfGeoTransform(2) + dfLine * padfGeoTransform(3)
+pdfGeoY = padfGeoTransform(4) + &
+ dfPixel * padfGeoTransform(5) + dfLine * padfGeoTransform(6)
+
+END SUBROUTINE gdalapplygeotransform_f_0d
+
+SUBROUTINE gdalapplygeotransform_f_1d(padfgeotransform, &
+ dfpixel, dfline, pdfgeox, pdfgeoy)
+REAL(kind=c_double),INTENT(in) :: padfgeotransform(6)
+REAL(kind=c_double),INTENT(in) :: dfpixel(:)
+REAL(kind=c_double),INTENT(in) :: dfline(:)
+REAL(kind=c_double),INTENT(out) :: pdfgeox(:)
+REAL(kind=c_double),INTENT(out) :: pdfgeoy(:)
+
+pdfGeoX = padfGeoTransform(1) + &
+ dfPixel * padfGeoTransform(2) + dfLine * padfGeoTransform(3)
+pdfGeoY = padfGeoTransform(4) + &
+ dfPixel * padfGeoTransform(5) + dfLine * padfGeoTransform(6)
+
+END SUBROUTINE gdalapplygeotransform_f_1d
+
+SUBROUTINE gdalapplygeotransform_f_2d(padfgeotransform, &
+ dfpixel, dfline, pdfgeox, pdfgeoy)
+REAL(kind=c_double),INTENT(in) :: padfgeotransform(6)
+REAL(kind=c_double),INTENT(in) :: dfpixel(:,:)
+REAL(kind=c_double),INTENT(in) :: dfline(:,:)
+REAL(kind=c_double),INTENT(out) :: pdfgeox(:,:)
+REAL(kind=c_double),INTENT(out) :: pdfgeoy(:,:)
+
+pdfGeoX = padfGeoTransform(1) + &
+ dfPixel * padfGeoTransform(2) + dfLine * padfGeoTransform(3)
+pdfGeoY = padfGeoTransform(4) + &
+ dfPixel * padfGeoTransform(5) + dfLine * padfGeoTransform(6)
+
+END SUBROUTINE gdalapplygeotransform_f_2d
+
+SUBROUTINE gdalapplygeotransform_f_3d(padfgeotransform, &
+ dfpixel, dfline, pdfgeox, pdfgeoy)
+REAL(kind=c_double),INTENT(in) :: padfgeotransform(6)
+REAL(kind=c_double),INTENT(in) :: dfpixel(:,:,:)
+REAL(kind=c_double),INTENT(in) :: dfline(:,:,:)
+REAL(kind=c_double),INTENT(out) :: pdfgeox(:,:,:)
+REAL(kind=c_double),INTENT(out) :: pdfgeoy(:,:,:)
+
+pdfGeoX = padfGeoTransform(1) + &
+ dfPixel * padfGeoTransform(2) + dfLine * padfGeoTransform(3)
+pdfGeoY = padfGeoTransform(4) + &
+ dfPixel * padfGeoTransform(5) + dfLine * padfGeoTransform(6)
+
+END SUBROUTINE gdalapplygeotransform_f_3d
 
 
-SUBROUTINE gdalrasterbandh_nullify(hband)
-TYPE(gdalrasterbandh),INTENT(inout) :: hband
-hband%ptr = C_NULL_PTR
-END SUBROUTINE gdalrasterbandh_nullify
-
-
-!> Equivalent of the C function GDALOpen().
-!! The filename will be trimmed and null-terminated automatically.
-!! The result must be declared as \a TYPE(gdaldataseth) . In case of
-!! failure it returns a NULL pointer, this condition has to be checked
-!! with the gdalassociated() function.
-FUNCTION gdalopen(pszfilename, eaccess)
-CHARACTER(LEN=*),INTENT(in) :: pszfilename !< filename
-INTEGER(kind=c_int) :: eaccess !< one of \a GA_ReadOnly, \a GA_Update
-TYPE(gdaldataseth) :: gdalopen
-
-gdalopen = gdalopen_c(fchartrimtostr(pszfilename), eaccess)
-
-END FUNCTION gdalopen
-
-
-!> Equivalent of the C function GDALOpenShared().
-!! The filename will be trimmed and null-terminated automatically.
-!! The result must be declared as \a TYPE(gdaldataseth) . In case of
-!! failure it returns a NULL pointer, this condition has to be checked
-!! with the gdalassociated() function.
-FUNCTION gdalopenshared(pszfilename, eaccess)
-CHARACTER(LEN=*),INTENT(in) :: pszfilename !< filename
-INTEGER(kind=c_int) :: eaccess !< one of \a GA_ReadOnly, \a GA_Update
-TYPE(gdaldataseth) :: gdalopenshared
-
-gdalopenshared = gdalopenshared_c(fchartrimtostr(pszfilename), eaccess)
-
-END FUNCTION gdalopenshared
-
-
-FUNCTION gdaldatasetrasterio_byte(hds, erwflag, ndsxoff, ndsyoff, &
- ndsxsize, ndsysize, pbuffer, nbxsize, nbysize, &
- nbandcount, panbandcount, npixelspace, nlinespace, nbandspace) &
- RESULT(err)
+! ========================================
+! gdaldatasetrasterio
+! ========================================
+FUNCTION gdaldatasetrasterio_int8(hds, erwflag, ndsxoff, ndsyoff, pbuffer) RESULT(err)
 TYPE(gdaldataseth),VALUE :: hds
 INTEGER(kind=c_int),INTENT(in) :: erwflag
 INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
-INTEGER(kind=c_int),INTENT(in) :: ndsxsize, ndsysize
-INTEGER(kind=SELECTED_INT_KIND(1)),TARGET,INTENT(inout) :: pbuffer(*)
-INTEGER(kind=c_int),INTENT(in) :: nbxsize, nbysize
-INTEGER(kind=c_int),INTENT(in) :: nbandcount
-INTEGER(kind=c_int),INTENT(in),OPTIONAL,TARGET :: panbandcount(*)
-INTEGER(kind=c_int),INTENT(in),OPTIONAL :: npixelspace, nlinespace, nbandspace
+INTEGER(kind=c_int8_t),INTENT(inout) :: pbuffer(:,:,:)
 INTEGER(kind=c_int) :: err ! CPLErr
 
-INTEGER(kind=c_int) :: lnpixelspace, lnlinespace, lnbandspace
-TYPE(c_ptr) :: lpanbandcount
+INTEGER(kind=c_int) :: i
 
-IF (PRESENT(panbandcount)) THEN
-  lpanbandcount = C_LOC(panbandcount)
-ELSE
-  lpanbandcount = C_NULL_PTR
-ENDIF
-IF (PRESENT(npixelspace)) THEN
-  lnpixelspace = npixelspace
-ELSE
-  lnpixelspace = 0
-ENDIF
-IF (PRESENT(nlinespace)) THEN
-  lnlinespace = nlinespace
-ELSE
-  lnlinespace = 0
-ENDIF
-IF (PRESENT(nbandspace)) THEN
-  lnbandspace = nbandspace
-ELSE
-  lnbandspace = 0
-ENDIF
+err = gdaldatasetrasterio_loc(hds, erwflag, ndsxoff, ndsyoff, &
+ SIZE(pbuffer,1), SIZE(pbuffer,2), SIZE(pbuffer,3), pbuffer, &
+ (/(i,i=1,SIZE(pbuffer,3))/))
 
-err = gdaldatasetrasterio_c(hds, erwflag, ndsxoff, ndsyoff, &
-   ndsxsize, ndsysize, C_LOC(pbuffer), nbxsize, nbysize, &
-   GDT_Byte, nbandcount, lpanbandcount, lnpixelspace, lnlinespace, lnbandspace)
+END FUNCTION gdaldatasetrasterio_int8
 
-END FUNCTION gdaldatasetrasterio_byte
-
-
-FUNCTION gdaldatasetrasterio_int32(hds, erwflag, ndsxoff, ndsyoff, &
- ndsxsize, ndsysize, pbuffer, nbxsize, nbysize, &
- nbandcount, panbandcount, npixelspace, nlinespace, nbandspace) &
- RESULT(err)
+FUNCTION gdaldatasetrasterio_int8_loc(hds, erwflag, ndsxoff, ndsyoff, &
+ ndsxsize, ndsysize, nbandcount, pbuffer, panbandcount) RESULT(err)
 TYPE(gdaldataseth),VALUE :: hds
 INTEGER(kind=c_int),INTENT(in) :: erwflag
 INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
-INTEGER(kind=c_int),INTENT(in) :: ndsxsize, ndsysize
-INTEGER(kind=c_int),TARGET,INTENT(inout) :: pbuffer(*)
-INTEGER(kind=c_int),INTENT(in) :: nbxsize, nbysize
+INTEGER(kind=c_int),INTENT(in) :: ndsxsize
+INTEGER(kind=c_int),INTENT(in) :: ndsysize
 INTEGER(kind=c_int),INTENT(in) :: nbandcount
-INTEGER(kind=c_int),INTENT(in),OPTIONAL,TARGET :: panbandcount(*)
-INTEGER(kind=c_int),INTENT(in),OPTIONAL :: npixelspace, nlinespace, nbandspace
+INTEGER(kind=c_int8_t),TARGET,INTENT(inout) :: pbuffer(ndsxsize,ndsysize,nbandcount)
+INTEGER(kind=c_int),INTENT(in) :: panbandcount(*)
 INTEGER(kind=c_int) :: err ! CPLErr
 
-INTEGER(kind=c_int) :: lnpixelspace, lnlinespace, lnbandspace
-TYPE(c_ptr) :: lpanbandcount
+err = gdaldatasetrasterio(hds, erwflag, ndsxoff, ndsyoff, &
+ ndsxsize, ndsysize, C_LOC(pbuffer(1,1,1)), &
+ ndsxsize, ndsysize, GDT_Byte, nbandcount, panbandcount, 0, 0, 0)
 
-IF (PRESENT(panbandcount)) THEN
-  lpanbandcount = C_LOC(panbandcount)
-ELSE
-  lpanbandcount = C_NULL_PTR
-ENDIF
-IF (PRESENT(npixelspace)) THEN
-  lnpixelspace = npixelspace
-ELSE
-  lnpixelspace = 0
-ENDIF
-IF (PRESENT(nlinespace)) THEN
-  lnlinespace = nlinespace
-ELSE
-  lnlinespace = 0
-ENDIF
-IF (PRESENT(nbandspace)) THEN
-  lnbandspace = nbandspace
-ELSE
-  lnbandspace = 0
-ENDIF
+END FUNCTION gdaldatasetrasterio_int8_loc
 
-err = gdaldatasetrasterio_c(hds, erwflag, ndsxoff, ndsyoff, &
-   ndsxsize, ndsysize, C_LOC(pbuffer), nbxsize, nbysize, &
-   GDT_Int32, nbandcount, lpanbandcount, lnpixelspace, lnlinespace, lnbandspace)
+
+FUNCTION gdaldatasetrasterio_int16(hds, erwflag, ndsxoff, ndsyoff, pbuffer) RESULT(err)
+TYPE(gdaldataseth),VALUE :: hds
+INTEGER(kind=c_int),INTENT(in) :: erwflag
+INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
+INTEGER(kind=c_int16_t),INTENT(inout) :: pbuffer(:,:,:)
+INTEGER(kind=c_int) :: err ! CPLErr
+
+INTEGER(kind=c_int) :: i
+
+err = gdaldatasetrasterio_loc(hds, erwflag, ndsxoff, ndsyoff, &
+ SIZE(pbuffer,1), SIZE(pbuffer,2), SIZE(pbuffer,3), pbuffer, &
+ (/(i,i=1,SIZE(pbuffer,3))/))
+
+END FUNCTION gdaldatasetrasterio_int16
+
+FUNCTION gdaldatasetrasterio_int16_loc(hds, erwflag, ndsxoff, ndsyoff, &
+ ndsxsize, ndsysize, nbandcount, pbuffer, panbandcount) RESULT(err)
+TYPE(gdaldataseth),VALUE :: hds
+INTEGER(kind=c_int),INTENT(in) :: erwflag
+INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
+INTEGER(kind=c_int),INTENT(in) :: ndsxsize
+INTEGER(kind=c_int),INTENT(in) :: ndsysize
+INTEGER(kind=c_int),INTENT(in) :: nbandcount
+INTEGER(kind=c_int16_t),TARGET,INTENT(inout) :: pbuffer(ndsxsize,ndsysize,nbandcount)
+INTEGER(kind=c_int),INTENT(in) :: panbandcount(*)
+INTEGER(kind=c_int) :: err ! CPLErr
+
+err = gdaldatasetrasterio(hds, erwflag, ndsxoff, ndsyoff, &
+ ndsxsize, ndsysize, C_LOC(pbuffer(1,1,1)), &
+ ndsxsize, ndsysize, GDT_Int16, nbandcount, panbandcount, 0, 0, 0)
+
+END FUNCTION gdaldatasetrasterio_int16_loc
+
+
+FUNCTION gdaldatasetrasterio_int32(hds, erwflag, ndsxoff, ndsyoff, pbuffer) RESULT(err)
+TYPE(gdaldataseth),VALUE :: hds
+INTEGER(kind=c_int),INTENT(in) :: erwflag
+INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
+INTEGER(kind=c_int32_t),INTENT(inout) :: pbuffer(:,:,:)
+INTEGER(kind=c_int) :: err ! CPLErr
+
+INTEGER(kind=c_int) :: i
+
+err = gdaldatasetrasterio_loc(hds, erwflag, ndsxoff, ndsyoff, &
+ SIZE(pbuffer,1), SIZE(pbuffer,2), SIZE(pbuffer,3), pbuffer, &
+ (/(i,i=1,SIZE(pbuffer,3))/))
 
 END FUNCTION gdaldatasetrasterio_int32
 
-
-FUNCTION gdaldatasetrasterio_float32(hds, erwflag, ndsxoff, ndsyoff, &
- ndsxsize, ndsysize, pbuffer, nbxsize, nbysize, &
- nbandcount, panbandcount, npixelspace, nlinespace, nbandspace) &
- RESULT(err)
+FUNCTION gdaldatasetrasterio_int32_loc(hds, erwflag, ndsxoff, ndsyoff, &
+ ndsxsize, ndsysize, nbandcount, pbuffer, panbandcount) RESULT(err)
 TYPE(gdaldataseth),VALUE :: hds
 INTEGER(kind=c_int),INTENT(in) :: erwflag
 INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
-INTEGER(kind=c_int),INTENT(in) :: ndsxsize, ndsysize
-REAL(kind=c_float),TARGET,INTENT(inout) :: pbuffer(*)
-INTEGER(kind=c_int),INTENT(in) :: nbxsize, nbysize
+INTEGER(kind=c_int),INTENT(in) :: ndsxsize
+INTEGER(kind=c_int),INTENT(in) :: ndsysize
 INTEGER(kind=c_int),INTENT(in) :: nbandcount
-INTEGER(kind=c_int),INTENT(in),OPTIONAL,TARGET :: panbandcount(*)
-INTEGER(kind=c_int),INTENT(in),OPTIONAL :: npixelspace, nlinespace, nbandspace
+INTEGER(kind=c_int32_t),TARGET,INTENT(inout) :: pbuffer(ndsxsize,ndsysize,nbandcount)
+INTEGER(kind=c_int),INTENT(in) :: panbandcount(*)
 INTEGER(kind=c_int) :: err ! CPLErr
 
-INTEGER(kind=c_int) :: lnpixelspace, lnlinespace, lnbandspace
-TYPE(c_ptr) :: lpanbandcount
+err = gdaldatasetrasterio(hds, erwflag, ndsxoff, ndsyoff, &
+ ndsxsize, ndsysize, C_LOC(pbuffer(1,1,1)), &
+ ndsxsize, ndsysize, GDT_Int32, nbandcount, panbandcount, 0, 0, 0)
 
-IF (PRESENT(panbandcount)) THEN
-  lpanbandcount = C_LOC(panbandcount)
-ELSE
-  lpanbandcount = C_NULL_PTR
-ENDIF
-IF (PRESENT(npixelspace)) THEN
-  lnpixelspace = npixelspace
-ELSE
-  lnpixelspace = 0
-ENDIF
-IF (PRESENT(nlinespace)) THEN
-  lnlinespace = nlinespace
-ELSE
-  lnlinespace = 0
-ENDIF
-IF (PRESENT(nbandspace)) THEN
-  lnbandspace = nbandspace
-ELSE
-  lnbandspace = 0
-ENDIF
-
-err = gdaldatasetrasterio_c(hds, erwflag, ndsxoff, ndsyoff, &
-   ndsxsize, ndsysize, C_LOC(pbuffer), nbxsize, nbysize, &
-   GDT_Float32, nbandcount, lpanbandcount, lnpixelspace, lnlinespace, lnbandspace)
-
-END FUNCTION gdaldatasetrasterio_float32
+END FUNCTION gdaldatasetrasterio_int32_loc
 
 
-FUNCTION gdaldatasetrasterio_float64(hds, erwflag, ndsxoff, ndsyoff, &
- ndsxsize, ndsysize, pbuffer, nbxsize, nbysize, &
- nbandcount, panbandcount, npixelspace, nlinespace, nbandspace) &
- RESULT(err)
+FUNCTION gdaldatasetrasterio_float(hds, erwflag, ndsxoff, ndsyoff, pbuffer) RESULT(err)
 TYPE(gdaldataseth),VALUE :: hds
 INTEGER(kind=c_int),INTENT(in) :: erwflag
 INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
-INTEGER(kind=c_int),INTENT(in) :: ndsxsize, ndsysize
-REAL(kind=c_double),TARGET,INTENT(inout) :: pbuffer(*)
-INTEGER(kind=c_int),INTENT(in) :: nbxsize, nbysize
-INTEGER(kind=c_int),INTENT(in) :: nbandcount
-INTEGER(kind=c_int),INTENT(in),OPTIONAL,TARGET :: panbandcount(*)
-INTEGER(kind=c_int),INTENT(in),OPTIONAL :: npixelspace, nlinespace, nbandspace
+REAL(kind=c_float),INTENT(inout) :: pbuffer(:,:,:)
 INTEGER(kind=c_int) :: err ! CPLErr
 
-INTEGER(kind=c_int) :: lnpixelspace, lnlinespace, lnbandspace
-TYPE(c_ptr) :: lpanbandcount
+INTEGER(kind=c_int) :: i
 
-IF (PRESENT(panbandcount)) THEN
-  lpanbandcount = C_LOC(panbandcount)
-ELSE
-  lpanbandcount = C_NULL_PTR
-ENDIF
-IF (PRESENT(npixelspace)) THEN
-  lnpixelspace = npixelspace
-ELSE
-  lnpixelspace = 0
-ENDIF
-IF (PRESENT(nlinespace)) THEN
-  lnlinespace = nlinespace
-ELSE
-  lnlinespace = 0
-ENDIF
-IF (PRESENT(nbandspace)) THEN
-  lnbandspace = nbandspace
-ELSE
-  lnbandspace = 0
-ENDIF
+err = gdaldatasetrasterio_loc(hds, erwflag, ndsxoff, ndsyoff, &
+ SIZE(pbuffer,1), SIZE(pbuffer,2), SIZE(pbuffer,3), pbuffer, &
+ (/(i,i=1,SIZE(pbuffer,3))/))
 
-err = gdaldatasetrasterio_c(hds, erwflag, ndsxoff, ndsyoff, &
-   ndsxsize, ndsysize, C_LOC(pbuffer), nbxsize, nbysize, &
-   GDT_Float64, nbandcount, lpanbandcount, lnpixelspace, lnlinespace, lnbandspace)
+END FUNCTION gdaldatasetrasterio_float
 
-END FUNCTION gdaldatasetrasterio_float64
-
-
-FUNCTION gdaldatasetrasterio_cfloat32(hds, erwflag, ndsxoff, ndsyoff, &
- ndsxsize, ndsysize, pbuffer, nbxsize, nbysize, &
- nbandcount, panbandcount, npixelspace, nlinespace, nbandspace) &
- RESULT(err)
+FUNCTION gdaldatasetrasterio_float_loc(hds, erwflag, ndsxoff, ndsyoff, &
+ ndsxsize, ndsysize, nbandcount, pbuffer, panbandcount) RESULT(err)
 TYPE(gdaldataseth),VALUE :: hds
 INTEGER(kind=c_int),INTENT(in) :: erwflag
 INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
-INTEGER(kind=c_int),INTENT(in) :: ndsxsize, ndsysize
-COMPLEX(kind=c_float_complex),TARGET,INTENT(inout) :: pbuffer(*)
-INTEGER(kind=c_int),INTENT(in) :: nbxsize, nbysize
+INTEGER(kind=c_int),INTENT(in) :: ndsxsize
+INTEGER(kind=c_int),INTENT(in) :: ndsysize
 INTEGER(kind=c_int),INTENT(in) :: nbandcount
-INTEGER(kind=c_int),INTENT(in),OPTIONAL,TARGET :: panbandcount(*)
-INTEGER(kind=c_int),INTENT(in),OPTIONAL :: npixelspace, nlinespace, nbandspace
+REAL(kind=c_float),TARGET,INTENT(inout) :: pbuffer(ndsxsize,ndsysize,nbandcount)
+INTEGER(kind=c_int),INTENT(in) :: panbandcount(*)
 INTEGER(kind=c_int) :: err ! CPLErr
 
-INTEGER(kind=c_int) :: lnpixelspace, lnlinespace, lnbandspace
-TYPE(c_ptr) :: lpanbandcount
+err = gdaldatasetrasterio(hds, erwflag, ndsxoff, ndsyoff, &
+ ndsxsize, ndsysize, C_LOC(pbuffer(1,1,1)), &
+ ndsxsize, ndsysize, GDT_Float32, nbandcount, panbandcount, 0, 0, 0)
 
-IF (PRESENT(panbandcount)) THEN
-  lpanbandcount = C_LOC(panbandcount)
-ELSE
-  lpanbandcount = C_NULL_PTR
-ENDIF
-IF (PRESENT(npixelspace)) THEN
-  lnpixelspace = npixelspace
-ELSE
-  lnpixelspace = 0
-ENDIF
-IF (PRESENT(nlinespace)) THEN
-  lnlinespace = nlinespace
-ELSE
-  lnlinespace = 0
-ENDIF
-IF (PRESENT(nbandspace)) THEN
-  lnbandspace = nbandspace
-ELSE
-  lnbandspace = 0
-ENDIF
-
-err = gdaldatasetrasterio_c(hds, erwflag, ndsxoff, ndsyoff, &
-   ndsxsize, ndsysize, C_LOC(pbuffer), nbxsize, nbysize, &
-   GDT_CFloat32, nbandcount, lpanbandcount, lnpixelspace, lnlinespace, lnbandspace)
-
-END FUNCTION gdaldatasetrasterio_cfloat32
+END FUNCTION gdaldatasetrasterio_float_loc
 
 
-FUNCTION gdaldatasetrasterio_cfloat64(hds, erwflag, ndsxoff, ndsyoff, &
- ndsxsize, ndsysize, pbuffer, nbxsize, nbysize, &
- nbandcount, panbandcount, npixelspace, nlinespace, nbandspace) &
- RESULT(err)
+FUNCTION gdaldatasetrasterio_double(hds, erwflag, ndsxoff, ndsyoff, pbuffer) RESULT(err)
 TYPE(gdaldataseth),VALUE :: hds
 INTEGER(kind=c_int),INTENT(in) :: erwflag
 INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
-INTEGER(kind=c_int),INTENT(in) :: ndsxsize, ndsysize
-COMPLEX(kind=c_double_complex),TARGET,INTENT(inout) :: pbuffer(*)
-INTEGER(kind=c_int),INTENT(in) :: nbxsize, nbysize
-INTEGER(kind=c_int),INTENT(in) :: nbandcount
-INTEGER(kind=c_int),INTENT(in),OPTIONAL,TARGET :: panbandcount(*)
-INTEGER(kind=c_int),INTENT(in),OPTIONAL :: npixelspace, nlinespace, nbandspace
+REAL(kind=c_double),INTENT(inout) :: pbuffer(:,:,:)
 INTEGER(kind=c_int) :: err ! CPLErr
 
-INTEGER(kind=c_int) :: lnpixelspace, lnlinespace, lnbandspace
-TYPE(c_ptr) :: lpanbandcount
+INTEGER(kind=c_int) :: i
 
-IF (PRESENT(panbandcount)) THEN
-  lpanbandcount = C_LOC(panbandcount)
-ELSE
-  lpanbandcount = C_NULL_PTR
-ENDIF
-IF (PRESENT(npixelspace)) THEN
-  lnpixelspace = npixelspace
-ELSE
-  lnpixelspace = 0
-ENDIF
-IF (PRESENT(nlinespace)) THEN
-  lnlinespace = nlinespace
-ELSE
-  lnlinespace = 0
-ENDIF
-IF (PRESENT(nbandspace)) THEN
-  lnbandspace = nbandspace
-ELSE
-  lnbandspace = 0
-ENDIF
+err = gdaldatasetrasterio_loc(hds, erwflag, ndsxoff, ndsyoff, &
+ SIZE(pbuffer,1), SIZE(pbuffer,2), SIZE(pbuffer,3), pbuffer, &
+ (/(i,i=1,SIZE(pbuffer,3))/))
 
-err = gdaldatasetrasterio_c(hds, erwflag, ndsxoff, ndsyoff, &
-   ndsxsize, ndsysize, C_LOC(pbuffer), nbxsize, nbysize, &
-   GDT_CFloat64, nbandcount, lpanbandcount, lnpixelspace, lnlinespace, lnbandspace)
+END FUNCTION gdaldatasetrasterio_double
 
-END FUNCTION gdaldatasetrasterio_cfloat64
+FUNCTION gdaldatasetrasterio_double_loc(hds, erwflag, ndsxoff, ndsyoff, &
+ ndsxsize, ndsysize, nbandcount, pbuffer, panbandcount) RESULT(err)
+TYPE(gdaldataseth),VALUE :: hds
+INTEGER(kind=c_int),INTENT(in) :: erwflag
+INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
+INTEGER(kind=c_int),INTENT(in) :: ndsxsize
+INTEGER(kind=c_int),INTENT(in) :: ndsysize
+INTEGER(kind=c_int),INTENT(in) :: nbandcount
+REAL(kind=c_double),TARGET,INTENT(inout) :: pbuffer(ndsxsize,ndsysize,nbandcount)
+INTEGER(kind=c_int),INTENT(in) :: panbandcount(*)
+INTEGER(kind=c_int) :: err ! CPLErr
+
+err = gdaldatasetrasterio(hds, erwflag, ndsxoff, ndsyoff, &
+ ndsxsize, ndsysize, C_LOC(pbuffer(1,1,1)), &
+ ndsxsize, ndsysize, GDT_Float64, nbandcount, panbandcount, 0, 0, 0)
+
+END FUNCTION gdaldatasetrasterio_double_loc
 
 
-FUNCTION gdalrasterio_byte(hband, erwflag, ndsxoff, ndsyoff, &
- ndsxsize, ndsysize, pbuffer, nbxsize, nbysize, &
- npixelspace, nlinespace) &
- RESULT(err)
+FUNCTION gdaldatasetrasterio_float_cmplx(hds, erwflag, ndsxoff, ndsyoff, pbuffer) RESULT(err)
+TYPE(gdaldataseth),VALUE :: hds
+INTEGER(kind=c_int),INTENT(in) :: erwflag
+INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
+COMPLEX(kind=c_float_complex),INTENT(inout) :: pbuffer(:,:,:)
+INTEGER(kind=c_int) :: err ! CPLErr
+
+INTEGER(kind=c_int) :: i
+
+err = gdaldatasetrasterio_loc(hds, erwflag, ndsxoff, ndsyoff, &
+ SIZE(pbuffer,1), SIZE(pbuffer,2), SIZE(pbuffer,3), pbuffer, &
+ (/(i,i=1,SIZE(pbuffer,3))/))
+
+END FUNCTION gdaldatasetrasterio_float_cmplx
+
+FUNCTION gdaldatasetrasterio_float_cmplx_loc(hds, erwflag, ndsxoff, ndsyoff, &
+ ndsxsize, ndsysize, nbandcount, pbuffer, panbandcount) RESULT(err)
+TYPE(gdaldataseth),VALUE :: hds
+INTEGER(kind=c_int),INTENT(in) :: erwflag
+INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
+INTEGER(kind=c_int),INTENT(in) :: ndsxsize
+INTEGER(kind=c_int),INTENT(in) :: ndsysize
+INTEGER(kind=c_int),INTENT(in) :: nbandcount
+COMPLEX(kind=c_float_complex),TARGET,INTENT(inout) :: pbuffer(ndsxsize,ndsysize,nbandcount)
+INTEGER(kind=c_int),INTENT(in) :: panbandcount(*)
+INTEGER(kind=c_int) :: err ! CPLErr
+
+err = gdaldatasetrasterio(hds, erwflag, ndsxoff, ndsyoff, &
+ ndsxsize, ndsysize, C_LOC(pbuffer(1,1,1)), &
+ ndsxsize, ndsysize, GDT_CFloat32, nbandcount, panbandcount, 0, 0, 0)
+
+END FUNCTION gdaldatasetrasterio_float_cmplx_loc
+
+
+FUNCTION gdaldatasetrasterio_double_cmplx(hds, erwflag, ndsxoff, ndsyoff, pbuffer) RESULT(err)
+TYPE(gdaldataseth),VALUE :: hds
+INTEGER(kind=c_int),INTENT(in) :: erwflag
+INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
+COMPLEX(kind=c_double_complex),INTENT(inout) :: pbuffer(:,:,:)
+INTEGER(kind=c_int) :: err ! CPLErr
+
+INTEGER(kind=c_int) :: i
+
+err = gdaldatasetrasterio_loc(hds, erwflag, ndsxoff, ndsyoff, &
+ SIZE(pbuffer,1), SIZE(pbuffer,2), SIZE(pbuffer,3), pbuffer, &
+ (/(i,i=1,SIZE(pbuffer,3))/))
+
+END FUNCTION gdaldatasetrasterio_double_cmplx
+
+FUNCTION gdaldatasetrasterio_double_cmplx_loc(hds, erwflag, ndsxoff, ndsyoff, &
+ ndsxsize, ndsysize, nbandcount, pbuffer, panbandcount) RESULT(err)
+TYPE(gdaldataseth),VALUE :: hds
+INTEGER(kind=c_int),INTENT(in) :: erwflag
+INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
+INTEGER(kind=c_int),INTENT(in) :: ndsxsize
+INTEGER(kind=c_int),INTENT(in) :: ndsysize
+INTEGER(kind=c_int),INTENT(in) :: nbandcount
+COMPLEX(kind=c_double_complex),TARGET,INTENT(inout) :: pbuffer(ndsxsize,ndsysize,nbandcount)
+INTEGER(kind=c_int),INTENT(in) :: panbandcount(*)
+INTEGER(kind=c_int) :: err ! CPLErr
+
+err = gdaldatasetrasterio(hds, erwflag, ndsxoff, ndsyoff, &
+ ndsxsize, ndsysize, C_LOC(pbuffer(1,1,1)), &
+ ndsxsize, ndsysize, GDT_CFloat64, nbandcount, panbandcount, 0, 0, 0)
+
+END FUNCTION gdaldatasetrasterio_double_cmplx_loc
+
+
+! ========================================
+! gdaldatasetrasterio
+! ========================================
+FUNCTION gdalrasterio_int8(hband, erwflag, ndsxoff, ndsyoff, pbuffer) RESULT(err)
 TYPE(gdalrasterbandh),VALUE :: hband
 INTEGER(kind=c_int),INTENT(in) :: erwflag
 INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
-INTEGER(kind=c_int),INTENT(in) :: ndsxsize, ndsysize
-INTEGER(kind=SELECTED_INT_KIND(1)),TARGET,INTENT(inout) :: pbuffer(*)
-INTEGER(kind=c_int),INTENT(in) :: nbxsize, nbysize
-INTEGER(kind=c_int),INTENT(in),OPTIONAL :: npixelspace, nlinespace
+INTEGER(kind=c_int8_t),INTENT(inout) :: pbuffer(:,:)
 INTEGER(kind=c_int) :: err ! CPLErr
 
-INTEGER(kind=c_int) :: lnpixelspace, lnlinespace
+err = gdalrasterio_loc(hband, erwflag, ndsxoff, ndsyoff, &
+   SIZE(pbuffer,1), SIZE(pbuffer,2), pbuffer)
 
-IF (PRESENT(npixelspace)) THEN
-  lnpixelspace = npixelspace
-ELSE
-  lnpixelspace = 0
-ENDIF
-IF (PRESENT(nlinespace)) THEN
-  lnlinespace = nlinespace
-ELSE
-  lnlinespace = 0
-ENDIF
+END FUNCTION gdalrasterio_int8
 
-err = gdalrasterio_c(hband, erwflag, ndsxoff, ndsyoff, &
-   ndsxsize, ndsysize, C_LOC(pbuffer), nbxsize, nbysize, &
-   GDT_Byte, lnpixelspace, lnlinespace)
-
-END FUNCTION gdalrasterio_byte
-
-
-FUNCTION gdalrasterio_int32(hband, erwflag, ndsxoff, ndsyoff, &
- ndsxsize, ndsysize, pbuffer, nbxsize, nbysize, &
- npixelspace, nlinespace) &
- RESULT(err)
+FUNCTION gdalrasterio_int8_loc(hband, erwflag, ndsxoff, ndsyoff, ndsxsize, ndsysize, pbuffer) RESULT(err)
 TYPE(gdalrasterbandh),VALUE :: hband
 INTEGER(kind=c_int),INTENT(in) :: erwflag
 INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
-INTEGER(kind=c_int),INTENT(in) :: ndsxsize, ndsysize
-INTEGER(kind=c_int),TARGET,INTENT(inout) :: pbuffer(*)
-INTEGER(kind=c_int),INTENT(in) :: nbxsize, nbysize
-INTEGER(kind=c_int),INTENT(in),OPTIONAL :: npixelspace, nlinespace
+INTEGER(kind=c_int),INTENT(in) :: ndsxsize
+INTEGER(kind=c_int),INTENT(in) :: ndsysize
+INTEGER(kind=c_int8_t),TARGET,INTENT(inout) :: pbuffer(ndsxsize,ndsysize)
 INTEGER(kind=c_int) :: err ! CPLErr
 
-INTEGER(kind=c_int) :: lnpixelspace, lnlinespace
+err = gdalrasterio(hband, erwflag, ndsxoff, ndsyoff, &
+ ndsxsize, ndsysize, C_LOC(pbuffer(1,1)), &
+ ndsxsize, ndsysize, GDT_Byte, 0, 0)
 
-IF (PRESENT(npixelspace)) THEN
-  lnpixelspace = npixelspace
-ELSE
-  lnpixelspace = 0
-ENDIF
-IF (PRESENT(nlinespace)) THEN
-  lnlinespace = nlinespace
-ELSE
-  lnlinespace = 0
-ENDIF
+END FUNCTION gdalrasterio_int8_loc
 
-err = gdalrasterio_c(hband, erwflag, ndsxoff, ndsyoff, &
-   ndsxsize, ndsysize, C_LOC(pbuffer), nbxsize, nbysize, &
-   GDT_Int32, lnpixelspace, lnlinespace)
+
+FUNCTION gdalrasterio_int16(hband, erwflag, ndsxoff, ndsyoff, pbuffer) RESULT(err)
+TYPE(gdalrasterbandh),VALUE :: hband
+INTEGER(kind=c_int),INTENT(in) :: erwflag
+INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
+INTEGER(kind=c_int16_t),INTENT(inout) :: pbuffer(:,:)
+INTEGER(kind=c_int) :: err ! CPLErr
+
+err = gdalrasterio_loc(hband, erwflag, ndsxoff, ndsyoff, &
+   SIZE(pbuffer,1), SIZE(pbuffer,2), pbuffer)
+
+END FUNCTION gdalrasterio_int16
+
+FUNCTION gdalrasterio_int16_loc(hband, erwflag, ndsxoff, ndsyoff, ndsxsize, ndsysize, pbuffer) RESULT(err)
+TYPE(gdalrasterbandh),VALUE :: hband
+INTEGER(kind=c_int),INTENT(in) :: erwflag
+INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
+INTEGER(kind=c_int),INTENT(in) :: ndsxsize
+INTEGER(kind=c_int),INTENT(in) :: ndsysize
+INTEGER(kind=c_int16_t),TARGET,INTENT(inout) :: pbuffer(ndsxsize,ndsysize)
+INTEGER(kind=c_int) :: err ! CPLErr
+
+err = gdalrasterio(hband, erwflag, ndsxoff, ndsyoff, &
+ ndsxsize, ndsysize, C_LOC(pbuffer(1,1)), &
+ ndsxsize, ndsysize, GDT_Int16, 0, 0)
+
+END FUNCTION gdalrasterio_int16_loc
+
+
+FUNCTION gdalrasterio_int32(hband, erwflag, ndsxoff, ndsyoff, pbuffer) RESULT(err)
+TYPE(gdalrasterbandh),VALUE :: hband
+INTEGER(kind=c_int),INTENT(in) :: erwflag
+INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
+INTEGER(kind=c_int32_t),INTENT(inout) :: pbuffer(:,:)
+INTEGER(kind=c_int) :: err ! CPLErr
+
+err = gdalrasterio_loc(hband, erwflag, ndsxoff, ndsyoff, &
+   SIZE(pbuffer,1), SIZE(pbuffer,2), pbuffer)
 
 END FUNCTION gdalrasterio_int32
 
-
-FUNCTION gdalrasterio_float32(hband, erwflag, ndsxoff, ndsyoff, &
- ndsxsize, ndsysize, pbuffer, nbxsize, nbysize, &
- npixelspace, nlinespace) &
- RESULT(err)
+FUNCTION gdalrasterio_int32_loc(hband, erwflag, ndsxoff, ndsyoff, ndsxsize, ndsysize, pbuffer) RESULT(err)
 TYPE(gdalrasterbandh),VALUE :: hband
 INTEGER(kind=c_int),INTENT(in) :: erwflag
 INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
-INTEGER(kind=c_int),INTENT(in) :: ndsxsize, ndsysize
-REAL(kind=c_float),TARGET,INTENT(inout) :: pbuffer(*)
-INTEGER(kind=c_int),INTENT(in) :: nbxsize, nbysize
-INTEGER(kind=c_int),INTENT(in),OPTIONAL :: npixelspace, nlinespace
+INTEGER(kind=c_int),INTENT(in) :: ndsxsize
+INTEGER(kind=c_int),INTENT(in) :: ndsysize
+INTEGER(kind=c_int32_t),TARGET,INTENT(inout) :: pbuffer(ndsxsize,ndsysize)
 INTEGER(kind=c_int) :: err ! CPLErr
 
-INTEGER(kind=c_int) :: lnpixelspace, lnlinespace
+err = gdalrasterio(hband, erwflag, ndsxoff, ndsyoff, &
+ ndsxsize, ndsysize, C_LOC(pbuffer(1,1)), &
+ ndsxsize, ndsysize, GDT_Int32, 0, 0)
 
-IF (PRESENT(npixelspace)) THEN
-  lnpixelspace = npixelspace
-ELSE
-  lnpixelspace = 0
-ENDIF
-IF (PRESENT(nlinespace)) THEN
-  lnlinespace = nlinespace
-ELSE
-  lnlinespace = 0
-ENDIF
-
-err = gdalrasterio_c(hband, erwflag, ndsxoff, ndsyoff, &
-   ndsxsize, ndsysize, C_LOC(pbuffer), nbxsize, nbysize, &
-   GDT_Float32, lnpixelspace, lnlinespace)
-
-END FUNCTION gdalrasterio_float32
+END FUNCTION gdalrasterio_int32_loc
 
 
-FUNCTION gdalrasterio_float64(hband, erwflag, ndsxoff, ndsyoff, &
- ndsxsize, ndsysize, pbuffer, nbxsize, nbysize, &
- npixelspace, nlinespace) &
- RESULT(err)
+FUNCTION gdalrasterio_float(hband, erwflag, ndsxoff, ndsyoff, pbuffer) RESULT(err)
 TYPE(gdalrasterbandh),VALUE :: hband
 INTEGER(kind=c_int),INTENT(in) :: erwflag
 INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
-INTEGER(kind=c_int),INTENT(in) :: ndsxsize, ndsysize
-REAL(kind=c_double),TARGET,INTENT(inout) :: pbuffer(*)
-INTEGER(kind=c_int),INTENT(in) :: nbxsize, nbysize
-INTEGER(kind=c_int),INTENT(in),OPTIONAL :: npixelspace, nlinespace
+REAL(kind=c_float),INTENT(inout) :: pbuffer(:,:)
 INTEGER(kind=c_int) :: err ! CPLErr
 
-INTEGER(kind=c_int) :: lnpixelspace, lnlinespace
+err = gdalrasterio_loc(hband, erwflag, ndsxoff, ndsyoff, &
+   SIZE(pbuffer,1), SIZE(pbuffer,2), pbuffer)
 
-IF (PRESENT(npixelspace)) THEN
-  lnpixelspace = npixelspace
-ELSE
-  lnpixelspace = 0
-ENDIF
-IF (PRESENT(nlinespace)) THEN
-  lnlinespace = nlinespace
-ELSE
-  lnlinespace = 0
-ENDIF
+END FUNCTION gdalrasterio_float
 
-err = gdalrasterio_c(hband, erwflag, ndsxoff, ndsyoff, &
-   ndsxsize, ndsysize, C_LOC(pbuffer), nbxsize, nbysize, &
-   GDT_Float64, lnpixelspace, lnlinespace)
-
-END FUNCTION gdalrasterio_float64
-
-
-FUNCTION gdalrasterio_cfloat32(hband, erwflag, ndsxoff, ndsyoff, &
- ndsxsize, ndsysize, pbuffer, nbxsize, nbysize, &
- npixelspace, nlinespace) &
- RESULT(err)
+FUNCTION gdalrasterio_float_loc(hband, erwflag, ndsxoff, ndsyoff, ndsxsize, ndsysize, pbuffer) RESULT(err)
 TYPE(gdalrasterbandh),VALUE :: hband
 INTEGER(kind=c_int),INTENT(in) :: erwflag
 INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
-INTEGER(kind=c_int),INTENT(in) :: ndsxsize, ndsysize
-COMPLEX(kind=c_float_complex),TARGET,INTENT(inout) :: pbuffer(*)
-INTEGER(kind=c_int),INTENT(in) :: nbxsize, nbysize
-INTEGER(kind=c_int),INTENT(in),OPTIONAL :: npixelspace, nlinespace
+INTEGER(kind=c_int),INTENT(in) :: ndsxsize
+INTEGER(kind=c_int),INTENT(in) :: ndsysize
+REAL(kind=c_float),TARGET,INTENT(inout) :: pbuffer(ndsxsize,ndsysize)
 INTEGER(kind=c_int) :: err ! CPLErr
 
-INTEGER(kind=c_int) :: lnpixelspace, lnlinespace
+err = gdalrasterio(hband, erwflag, ndsxoff, ndsyoff, &
+ ndsxsize, ndsysize, C_LOC(pbuffer(1,1)), &
+ ndsxsize, ndsysize, GDT_Float32, 0, 0)
 
-IF (PRESENT(npixelspace)) THEN
-  lnpixelspace = npixelspace
-ELSE
-  lnpixelspace = 0
-ENDIF
-IF (PRESENT(nlinespace)) THEN
-  lnlinespace = nlinespace
-ELSE
-  lnlinespace = 0
-ENDIF
-
-err = gdalrasterio_c(hband, erwflag, ndsxoff, ndsyoff, &
-   ndsxsize, ndsysize, C_LOC(pbuffer), nbxsize, nbysize, &
-   GDT_CFloat32, lnpixelspace, lnlinespace)
-
-END FUNCTION gdalrasterio_cfloat32
+END FUNCTION gdalrasterio_float_loc
 
 
-FUNCTION gdalrasterio_cfloat64(hband, erwflag, ndsxoff, ndsyoff, &
- ndsxsize, ndsysize, pbuffer, nbxsize, nbysize, &
- npixelspace, nlinespace) &
- RESULT(err)
+FUNCTION gdalrasterio_double(hband, erwflag, ndsxoff, ndsyoff, pbuffer) RESULT(err)
 TYPE(gdalrasterbandh),VALUE :: hband
 INTEGER(kind=c_int),INTENT(in) :: erwflag
 INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
-INTEGER(kind=c_int),INTENT(in) :: ndsxsize, ndsysize
-COMPLEX(kind=c_double_complex),TARGET,INTENT(inout) :: pbuffer(*)
-INTEGER(kind=c_int),INTENT(in) :: nbxsize, nbysize
-INTEGER(kind=c_int),INTENT(in),OPTIONAL :: npixelspace, nlinespace
+REAL(kind=c_double),INTENT(inout) :: pbuffer(:,:)
 INTEGER(kind=c_int) :: err ! CPLErr
 
-INTEGER(kind=c_int) :: lnpixelspace, lnlinespace
+err = gdalrasterio_loc(hband, erwflag, ndsxoff, ndsyoff, &
+   SIZE(pbuffer,1), SIZE(pbuffer,2), pbuffer)
 
-IF (PRESENT(npixelspace)) THEN
-  lnpixelspace = npixelspace
-ELSE
-  lnpixelspace = 0
-ENDIF
-IF (PRESENT(nlinespace)) THEN
-  lnlinespace = nlinespace
-ELSE
-  lnlinespace = 0
-ENDIF
+END FUNCTION gdalrasterio_double
 
-err = gdalrasterio_c(hband, erwflag, ndsxoff, ndsyoff, &
-   ndsxsize, ndsysize, C_LOC(pbuffer), nbxsize, nbysize, &
-   GDT_CFloat64, lnpixelspace, lnlinespace)
+FUNCTION gdalrasterio_double_loc(hband, erwflag, ndsxoff, ndsyoff, ndsxsize, ndsysize, pbuffer) RESULT(err)
+TYPE(gdalrasterbandh),VALUE :: hband
+INTEGER(kind=c_int),INTENT(in) :: erwflag
+INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
+INTEGER(kind=c_int),INTENT(in) :: ndsxsize
+INTEGER(kind=c_int),INTENT(in) :: ndsysize
+REAL(kind=c_double),TARGET,INTENT(inout) :: pbuffer(ndsxsize,ndsysize)
+INTEGER(kind=c_int) :: err ! CPLErr
 
-END FUNCTION gdalrasterio_cfloat64
+err = gdalrasterio(hband, erwflag, ndsxoff, ndsyoff, &
+ ndsxsize, ndsysize, C_LOC(pbuffer(1,1)), &
+ ndsxsize, ndsysize, GDT_Float64, 0, 0)
 
+END FUNCTION gdalrasterio_double_loc
+
+
+FUNCTION gdalrasterio_float_cmplx(hband, erwflag, ndsxoff, ndsyoff, pbuffer) RESULT(err)
+TYPE(gdalrasterbandh),VALUE :: hband
+INTEGER(kind=c_int),INTENT(in) :: erwflag
+INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
+COMPLEX(kind=c_float_complex),INTENT(inout) :: pbuffer(:,:)
+INTEGER(kind=c_int) :: err ! CPLErr
+
+err = gdalrasterio_loc(hband, erwflag, ndsxoff, ndsyoff, &
+   SIZE(pbuffer,1), SIZE(pbuffer,2), pbuffer)
+
+END FUNCTION gdalrasterio_float_cmplx
+
+FUNCTION gdalrasterio_float_cmplx_loc(hband, erwflag, ndsxoff, ndsyoff, ndsxsize, ndsysize, pbuffer) RESULT(err)
+TYPE(gdalrasterbandh),VALUE :: hband
+INTEGER(kind=c_int),INTENT(in) :: erwflag
+INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
+INTEGER(kind=c_int),INTENT(in) :: ndsxsize
+INTEGER(kind=c_int),INTENT(in) :: ndsysize
+COMPLEX(kind=c_float_complex),TARGET,INTENT(inout) :: pbuffer(ndsxsize,ndsysize)
+INTEGER(kind=c_int) :: err ! CPLErr
+
+err = gdalrasterio(hband, erwflag, ndsxoff, ndsyoff, &
+ ndsxsize, ndsysize, C_LOC(pbuffer(1,1)), &
+ ndsxsize, ndsysize, GDT_CFloat32, 0, 0)
+
+END FUNCTION gdalrasterio_float_cmplx_loc
+
+
+FUNCTION gdalrasterio_double_cmplx(hband, erwflag, ndsxoff, ndsyoff, pbuffer) RESULT(err)
+TYPE(gdalrasterbandh),VALUE :: hband
+INTEGER(kind=c_int),INTENT(in) :: erwflag
+INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
+COMPLEX(kind=c_double_complex),INTENT(inout) :: pbuffer(:,:)
+INTEGER(kind=c_int) :: err ! CPLErr
+
+err = gdalrasterio_loc(hband, erwflag, ndsxoff, ndsyoff, &
+   SIZE(pbuffer,1), SIZE(pbuffer,2), pbuffer)
+
+END FUNCTION gdalrasterio_double_cmplx
+
+FUNCTION gdalrasterio_double_cmplx_loc(hband, erwflag, ndsxoff, ndsyoff, ndsxsize, ndsysize, pbuffer) RESULT(err)
+TYPE(gdalrasterbandh),VALUE :: hband
+INTEGER(kind=c_int),INTENT(in) :: erwflag
+INTEGER(kind=c_int),INTENT(in) :: ndsxoff, ndsyoff
+INTEGER(kind=c_int),INTENT(in) :: ndsxsize
+INTEGER(kind=c_int),INTENT(in) :: ndsysize
+COMPLEX(kind=c_double_complex),TARGET,INTENT(inout) :: pbuffer(ndsxsize,ndsysize)
+INTEGER(kind=c_int) :: err ! CPLErr
+
+err = gdalrasterio(hband, erwflag, ndsxoff, ndsyoff, &
+ ndsxsize, ndsysize, C_LOC(pbuffer(1,1)), &
+ ndsxsize, ndsysize, GDT_CFloat64, 0, 0)
+
+END FUNCTION gdalrasterio_double_cmplx_loc
 
 END MODULE gdal
-
-
-!PROGRAM gdaltest
-!USE gdal
-!IMPLICIT none
-!
-!TYPE(gdaldataseth) :: ds
-!TYPE(gdalrasterbandh) :: band
-!CHARACTER(len=512) :: file
-!REAL(kind=c_double) :: x1, y1, x2, y2, gt(6)
-!INTEGER(kind=c_int) :: i1, j1, i2, j2, ierr
-!REAL,ALLOCATABLE :: z(:,:)
-!
-!CALL getarg(1, file)
-!
-!CALL gdalallregister()
-!ds = gdalopen(TRIM(file)//C_NULL_CHAR, GA_ReadOnly)
-!IF (.NOT.C_ASSOCIATED(ds%ptr)) STOP
-!PRINT*,'getgeotransform: ',gdalgetgeotransform(ds, gt)
-!PRINT*,gt
-!i1 = gdalgetrasterxsize(ds)
-!j1 = gdalgetrasterxsize(ds)
-!PRINT*,'size: ',i1, j1
-!
-!CALL gdalapplygeotransform(gt, 0.5_c_double, 0.5_c_double, x1, y1)
-!CALL gdalapplygeotransform(gt, &
-! REAL(i1, kind=c_double)-0.5_c_double, &
-! REAL(j1, kind=c_double)-0.5_c_double, x2, y2)
-!PRINT*,x1,y1,x2,y2
-!ALLOCATE(z(i1,j1))
-!
-!band = gdalgetrasterband(ds, 1)
-!IF (.NOT.C_ASSOCIATED(band%ptr)) STOP
-!
-!!ierr = gdalrasterio(band, GF_Read, 0, 0, i1, j1, z, i1, j1)
-!PRINT*,'gdalrasterio: ',ierr
-!PRINT*,z(1,1),z(2,1),z(1,2),z(i1,j1)
-!
-!DEALLOCATE(z)
-!CALL gdalclose(ds)
-!
-!END PROGRAM gdaltest
-
