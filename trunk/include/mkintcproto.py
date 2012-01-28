@@ -87,6 +87,7 @@ dot = sys.argv[1].rfind('.')
 if dot == -1: dot=len(sys.argv[1])
 otype = open(sys.argv[1][:dot]+'_type.f90', "w")
 ointerf = open(sys.argv[1][:dot]+'_interf.f90', "w")
+odoxy = open(sys.argv[1][:dot]+'_doxy.f90', "w")
 
 for ctype,ftype in dertypes_ptr.iteritems():
     otype.write("""TYPE,BIND(C) :: %s
@@ -128,6 +129,7 @@ for line in ic.readlines():
             (proc, name.lower(), arglist, name),\
                 width=127, initial_indent="  ", subsequent_indent="   ")))
         ointerf.write("\n  IMPORT\n")
+        odoxy.write("!!  - %s() -> %s %s()\n" % (name, proc, name.lower()))
 
         for line in argdecllist: ointerf.write("  "+line+"\n")
 

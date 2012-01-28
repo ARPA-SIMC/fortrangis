@@ -20,6 +20,15 @@
 !! This module includes the interface to most of the public gdal C
 !! API plus a more "Fortranic" version of some functions.
 !!
+!! The following functions are directly interfaced to their
+!! corresponding C version, so they are undocumented here, please
+!! refer to the original gdal C API documentation, e.g. at the address
+!! http://www.gdal.org/gdal_8h.html , for their use:
+#include "gdalproto_doxy.f90"
+!!
+!! Other Fortran-style subroutines and functions are documented
+!! explicitely here.
+!!
 !! \ingroup libfortrangis
 MODULE gdal
 USE,INTRINSIC :: iso_c_binding
@@ -43,11 +52,11 @@ INTEGER(kind=c_int),PARAMETER :: GDT_TypeCount = 12
 
 ! GDALAccess
 INTEGER(kind=c_int),PARAMETER :: GA_ReadOnly = 0 !< access type for opening a file: read only
-INTEGER(kind=c_int),PARAMETER :: GA_Update = 1 !< update, currently unsupported in Fortran
+INTEGER(kind=c_int),PARAMETER :: GA_Update = 1 !< update
 
 ! GDALRWFlag
 INTEGER(kind=c_int),PARAMETER :: GF_Read = 0 !< operation to be performed on a dataset: read
-INTEGER(kind=c_int),PARAMETER :: GF_Write = 1 !< write, currently unsupported in Fortran
+INTEGER(kind=c_int),PARAMETER :: GF_Write = 1 !< write
 
 INTEGER(kind=c_int),PARAMETER :: & ! GDALColorInterp
  GCI_Undefined = 0, GCI_GrayIndex = 1, GCI_PaletteIndex = 2, &
