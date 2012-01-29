@@ -26,8 +26,8 @@
 !! http://www.gdal.org/gdal_8h.html , for their use:
 #include "gdalproto_doxy.f90"
 !!
-!! Other Fortran-style subroutines and functions are documented
-!! explicitely here.
+!! Other Fortran-style subroutines, functions and procedure interfaces
+!! are documented explicitely here.
 !!
 !! \ingroup libfortrangis
 MODULE gdal
@@ -124,12 +124,12 @@ INCLUDE 'gdalproto_interf.f90'
 !! results but acting also on arrays of data with up to 3 dimensions
 !! in a single call.
 !!
-!! SUBROUTINE gdalapplygeotransform_f_0d(padfgeotransform, dfpixel, dfline, pdfgeox, pdfgeoy)
-!! \param REAL(kind=c_double),INTENT(in) :: padfgeotransform(6) the affine transformation
-!! \param REAL(kind=c_double),INTENT(in) :: dfpixel a scalar or an arry with up to 3 dimensions
-!! \param REAL(kind=c_double),INTENT(in) :: dfline a scalar or an arry with up to 3 dimensions
-!! \param REAL(kind=c_double),INTENT(out) :: pdfgeox a scalar or an arry with up to 3 dimensions
-!! \param REAL(kind=c_double),INTENT(out) :: pdfgeoy a scalar or an arry with up to 3 dimensions
+!! SUBROUTINE gdalapplygeotransform_f(padfgeotransform, dfpixel, dfline, pdfgeox, pdfgeoy)
+!! \param REAL(kind=c_double),INTENT(in)::padfgeotransform(6) the affine transformation
+!! \param REAL(kind=c_double),INTENT(in)::dfpixel a scalar or an array with up to 3 dimensions
+!! \param REAL(kind=c_double),INTENT(in)::dfline a scalar or an array with up to 3 dimensions
+!! \param REAL(kind=c_double),INTENT(out)::pdfgeox a scalar or an array with up to 3 dimensions
+!! \param REAL(kind=c_double),INTENT(out)::pdfgeoy a scalar or an array with up to 3 dimensions
 INTERFACE gdalapplygeotransform_f
   MODULE PROCEDURE gdalapplygeotransform_f_0d, gdalapplygeotransform_f_1d, &
    gdalapplygeotransform_f_2d, gdalapplygeotransform_f_3d
@@ -149,16 +149,16 @@ PRIVATE gdalapplygeotransform_f_0d, gdalapplygeotransform_f_1d, &
 !! inferred from the shape of \a pbuffer, while \a panbandcount, \a
 !! npixelspace, \a nlinespace and \a nbandspace are set to default
 !! values, thus the number of requested raster bands is read starting
-!! from the first.. The remaining arguments have the same meaning as
+!! from the first. The remaining arguments have the same meaning as
 !! in the original \a gdaldatasetrasterio function which is still
 !! available to Fortran under the \c gdaldatasetrasterio name.
 !!
-!! INTEGER FUNCTION gdalrasterio_f(hband, erwflag, ndsxoff, ndsyoff, pbuffer)
-!! \param TYPE(gdalrasterbandh),VALUE :: hband
-!! \param INTEGER(kind=c_int),INTENT(in) :: erwflag
-!! \param INTEGER(kind=c_int),INTENT(in) :: ndsxoff
-!! \param INTEGER(kind=c_int),INTENT(in) :: ndsyoff
-!! \param INTEGER REAL COMPLEX,INTENT(inout) :: pbuffer(:,:,:) can be integer. real, or complex of different sizes
+!! INTEGER FUNCTION gdaldatasetrasterio_f(hds, erwflag, ndsxoff, ndsyoff, pbuffer)
+!! \param TYPE(gdadataseth),VALUE::hds dataset object to read or write
+!! \param INTEGER(kind=c_int),INTENT(in)::erwflag \a GF_Read or \a GF_Write
+!! \param INTEGER(kind=c_int),INTENT(in)::ndsxoff offset from x origin
+!! \param INTEGER(kind=c_int),INTENT(in)::ndsyoff offset from y origin
+!! \param INTEGER|REAL|DOUBLEPRECISION|COMPLEX,INTENT(inout)::pbuffer(:,:,:) data buffer, can be integer. real, or complex of different kinds
 INTERFACE gdaldatasetrasterio_f
   MODULE PROCEDURE gdaldatasetrasterio_int8, gdaldatasetrasterio_int16, &
    gdaldatasetrasterio_int32, &
@@ -183,11 +183,11 @@ PRIVATE gdaldatasetrasterio_int8, gdaldatasetrasterio_int16, &
 !! is still available to Fortran under the \c gdalrasterio name.
 !!
 !! INTEGER FUNCTION gdalrasterio_f(hband, erwflag, ndsxoff, ndsyoff, pbuffer)
-!! \param TYPE(gdalrasterbandh),VALUE :: hband
-!! \param INTEGER(kind=c_int),INTENT(in) :: erwflag
-!! \param INTEGER(kind=c_int),INTENT(in) :: ndsxoff
-!! \param INTEGER(kind=c_int),INTENT(in) :: ndsyoff
-!! \param INTEGER REAL COMPLEX,INTENT(inout) :: pbuffer(:,:) can be integer. real, or complex of different sizes
+!! \param TYPE(gdalrasterbandh),VALUE::hband raster band object to read or write
+!! \param INTEGER(kind=c_int),INTENT(in)::erwflag \a GF_Read or \a GF_Write
+!! \param INTEGER(kind=c_int),INTENT(in)::ndsxoff offset from x origin
+!! \param INTEGER(kind=c_int),INTENT(in)::ndsyoff offset from y origin
+!! \param INTEGER|REAL|DOUBLEPRECISION|COMPLEX,INTENT(inout)::pbuffer(:,:) data buffer, can be integer. real, or complex of different kinds
 INTERFACE gdalrasterio_f
   MODULE PROCEDURE gdalrasterio_int8, gdalrasterio_int16, &
    gdalrasterio_int32, &
