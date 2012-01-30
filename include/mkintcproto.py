@@ -88,6 +88,7 @@ if dot == -1: dot=len(sys.argv[1])
 otype = open(sys.argv[1][:dot]+'_type.f90', "w")
 ointerf = open(sys.argv[1][:dot]+'_interf.f90', "w")
 odoxy = open(sys.argv[1][:dot]+'_doxy.f90', "w")
+oproc = open(sys.argv[1][:dot]+'_proc.f90', "w")
 
 for ctype,ftype in dertypes_ptr.iteritems():
     otype.write("""TYPE,BIND(C) :: %s
@@ -96,6 +97,37 @@ for ctype,ftype in dertypes_ptr.iteritems():
 END TYPE %s
 
 """ % (ctype, ctype))
+
+otype.write("INTERFACE gdalassociated\n")
+for ctype,ftype in dertypes_ptr.iteritems():
+    otype.write("  MODULE PROCEDURE gdalassociated_%s\n" % (ctype.lower()))
+otype.write("END INTERFACE\n")
+
+otype.write("INTERFACE gdalnullify\n")
+for ctype,ftype in dertypes_ptr.iteritems():
+    otype.write("  MODULE PROCEDURE gdalnullify_%s\n" % (ctype.lower()))
+otype.write("END INTERFACE\n")
+
+
+for ctype,ftype in dertypes_ptr.iteritems():
+
+    oproc.write("""FUNCTION gdalassociated_%s(arg1, arg2) RESULT(associated_)
+%s,INTENT(in) :: arg1
+%s,INTENT(in),OPTIONAL :: arg2
+LOGICAL :: associated_
+IF(PRESENT(arg2)) THEN
+  associated_ = C_ASSOCIATED(arg1%%ptr, arg2%%ptr)
+ELSE
+  associated_ = C_ASSOCIATED(arg1%%ptr)
+ENDIF
+END FUNCTION gdalassociated_%s
+
+
+SUBROUTINE gdalnullify_%s(arg1)
+%s,INTENT(inout) :: arg1
+arg1%%ptr = C_NULL_PTR
+END SUBROUTINE gdalnullify_%s
+""" % (ctype.lower(), ftype, ftype, ctype.lower(), ctype.lower(), ftype, ctype.lower()))
 
 for line in ic.readlines():
     declmatch = declre.search(line)
