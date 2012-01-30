@@ -37,6 +37,11 @@ if GDAL
 libfortrangis_la_SOURCES += gdal.F90 
 libfortrangis_la_LIBADD += $(GDAL_LIBS)
 nodist_include_HEADERS += gdal.mod
+
+check_PROGRAMS += gdal_test
+gdal_test_SOURCES = gdal_test.f90
+#gdal_test_CPPFLAGS = -I../libfortranc
+gdal_test_LDADD = libfortrangis.la
 endif
 
 mostlyclean-compile:
