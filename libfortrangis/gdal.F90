@@ -227,6 +227,9 @@ PRIVATE gdalrasterio_int8_loc, gdalrasterio_int16_loc, &
 
 CONTAINS
 
+! Machine made procedure definitions
+INCLUDE 'gdalproto_proc.f90'
+
 ! Fortran specific version of some functions
 FUNCTION gdalgcpstogeotransform_f(pasgcps, padfgeotransform, bapproxok)
 TYPE(gdal_gcp),INTENT(in) :: pasgcps(:)
