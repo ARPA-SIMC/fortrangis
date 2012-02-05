@@ -40,8 +40,9 @@ nodist_include_HEADERS += gdal.mod
 
 check_PROGRAMS += gdal_test
 gdal_test_SOURCES = gdal_test.f90
-#gdal_test_CPPFLAGS = -I../libfortranc
-gdal_test_LDADD = libfortrangis.la
+gdal_test_CPPFLAGS = -I../libfortranc
+gdal_test_FCFLAGS = -I../libfortranc
+gdal_test_LDADD = libfortrangis.la ../libfortranc/libfortranc.la
 endif
 
 mostlyclean-compile:
