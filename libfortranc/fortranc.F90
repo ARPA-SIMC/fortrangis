@@ -44,6 +44,7 @@ IMPLICIT NONE
 TYPE charpp
   PRIVATE
   TYPE(c_ptr),POINTER :: elem(:) => NULL()
+  CHARACTER(len=1),POINTER :: buffer(:) => NULL()
 END TYPE charpp
 
 !> Equivalent of the strlen C function.
@@ -79,6 +80,10 @@ INTERFACE strtofchar
   MODULE PROCEDURE strtofchar_char, strtofchar_chararr, strtofchar_intarr, &
    strtofchar_ptr_2
 END INTERFACE
+
+INTERFACE charpp_new
+  MODULE PROCEDURE charpp_new_from_c, charpp_new_from_fchar
+END INTERFACE charpp_new
 
 PRIVATE
 PUBLIC strlen, strtofchar, fchartostr, fchartrimtostr
@@ -263,7 +268,7 @@ END FUNCTION fchartrimtostr
 !! The argument, a generic C pointer, must be a C array of pointers
 !! (<tt>char** charpp_c</tt> or <tt>char* charpp_c[n]</tt>), typically
 !! the result of a C function.
-FUNCTION charpp_new(charpp_c) RESULT(this)
+FUNCTION charpp_new_from_c(charpp_c) RESULT(this)
 TYPE(c_ptr),VALUE :: charpp_c
 TYPE(charpp) :: this
 
@@ -280,7 +285,33 @@ IF (C_ASSOCIATED(charpp_c)) THEN
     ENDIF
   ENDDO
 ENDIF
-END FUNCTION charpp_new
+END FUNCTION charpp_new_from_c
+
+
+
+FUNCTION charpp_new_from_fchar(fchar) RESULT(this)
+CHARACTER(len=*) :: fchar(:)
+TYPE(charpp) :: this
+
+INTEGER :: i, j
+
+ALLOCATE(this%buffer((LEN(fchar)+1)*SIZE(fchar)))
+DO i = 1, SIZE(fchar)
+  DO j = 1, LEN(fchar)
+    this%buffer((LEN(fchar)+1)*(i-1)+j) = &
+     fchar(i)(j:j)
+    this%buffer((LEN(fchar)+1)*i-1) = CHAR(0)
+!  this%buffer((LEN(fchar)+1)*(i-1)+1:(LEN(fchar)+1)*i) = &
+!   TRANSFER(fchar(i)//CHAR(0), fchar)
+  ENDDO
+ENDDO
+ALLOCATE(this%elem(SIZE(fchar) + 1))
+DO i = 1, SIZE(fchar)
+  this%elem(i) = C_LOC(this%buffer((LEN(fchar)+1)*(i-1)+1))
+ENDDO
+this%elem(SIZE(fchar) + 1) = C_NULL_PTR
+
+END FUNCTION charpp_new_from_fchar
 
 
 !> Return the number of valid pointers in the array pointer \a this.
@@ -316,13 +347,19 @@ END FUNCTION charpp_getsize
 !! \endcode
 FUNCTION charpp_getptr(this, n)
 TYPE(charpp),INTENT(in) :: this
-INTEGER,INTENT(in) :: n
+INTEGER,INTENT(in),OPTIONAL :: n
 TYPE(c_ptr) :: charpp_getptr
 
 charpp_getptr = C_NULL_PTR
-IF (ASSOCIATED(this%elem)) THEN
-  IF (n <= SIZE(this%elem)) THEN
-    charpp_getptr = this%elem(n)
+IF (PRESENT(n)) THEN
+  IF (ASSOCIATED(this%elem)) THEN
+    IF (n <= SIZE(this%elem)) THEN
+      charpp_getptr = this%elem(n)
+    ENDIF
+  ENDIF
+ELSE
+  IF (ASSOCIATED(this%elem)) THEN
+    charpp_getptr = C_LOC(this%elem(1))
   ENDIF
 ENDIF
 
