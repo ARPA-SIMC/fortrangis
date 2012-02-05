@@ -1,5 +1,6 @@
 PROGRAM gdaltest
 USE,INTRINSIC :: iso_c_binding
+USE fortranc
 USE gdal
 IMPLICIT none
 
@@ -22,7 +23,7 @@ PRINT*,'creating dataset'
 i1 = 120
 j1 = 80
 ds = gdalcreate(driver, 'gdal_test.tiff'//CHAR(0), i1, j1, 1, gdt_int32, &
- C_NULL_PTR)
+ charpp_getptr(charpp_new((/''/))))
 ALLOCATE(z3(i1,j1,1))
 DO j = 1, j1
   DO i = 1, i1
