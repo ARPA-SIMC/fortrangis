@@ -102,6 +102,17 @@ INCLUDE 'gdalproto_type.f90'
 
 ! Hand made interface definitions
 INTERFACE
+  SUBROUTINE gdalapplygeotransform(padfgeotransform, dfpixel, dfline, pdfgeox, pdfgeoy) BIND(C,name='GDALApplyGeoTransform')
+  IMPORT
+  REAL(kind=c_double) :: padfgeotransform(*)
+  REAL(kind=c_double),VALUE :: dfpixel
+  REAL(kind=c_double),VALUE :: dfline
+  REAL(kind=c_double) :: pdfgeox
+  REAL(kind=c_double) :: pdfgeoy
+  END SUBROUTINE gdalapplygeotransform
+END INTERFACE
+
+INTERFACE
   FUNCTION gdalgcpstogeotransform(ngcpcount, pasgcps, padfgeotransform, bapproxok) &
    BIND(C,name='GDALGCPsToGeoTransform')
   IMPORT

@@ -46,7 +46,6 @@ const char * GDALGetDriverHelpTopic(GDALDriverH hDriver);
 const char * GDALGetDriverCreationOptionList(GDALDriverH hDriver);
 
 int GDALInvGeoTransform(double *padfGeoTransformIn, double *padfInvGeoTransformOut);
-void GDALApplyGeoTransform(double *padfgeotransform, double dfpixel, double dfline, double *pdfgeox, double *pdfgeoy);
 
 char **GDALGetMetadata(GDALMajorObjectH hObject,const char *pszDomain);
 CPLErr GDALSetMetadata(GDALMajorObjectH hObject,char **papszMD,const char *pszDomain);
