@@ -29,6 +29,12 @@
 !! Other Fortran-style subroutines, functions and procedure interfaces
 !! are documented explicitely here.
 !!
+!! For an example of application of the \a gdal module, please refer
+!! to the following test program, which creates a very simple gdal
+!! raster dataset, exports it on a GEOTiff file and successively reads
+!! it:
+!! \include gdal_test.F90
+!!
 !! \ingroup libfortrangis
 MODULE gdal
 USE,INTRINSIC :: iso_c_binding
