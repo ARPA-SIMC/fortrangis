@@ -5,8 +5,35 @@ libraries, plus some more Fortran-specific tools. Please refer to the
 Project Summary http://developer.berlios.de/projects/fortrangis/ for
 more information.
 
-In order to start browsing the documentation I suggest to open the
-Namespaces menu.
+\section build How to build the library
+
+This package defines Fortran interfaces to shapelib, gdal and proj
+libraries, so you need at least one of those libraries (including
+development packages if available) installed on your system.
+
+The FortanGIS package uses GNU autoconf/automake/libtool, so it builds
+natively only on Unix-like systems, such as Linux. It may build on
+MacOS or on Cygwin platforms, but it is untested there, please report
+any success/insuccess. If you need a Windows version, please contact
+the author.
+
+For a successful build, a Fortran compiler supporting ISO_C_BINDING
+capabilities of F2003 standard is needed, e.g. GNU gfortran version
+4.1.2 or later.
+
+After unpacking the tar, please follow the usual GNU build procedure
+<tt>./configure; make; make install</tt>. Try <tt>./configure
+--help</tt> for more detailed help on switches. If you do not want to
+install the full triad of GIS libraries, you can build the package
+without any of them by using configure switches such as
+<tt>--disable-proj</tt> etc.
+
+\section use How to use the library
+
+In order to browse the API documentation, a good starting point is the
+Namespaces (i,e, \a MODULE in Fortran) menu. The documentation pages
+of the modules sometimes include the corresponding *_test.f90 source
+file which can be used as a commented example of use of the library.
 
 Davide Cesari
 

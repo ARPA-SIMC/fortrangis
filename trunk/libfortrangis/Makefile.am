@@ -18,12 +18,12 @@ libfortrangis_la_LIBADD += $(SHP_LIBS)
 nodist_include_HEADERS += shapelib.mod
 
 check_PROGRAMS += shapelib_test
-shapelib_test_SOURCES = shapelib_test.f90
+shapelib_test_SOURCES = shapelib_test.F90
 #shapelib_test_CPPFLAGS = -I../libfortranc
 shapelib_test_LDADD = libfortrangis.la
 
 noinst_PROGRAMS += ung2shp
-ung2shp_SOURCES = ung2shp.f90
+ung2shp_SOURCES = ung2shp.F90
 ung2shp_LDADD = libfortrangis.la
 endif
 
@@ -39,7 +39,7 @@ libfortrangis_la_LIBADD += $(GDAL_LIBS)
 nodist_include_HEADERS += gdal.mod
 
 check_PROGRAMS += gdal_test
-gdal_test_SOURCES = gdal_test.f90
+gdal_test_SOURCES = gdal_test.F90
 gdal_test_CPPFLAGS = -I../libfortranc
 gdal_test_FCFLAGS = -I../libfortranc
 gdal_test_LDADD = libfortrangis.la ../libfortranc/libfortranc.la

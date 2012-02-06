@@ -22,9 +22,10 @@
 !! of character variables between Fortran and C when using the
 !! <tt>ISO_C_BINDING</tt> intrinsic module of Fortran 2003.
 !!
-!! For an example of application of the \a fortranc module, have a
-!! look at the following test program, which decodes the output of a C
-!! function returning a char** result:
+!! For an example of application of the \a fortranc module, please
+!! refer to the following test program, which, among the other
+!! operations, decodes the output of a C function returning a
+!! <tt>char**</tt> result:
 !! \include fortranc_test.F90
 !!
 !! \ingroup libfortranc
