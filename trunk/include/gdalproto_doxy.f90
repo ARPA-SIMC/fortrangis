@@ -28,7 +28,6 @@
 !!  - GDALGetDriverHelpTopic() -> FUNCTION gdalgetdriverhelptopic()
 !!  - GDALGetDriverCreationOptionList() -> FUNCTION gdalgetdrivercreationoptionlist()
 !!  - GDALInvGeoTransform() -> FUNCTION gdalinvgeotransform()
-!!  - GDALApplyGeoTransform() -> SUBROUTINE gdalapplygeotransform()
 !!  - GDALGetMetadata() -> FUNCTION gdalgetmetadata()
 !!  - GDALSetMetadata() -> FUNCTION gdalsetmetadata()
 !!  - GDALGetMetadataItem() -> FUNCTION gdalgetmetadataitem()

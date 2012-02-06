@@ -78,7 +78,7 @@ INTERFACE
   INTEGER(kind=c_int),VALUE :: nysize
   INTEGER(kind=c_int),VALUE :: nbands
   INTEGER(kind=c_int),VALUE :: ebandtype ! GDALDataType
-  TYPE(c_ptr),VALUE :: papszoptions ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: papszoptions ! TYPE(c_ptr_ptr)
   TYPE(gdaldataseth) :: gdalcreate
   END FUNCTION gdalcreate
 END INTERFACE
@@ -91,7 +91,7 @@ INTERFACE
   CHARACTER(kind=c_char),INTENT(in) :: pszfilename(*)
   TYPE(gdaldataseth),VALUE :: hsrcds
   INTEGER(kind=c_int),VALUE :: bstrict
-  TYPE(c_ptr),VALUE :: papszoptions ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: papszoptions ! TYPE(c_ptr_ptr)
   TYPE(c_ptr),VALUE :: pfnprogress
   TYPE(c_ptr),VALUE :: pprogressdata ! void*
   TYPE(gdaldataseth) :: gdalcreatecopy
@@ -102,7 +102,7 @@ INTERFACE
   FUNCTION gdalidentifydriver(pszfilename, papszfilelist) BIND(C,name='GDALIdentifyDriver')
   IMPORT
   CHARACTER(kind=c_char),INTENT(in) :: pszfilename(*)
-  TYPE(c_ptr),VALUE :: papszfilelist ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: papszfilelist ! TYPE(c_ptr_ptr)
   TYPE(gdaldriverh) :: gdalidentifydriver
   END FUNCTION gdalidentifydriver
 END INTERFACE
@@ -209,7 +209,7 @@ INTERFACE
   FUNCTION gdalvalidatecreationoptions(hdriver, papszcreationoptions) BIND(C,name='GDALValidateCreationOptions')
   IMPORT
   TYPE(gdaldriverh),VALUE :: hdriver
-  TYPE(c_ptr),VALUE :: papszcreationoptions ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: papszcreationoptions ! TYPE(c_ptr_ptr)
   INTEGER(kind=c_int) :: gdalvalidatecreationoptions
   END FUNCTION gdalvalidatecreationoptions
 END INTERFACE
@@ -256,22 +256,11 @@ INTERFACE
 END INTERFACE
 
 INTERFACE
-  SUBROUTINE gdalapplygeotransform(padfgeotransform, dfpixel, dfline, pdfgeox, pdfgeoy) BIND(C,name='GDALApplyGeoTransform')
-  IMPORT
-  REAL(kind=c_double) :: padfgeotransform(*)
-  REAL(kind=c_double),VALUE :: dfpixel
-  REAL(kind=c_double),VALUE :: dfline
-  REAL(kind=c_double) :: pdfgeox(*)
-  REAL(kind=c_double) :: pdfgeoy(*)
-  END SUBROUTINE gdalapplygeotransform
-END INTERFACE
-
-INTERFACE
   FUNCTION gdalgetmetadata(hobject, pszdomain) BIND(C,name='GDALGetMetadata')
   IMPORT
   TYPE(c_ptr),VALUE :: hobject
   CHARACTER(kind=c_char),INTENT(in) :: pszdomain(*)
-  TYPE(c_ptr) :: gdalgetmetadata ! TYPE(charpp)
+  TYPE(c_ptr) :: gdalgetmetadata ! TYPE(c_ptr_ptr)
   END FUNCTION gdalgetmetadata
 END INTERFACE
 
@@ -279,7 +268,7 @@ INTERFACE
   FUNCTION gdalsetmetadata(hobject, papszmd, pszdomain) BIND(C,name='GDALSetMetadata')
   IMPORT
   TYPE(c_ptr),VALUE :: hobject
-  TYPE(c_ptr),VALUE :: papszmd ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: papszmd ! TYPE(c_ptr_ptr)
   CHARACTER(kind=c_char),INTENT(in) :: pszdomain(*)
   INTEGER(kind=c_int) :: gdalsetmetadata ! CPLErr
   END FUNCTION gdalsetmetadata
@@ -334,7 +323,7 @@ INTERFACE
   FUNCTION gdalgetfilelist(hds) BIND(C,name='GDALGetFileList')
   IMPORT
   TYPE(gdaldataseth),VALUE :: hds
-  TYPE(c_ptr) :: gdalgetfilelist ! TYPE(charpp)
+  TYPE(c_ptr) :: gdalgetfilelist ! TYPE(c_ptr_ptr)
   END FUNCTION gdalgetfilelist
 END INTERFACE
 
@@ -383,7 +372,7 @@ INTERFACE
   IMPORT
   TYPE(gdaldataseth),VALUE :: hds
   INTEGER(kind=c_int),VALUE :: etype ! GDALDataType
-  TYPE(c_ptr),VALUE :: papszoptions ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: papszoptions ! TYPE(c_ptr_ptr)
   INTEGER(kind=c_int) :: gdaladdband ! CPLErr
   END FUNCTION gdaladdband
 END INTERFACE
@@ -406,7 +395,7 @@ INTERFACE
   INTEGER(kind=c_int),VALUE :: npixelspace
   INTEGER(kind=c_int),VALUE :: nlinespace
   INTEGER(kind=c_int),VALUE :: nbandspace
-  TYPE(c_ptr),VALUE :: papszoptions ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: papszoptions ! TYPE(c_ptr_ptr)
   TYPE(c_ptr) :: gdalbeginasyncreader
   END FUNCTION gdalbeginasyncreader
 END INTERFACE
@@ -456,7 +445,7 @@ INTERFACE
   INTEGER(kind=c_int),VALUE :: ebdatatype ! GDALDataType
   INTEGER(kind=c_int),VALUE :: nbandcount
   INTEGER(kind=c_int) :: panbandcount(*)
-  TYPE(c_ptr),VALUE :: papszoptions ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: papszoptions ! TYPE(c_ptr_ptr)
   INTEGER(kind=c_int) :: gdaldatasetadviseread ! CPLErr
   END FUNCTION gdaldatasetadviseread
 END INTERFACE
@@ -556,7 +545,7 @@ END INTERFACE
 INTERFACE
   SUBROUTINE gdalgetopendatasets(hds, pncount) BIND(C,name='GDALGetOpenDatasets')
   IMPORT
-  TYPE(c_ptr),VALUE :: hds ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: hds ! TYPE(c_ptr_ptr)
   INTEGER(kind=c_int) :: pncount(*)
   END SUBROUTINE gdalgetopendatasets
 END INTERFACE
@@ -591,7 +580,7 @@ INTERFACE
   IMPORT
   TYPE(gdaldataseth),VALUE :: hsrcds
   TYPE(gdaldataseth),VALUE :: hdstds
-  TYPE(c_ptr),VALUE :: papszoptions ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: papszoptions ! TYPE(c_ptr_ptr)
   TYPE(c_ptr),VALUE :: pfnprogress
   TYPE(c_ptr),VALUE :: pprogressdata ! void*
   INTEGER(kind=c_int) :: gdaldatasetcopywholeraster ! CPLErr
@@ -604,7 +593,7 @@ INTERFACE
   IMPORT
   TYPE(gdalrasterbandh),VALUE :: hsrcband
   TYPE(gdalrasterbandh),VALUE :: hdstband
-  TYPE(c_ptr),VALUE :: papszoptions ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: papszoptions ! TYPE(c_ptr_ptr)
   TYPE(c_ptr),VALUE :: pfnprogress
   TYPE(c_ptr),VALUE :: pprogressdata ! void*
   INTEGER(kind=c_int) :: gdalrasterbandcopywholeraster ! CPLErr
@@ -645,7 +634,7 @@ INTERFACE
   INTEGER(kind=c_int),VALUE :: nbxsize
   INTEGER(kind=c_int),VALUE :: nbysize
   INTEGER(kind=c_int),VALUE :: ebdatatype ! GDALDataType
-  TYPE(c_ptr),VALUE :: papszoptions ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: papszoptions ! TYPE(c_ptr_ptr)
   INTEGER(kind=c_int) :: gdalrasteradviseread ! CPLErr
   END FUNCTION gdalrasteradviseread
 END INTERFACE
@@ -791,7 +780,7 @@ INTERFACE
   FUNCTION gdalgetrastercategorynames(hband) BIND(C,name='GDALGetRasterCategoryNames')
   IMPORT
   TYPE(gdalrasterbandh),VALUE :: hband
-  TYPE(c_ptr) :: gdalgetrastercategorynames ! TYPE(charpp)
+  TYPE(c_ptr) :: gdalgetrastercategorynames ! TYPE(c_ptr_ptr)
   END FUNCTION gdalgetrastercategorynames
 END INTERFACE
 
@@ -951,7 +940,7 @@ INTERFACE
   REAL(kind=c_double) :: pdfmin(*)
   REAL(kind=c_double) :: pdfmax(*)
   INTEGER(kind=c_int) :: pnbuckets(*)
-  TYPE(c_ptr),VALUE :: ppanhistogram ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: ppanhistogram ! TYPE(c_ptr_ptr)
   INTEGER(kind=c_int),VALUE :: bforce
   TYPE(c_ptr),VALUE :: pfnprogress
   TYPE(c_ptr),VALUE :: pprogressdata ! void*
@@ -1181,9 +1170,9 @@ INTERFACE
   IMPORT
   CHARACTER(kind=c_char),INTENT(in) :: pszfilename(*)
   REAL(kind=c_double) :: padfgeotransform(*)
-  TYPE(c_ptr),VALUE :: ppszwkt ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: ppszwkt ! TYPE(c_ptr_ptr)
   INTEGER(kind=c_int) :: pngcpcount(*)
-  TYPE(c_ptr),VALUE :: ppasgcps ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: ppasgcps ! TYPE(c_ptr_ptr)
   INTEGER(kind=c_int) :: gdalloadozimapfile
   END FUNCTION gdalloadozimapfile
 END INTERFACE
@@ -1194,9 +1183,9 @@ INTERFACE
   IMPORT
   CHARACTER(kind=c_char),INTENT(in) :: pszbasefilename(*)
   REAL(kind=c_double) :: padfgeotransform(*)
-  TYPE(c_ptr),VALUE :: ppszwkt ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: ppszwkt ! TYPE(c_ptr_ptr)
   INTEGER(kind=c_int) :: pngcpcount(*)
-  TYPE(c_ptr),VALUE :: ppasgcps ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: ppasgcps ! TYPE(c_ptr_ptr)
   INTEGER(kind=c_int) :: gdalreadozimapfile
   END FUNCTION gdalreadozimapfile
 END INTERFACE
@@ -1206,9 +1195,9 @@ INTERFACE
   IMPORT
   CHARACTER(kind=c_char),INTENT(in) :: pszfilename(*)
   REAL(kind=c_double) :: padfgeotransform(*)
-  TYPE(c_ptr),VALUE :: ppszwkt ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: ppszwkt ! TYPE(c_ptr_ptr)
   INTEGER(kind=c_int) :: pngcpcount(*)
-  TYPE(c_ptr),VALUE :: ppasgcps ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: ppasgcps ! TYPE(c_ptr_ptr)
   INTEGER(kind=c_int) :: gdalloadtabfile
   END FUNCTION gdalloadtabfile
 END INTERFACE
@@ -1218,9 +1207,9 @@ INTERFACE
   IMPORT
   CHARACTER(kind=c_char),INTENT(in) :: pszbasefilename(*)
   REAL(kind=c_double) :: padfgeotransform(*)
-  TYPE(c_ptr),VALUE :: ppszwkt ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: ppszwkt ! TYPE(c_ptr_ptr)
   INTEGER(kind=c_int) :: pngcpcount(*)
-  TYPE(c_ptr),VALUE :: ppasgcps ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: ppasgcps ! TYPE(c_ptr_ptr)
   INTEGER(kind=c_int) :: gdalreadtabfile
   END FUNCTION gdalreadtabfile
 END INTERFACE
@@ -1229,8 +1218,8 @@ INTERFACE
   FUNCTION gdalloadrpbfile(pszfilename, papszsiblingfiles) BIND(C,name='GDALLoadRPBFile')
   IMPORT
   CHARACTER(kind=c_char),INTENT(in) :: pszfilename(*)
-  TYPE(c_ptr),VALUE :: papszsiblingfiles ! TYPE(charpp)
-  TYPE(c_ptr) :: gdalloadrpbfile ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: papszsiblingfiles ! TYPE(c_ptr_ptr)
+  TYPE(c_ptr) :: gdalloadrpbfile ! TYPE(c_ptr_ptr)
   END FUNCTION gdalloadrpbfile
 END INTERFACE
 
@@ -1238,8 +1227,8 @@ INTERFACE
   FUNCTION gdalloadrpcfile(pszfilename, papszsiblingfiles) BIND(C,name='GDALLoadRPCFile')
   IMPORT
   CHARACTER(kind=c_char),INTENT(in) :: pszfilename(*)
-  TYPE(c_ptr),VALUE :: papszsiblingfiles ! TYPE(charpp)
-  TYPE(c_ptr) :: gdalloadrpcfile ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: papszsiblingfiles ! TYPE(c_ptr_ptr)
+  TYPE(c_ptr) :: gdalloadrpcfile ! TYPE(c_ptr_ptr)
   END FUNCTION gdalloadrpcfile
 END INTERFACE
 
@@ -1247,7 +1236,7 @@ INTERFACE
   FUNCTION gdalwriterpbfile(pszfilename, papszmd) BIND(C,name='GDALWriteRPBFile')
   IMPORT
   CHARACTER(kind=c_char),INTENT(in) :: pszfilename(*)
-  TYPE(c_ptr),VALUE :: papszmd ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: papszmd ! TYPE(c_ptr_ptr)
   INTEGER(kind=c_int) :: gdalwriterpbfile ! CPLErr
   END FUNCTION gdalwriterpbfile
 END INTERFACE
@@ -1256,8 +1245,8 @@ INTERFACE
   FUNCTION gdalloadimdfile(pszfilename, papszsiblingfiles) BIND(C,name='GDALLoadIMDFile')
   IMPORT
   CHARACTER(kind=c_char),INTENT(in) :: pszfilename(*)
-  TYPE(c_ptr),VALUE :: papszsiblingfiles ! TYPE(charpp)
-  TYPE(c_ptr) :: gdalloadimdfile ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: papszsiblingfiles ! TYPE(c_ptr_ptr)
+  TYPE(c_ptr) :: gdalloadimdfile ! TYPE(c_ptr_ptr)
   END FUNCTION gdalloadimdfile
 END INTERFACE
 
@@ -1265,7 +1254,7 @@ INTERFACE
   FUNCTION gdalwriteimdfile(pszfilename, papszmd) BIND(C,name='GDALWriteIMDFile')
   IMPORT
   CHARACTER(kind=c_char),INTENT(in) :: pszfilename(*)
-  TYPE(c_ptr),VALUE :: papszmd ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: papszmd ! TYPE(c_ptr_ptr)
   INTEGER(kind=c_int) :: gdalwriteimdfile ! CPLErr
   END FUNCTION gdalwriteimdfile
 END INTERFACE
@@ -1299,7 +1288,7 @@ END INTERFACE
 INTERFACE
   FUNCTION gdalextractrpcinfo(papszmd, psrpc) BIND(C,name='GDALExtractRPCInfo')
   IMPORT
-  TYPE(c_ptr),VALUE :: papszmd ! TYPE(charpp)
+  TYPE(c_ptr),VALUE :: papszmd ! TYPE(c_ptr_ptr)
   TYPE(gdalrpcinfo) :: psrpc
   INTEGER(kind=c_int) :: gdalextractrpcinfo
   END FUNCTION gdalextractrpcinfo

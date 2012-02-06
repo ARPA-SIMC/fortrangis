@@ -36,16 +36,39 @@ USE iso_varying_string
 IMPLICIT NONE
 
 
-!> Fortran derived type for handling <tt>char**</tt> C objects.
-!! This object allows Fortran programs to extract the data pointed by
-!! every single pointer in a C <tt>char**</tt> object (or in principle
-!! a C array of pointers to any kind of data), provided that the array
-!! of pointers is terminated by a <tt>NULL</tt> pointer.
-TYPE charpp
+!> Fortran derived type for handling <tt>void**</tt>, <tt>char**</tt>,
+!! etc C objects (pointer to pointer or array of pointers).  The array
+!! of pointers is assumed to be terminated by a <tt>NULL</tt>
+!! pointer. Methods are provided both for receiving the data structure
+!! from C and unpacking it in Fortran as well as for creating it in
+!! Fortran and passing it to C.
+!!
+!! Example of <tt>char**</tt> object created in C and unpacked in Fortran:
+!! \code
+!! TYPE(c_ptr_ptr) :: envp
+!! INTEGER :: i
+!! ...
+!! envp = c_ptr_ptr_new(interfaced_c_procedure())
+!! DO i = 1, c_ptr_ptr_getsize(envp)
+!!   PRINT*,i,TRIM(strtofchar(c_ptr_ptr_getptr(envp, i),100))
+!! ENDDO
+!! CALL delete(envp)
+!! \endcode
+!!
+!! Example of <tt>char**</tt> object created in Fortran and passed to C:
+!! \code
+!! TYPE(c_ptr_ptr) :: envp
+!! ...
+!! envp = c_ptr_ptr_new((/'APPLE=3  ','PEAR=2  ','ORANGE=20'/))
+!! CALL interfaced_c_procedure(envp)
+!! CALL delete(envp)
+!! ...
+!! \endcode
+TYPE c_ptr_ptr
   PRIVATE
   TYPE(c_ptr),POINTER :: elem(:) => NULL()
   CHARACTER(len=1),POINTER :: buffer(:) => NULL()
-END TYPE charpp
+END TYPE c_ptr_ptr
 
 !> Equivalent of the strlen C function.
 !!
@@ -81,13 +104,19 @@ INTERFACE strtofchar
    strtofchar_ptr_2
 END INTERFACE
 
-INTERFACE charpp_new
-  MODULE PROCEDURE charpp_new_from_c, charpp_new_from_fchar
-END INTERFACE charpp_new
+!> Constructor for a \a c_ptr_ptr object.
+!! An object of this type can be constructed either from a pointer
+!! returned by a C procedure, (either as an argument, interfaced as
+!! <tt>TYPE(c_ptr),VALUE</tt> or as the result of a function,
+!! interfaced as <tt>TYPE(c_ptr)</tt>) or from Fortran array of
+!! character variables (<tt>char **</tt> objects only).
+INTERFACE c_ptr_ptr_new
+  MODULE PROCEDURE c_ptr_ptr_new_from_c, c_ptr_ptr_new_from_fchar
+END INTERFACE c_ptr_ptr_new
 
 PRIVATE
 PUBLIC strlen, strtofchar, fchartostr, fchartrimtostr
-PUBLIC charpp, charpp_new, charpp_getsize, charpp_getptr
+PUBLIC c_ptr_ptr, c_ptr_ptr_new, c_ptr_ptr_getsize, c_ptr_ptr_getptr, c_ptr_ptr_getobject
 
 CONTAINS
 
@@ -264,46 +293,51 @@ string = TRIM(fchar)//CHAR(0)
 
 END FUNCTION fchartrimtostr
 
-!> Constructor for a \a charpp object.
+!> Constructor for a \a c_ptr_ptr object.
 !! The argument, a generic C pointer, must be a C array of pointers
-!! (<tt>char** charpp_c</tt> or <tt>char* charpp_c[n]</tt>), typically
-!! the result of a C function.
-FUNCTION charpp_new_from_c(charpp_c) RESULT(this)
-TYPE(c_ptr),VALUE :: charpp_c
-TYPE(charpp) :: this
+!! (<tt>char** c_ptr_ptr_c</tt> or <tt>char* c_ptr_ptr_c[n]</tt>),
+!! typically the result of a C function. The resulting object can be
+!! queried by means of the \a c_ptr_ptr_getsize and \a
+!! c_ptr_ptr_getptr methods, but it should not be modified by Fortran.
+FUNCTION c_ptr_ptr_new_from_c(c_ptr_ptr_c) RESULT(this)
+TYPE(c_ptr),VALUE :: c_ptr_ptr_c !< pointer returned by a C procedure
+TYPE(c_ptr_ptr) :: this
 
 INTEGER :: i
 TYPE(c_ptr),POINTER :: charp(:)
 
-IF (C_ASSOCIATED(charpp_c)) THEN
+IF (C_ASSOCIATED(c_ptr_ptr_c)) THEN
   ! HUGE() here is ugly, but we must set a finite size
-  CALL C_F_POINTER(charpp_c, charp, (/HUGE(1)/))
+  CALL C_F_POINTER(c_ptr_ptr_c, charp, (/HUGE(1)/))
   DO i = 1, SIZE(charp)
     IF (.NOT.C_ASSOCIATED(charp(i))) THEN
-      CALL C_F_POINTER(charpp_c, this%elem, (/i-1/))
+      CALL C_F_POINTER(c_ptr_ptr_c, this%elem, (/i-1/))
       RETURN
     ENDIF
   ENDDO
 ENDIF
-END FUNCTION charpp_new_from_c
+END FUNCTION c_ptr_ptr_new_from_c
 
 
-
-FUNCTION charpp_new_from_fchar(fchar) RESULT(this)
-CHARACTER(len=*) :: fchar(:)
-TYPE(charpp) :: this
+!> Constructor for a \a c_ptr_ptr object.
+!! The argument is an array of Fortran character variables which will
+!! be trimmed and stored in the resulting object. The object can be
+!! passed to a C procedure as a <tt>char **</tt> argument after
+!! applying the \a c_ptr_prt_getptr method, but it should not be
+!! modified by the C procedure.
+FUNCTION c_ptr_ptr_new_from_fchar(fchar) RESULT(this)
+CHARACTER(len=*) :: fchar(:) !< array of characters that will compose the object
+TYPE(c_ptr_ptr) :: this
 
 INTEGER :: i, j
 
 ALLOCATE(this%buffer((LEN(fchar)+1)*SIZE(fchar)))
 DO i = 1, SIZE(fchar)
-  DO j = 1, LEN(fchar)
+  DO j = 1, LEN_TRIM(fchar(i))
     this%buffer((LEN(fchar)+1)*(i-1)+j) = &
      fchar(i)(j:j)
-    this%buffer((LEN(fchar)+1)*i-1) = CHAR(0)
-!  this%buffer((LEN(fchar)+1)*(i-1)+1:(LEN(fchar)+1)*i) = &
-!   TRANSFER(fchar(i)//CHAR(0), fchar)
   ENDDO
+  this%buffer((LEN(fchar)+1)*(i-1)+j) = CHAR(0)
 ENDDO
 ALLOCATE(this%elem(SIZE(fchar) + 1))
 DO i = 1, SIZE(fchar)
@@ -311,58 +345,59 @@ DO i = 1, SIZE(fchar)
 ENDDO
 this%elem(SIZE(fchar) + 1) = C_NULL_PTR
 
-END FUNCTION charpp_new_from_fchar
+END FUNCTION c_ptr_ptr_new_from_fchar
 
 
 !> Return the number of valid pointers in the array pointer \a this.
 !! If the object has not been initialized or has been initialized with
 !! errors, zero is returned.
-FUNCTION charpp_getsize(this)
-TYPE(charpp),INTENT(in) :: this
-INTEGER :: charpp_getsize
+FUNCTION c_ptr_ptr_getsize(this)
+TYPE(c_ptr_ptr),INTENT(in) :: this
+INTEGER :: c_ptr_ptr_getsize
 
 IF (ASSOCIATED(this%elem)) THEN
-  charpp_getsize = SIZE(this%elem)
+  c_ptr_ptr_getsize = SIZE(this%elem)
 ELSE
-  charpp_getsize = 0
+  c_ptr_ptr_getsize = 0
 ENDIF
 
-END FUNCTION charpp_getsize
+END FUNCTION c_ptr_ptr_getsize
 
-!> Returns the nth pointer in the array pointer \a this.
+!> Return the n-th pointer in the array pointer \a this.
+!! Ths method is useful if the object \a this has been created from C.
 !! If the object has not been initialized, or \a n is out of bounds, a
 !! NULL pointer is returned, this condition can be checked by means of
 !! the <tt>C_ASSOCIATED()</tt> function. If \a this is an array of
 !! pointers to C null-terminated strings, the string can be returned
 !! as a Fortran \a CHARACTER variable of the proper length by using
-!! the \a strtofchar function, for example:
-!!
-!! \code
-!! TYPE(charpp) :: envp
-!! CHARACTER(len=256) :: str
-!! ...
-!! envp = charpp_new(charpp_c)
-!! ...
-!! str = 'hello, '//strtofchar(charpp_getptr(envp, 2))//'!'
-!! \endcode
-FUNCTION charpp_getptr(this, n)
-TYPE(charpp),INTENT(in) :: this
-INTEGER,INTENT(in),OPTIONAL :: n
-TYPE(c_ptr) :: charpp_getptr
+!! the \a strtofchar function.
+FUNCTION c_ptr_ptr_getptr(this, n)
+TYPE(c_ptr_ptr),INTENT(in) :: this !< object to query
+INTEGER,INTENT(in) :: n !< the number of pointer to get (starting from 1)
+TYPE(c_ptr) :: c_ptr_ptr_getptr
 
-charpp_getptr = C_NULL_PTR
-IF (PRESENT(n)) THEN
-  IF (ASSOCIATED(this%elem)) THEN
-    IF (n <= SIZE(this%elem)) THEN
-      charpp_getptr = this%elem(n)
-    ENDIF
-  ENDIF
-ELSE
-  IF (ASSOCIATED(this%elem)) THEN
-    charpp_getptr = C_LOC(this%elem(1))
+c_ptr_ptr_getptr = C_NULL_PTR
+IF (ASSOCIATED(this%elem)) THEN
+  IF (n <= SIZE(this%elem)) THEN
+    c_ptr_ptr_getptr = this%elem(n)
   ENDIF
 ENDIF
 
-END FUNCTION charpp_getptr
+END FUNCTION c_ptr_ptr_getptr
+
+
+!> Return the C pointer to the first pointer in the array pointer \a this.
+!! This method is useful if the object \a this has been created from
+!! Fortran and it has to be passed to a C procedure.
+FUNCTION c_ptr_ptr_getobject(this)
+TYPE(c_ptr_ptr),INTENT(in) :: this !< object to query
+TYPE(c_ptr) :: c_ptr_ptr_getobject
+
+c_ptr_ptr_getobject = C_NULL_PTR
+IF (ASSOCIATED(this%elem)) THEN
+  c_ptr_ptr_getobject = C_LOC(this%elem(1))
+ENDIF
+
+END FUNCTION c_ptr_ptr_getobject
 
 END MODULE fortranc

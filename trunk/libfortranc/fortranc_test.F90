@@ -20,13 +20,13 @@ IMPORT
 TYPE(c_ptr) :: return_8_charp
 END FUNCTION return_8_charp
 
-FUNCTION return_charpp() BIND(C)
+FUNCTION return_c_ptr_ptr() BIND(C)
 IMPORT
-TYPE(c_ptr) :: return_charpp
-END FUNCTION return_charpp
+TYPE(c_ptr) :: return_c_ptr_ptr
+END FUNCTION return_c_ptr_ptr
 END INTERFACE
 
-TYPE(charpp) :: strarrp
+TYPE(c_ptr_ptr) :: strarrp
 INTEGER :: i
 
 
@@ -55,40 +55,40 @@ ENDIF
 PRINT*,'Strlen returns the expected values'
 
 
-! ==== How to use charpp ====
+! ==== How to use c_ptr_ptr ====
 
-! get a char** object from C function return_charpp(), the function
+! get a char** object from C function return_c_ptr_ptr(), the function
 ! result has been declared as:
 ! char* var[4] = { "first", "segundo", "troisieme", NULL }
-PRINT*,'Getting a charpp object from C'
-strarrp = charpp_new(return_charpp())
+PRINT*,'Getting a c_ptr_ptr object from C'
+strarrp = c_ptr_ptr_new(return_c_ptr_ptr())
 !IF (.NOT.C_ASSOCIATED(strarrp)) THEN
-!  PRINT*,'Error in charpp_new, got a NULL pointer'
+!  PRINT*,'Error in c_ptr_ptr_new, got a NULL pointer'
 !ENDIF
 
 ! get the number of valid pointers in strarrp
-PRINT*,'The object has ',charpp_getsize(strarrp),' elements'
-IF (charpp_getsize(strarrp) /= 3) THEN
-  PRINT*,'Error in charpp_getsize:',3,charpp_getsize(strarrp)
+PRINT*,'The object has ',c_ptr_ptr_getsize(strarrp),' elements'
+IF (c_ptr_ptr_getsize(strarrp) /= 3) THEN
+  PRINT*,'Error in c_ptr_ptr_getsize:',3,c_ptr_ptr_getsize(strarrp)
   STOP 1
 ENDIF
 
 ! get the content of selected pointers as a Fortran CHARACTER variable
 ! of the right length, count starts from 1
-IF (strtofchar(charpp_getptr(strarrp, 1),100) /= 'first') THEN
-  PRINT*,'Error in charpp_getptr:',strtofchar(charpp_getptr(strarrp, 1),100),':first'
+IF (strtofchar(c_ptr_ptr_getptr(strarrp, 1),100) /= 'first') THEN
+  PRINT*,'Error in c_ptr_ptr_getptr:',strtofchar(c_ptr_ptr_getptr(strarrp, 1),100),':first'
   STOP 1
 ENDIF
-IF (strtofchar(charpp_getptr(strarrp, 2),100) /= 'segundo') THEN
-  PRINT*,'Error in charpp_getptr:',strtofchar(charpp_getptr(strarrp, 2),100),':segundo'
+IF (strtofchar(c_ptr_ptr_getptr(strarrp, 2),100) /= 'segundo') THEN
+  PRINT*,'Error in c_ptr_ptr_getptr:',strtofchar(c_ptr_ptr_getptr(strarrp, 2),100),':segundo'
   STOP 1
 ENDIF
-IF (strtofchar(charpp_getptr(strarrp, 3),100) /= 'troisieme') THEN
-  PRINT*,'Error in charpp_getptr:',strtofchar(charpp_getptr(strarrp, 3),100),':troisieme'
+IF (strtofchar(c_ptr_ptr_getptr(strarrp, 3),100) /= 'troisieme') THEN
+  PRINT*,'Error in c_ptr_ptr_getptr:',strtofchar(c_ptr_ptr_getptr(strarrp, 3),100),':troisieme'
   STOP 1
 ENDIF
-IF (strtofchar(charpp_getptr(strarrp, 4),100) /= '') THEN
-  PRINT*,'Error in charpp_getptr: out of bound request should return empty string:',strtofchar(charpp_getptr(strarrp, 4),100)
+IF (strtofchar(c_ptr_ptr_getptr(strarrp, 4),100) /= '') THEN
+  PRINT*,'Error in c_ptr_ptr_getptr: out of bound request should return empty string:',strtofchar(c_ptr_ptr_getptr(strarrp, 4),100)
   STOP 1
 ENDIF
 

@@ -55,8 +55,8 @@ def makearg(carg, valuetag=',VALUE', result=False):
             refval = ''
             arr = '(*)'
         elif gr[2] == '**':
-            cdef = 'charpp'
-            comm = ' ! TYPE(charpp)'
+            cdef = 'c_ptr_ptr'
+            comm = ' ! TYPE(c_ptr_ptr)'
             refval = ''
         else:
             refval = valuetag
