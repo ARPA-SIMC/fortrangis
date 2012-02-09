@@ -1,6 +1,6 @@
 Summary: FortranGIS Fortran interfaces Open Source GIS libraries 
 Name: fortrangis
-VERSION: 1.1
+VERSION: 2.0
 Release: 1
 License: LGPL
 Group: Applications/GIS
@@ -32,11 +32,10 @@ FortranGIS
 Doxygen documentation for FortranGIS package
 
 %description
-FortranGIS project includes a collection of Fortran interfaces to the
-most common Open Source GIS libraries, plus some more Fortran-specific
-tools.
+FortranGIS is a collection of Fortran interfaces to the most common
+Open Source GIS libraries, plus some more Fortran-specific tools.
 
-The libraries interfaced at the moment are Shapelib, GDAL and proj.
+The libraries interfaced at the moment are Shapelib, GDAL and Proj.
 
 %prep
 %setup -q
