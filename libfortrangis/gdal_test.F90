@@ -7,11 +7,10 @@ IMPLICIT none
 TYPE(gdaldriverh) :: driver
 TYPE(gdaldataseth) :: ds
 TYPE(gdalrasterbandh) :: band
-!TYPE(c_ptr) :: ds, band
 CHARACTER(len=512) :: file
-REAL(kind=c_double) :: x1, y1, x2, y2, gt(6)
-INTEGER(kind=c_int) :: i1, j1, i2, j2, ierr, i, j
-REAL,ALLOCATABLE :: z(:,:), z3(:,:,:)
+REAL(kind=c_double) :: x1, y1, x2, y2, xs, ys, gt(6)
+INTEGER(kind=c_int) :: i1, j1, k1, i2, j2, k2, i, j, k, ierr
+REAL,ALLOCATABLE :: z(:,:), z3(:,:,:), zr3(:,:,:)
 
 
 ! register all available gdal drivers
@@ -29,30 +28,43 @@ IF (.NOT.gdalassociated(driver)) THEN
   STOP 1
 ENDIF
 
-! create the dataset with i1xj1 points and 1 raster band of integer data
+! create the dataset with i1xj1 points and 1 raster band of byte data
 PRINT*,'Creating a GeoTIFF gdal dataset'
 i1 = 120
 j1 = 80
-ds = gdalcreate(driver, TRIM(file)//CHAR(0), i1, j1, 1, gdt_int32, &
+k1 = 3
+ds = gdalcreate(driver, TRIM(file)//CHAR(0), i1, j1, k1, gdt_byte, &
  c_ptr_ptr_getobject(c_ptr_ptr_new((/('',i=1,0)/))))
-! (/('',i=1,0)/) is a trick to define a zero-length array no the fly,
+! (/('',i=1,0)/) is a trick to define a zero-length array on the fly,
 ! since we do not want to pass any specific option
 IF (.NOT.gdalassociated(ds)) THEN
   PRINT*,'Error creating a GeoTIFF dataset on file ',TRIM(file)
   STOP 1
 ENDIF
 
-! create a dummy array of real data
-ALLOCATE(z3(i1,j1,1))
-DO j = 1, j1
-  DO i = 1, i1
-    z3(i,j,1) = i+2*j
+! this seems to be useless here, depends on file type
+PRINT*,'Setting color interpretation to RGB'
+ierr =  GDALSetRasterColorInterpretation(gdalgetrasterband(ds, 1), GCI_RedBand)
+ierr =  GDALSetRasterColorInterpretation(gdalgetrasterband(ds, 2), GCI_GreenBand)
+ierr =  GDALSetRasterColorInterpretation(gdalgetrasterband(ds, 3), GCI_BlueBand)
+
+! create a dummy array of real data, we stick to integer <= 255 in
+! order to fit in a byte and not to lose precision in read test
+ALLOCATE(z3(i1,j1,k1))
+DO k = 1, k1
+  DO j = 1, j1
+    DO i = 1, i1
+      z3(i,j,k) = i/2+j*MOD(k,2)+(j1-j)*(1-MOD(k,2))
+    ENDDO
   ENDDO
 ENDDO
 
 ! write data to dataset with the simplified Fortran interface, one
-! raster band is written starting from the upper(?) left corner
+! raster band is written starting from the upper(?) left corner, the
+! conversion from the type of z3 (real) to the gdt_byte type specified
+! with gdalcreate is done internally by gdal
 PRINT*,'Writing data to dataset'
+PRINT*,'using the simplified Fortran interface'
 ierr = gdaldatasetrasterio_f(ds, GF_Write, 0, 0, z3)
 IF (ierr /= 0) THEN
   PRINT*,'Error writing data to GeoTIFF dataset on file ',TRIM(file)
@@ -61,9 +73,10 @@ ENDIF
 
 CALL gdalclose(ds)
 
-! ==== How to read a gdal dataset from a file ====
+! ==== How to read a gdal dataset from a file, simplified Fortran interface ====
 
 PRINT*,'Opening a GeoTIFF gdal dataset for reading'
+PRINT*,'using the simplified Fortran interface'
 ds = gdalopen(TRIM(file)//CHAR(0), GA_ReadOnly)
 IF (.NOT.gdalassociated(ds)) THEN
   PRINT*,'Error opening dataset on file ',TRIM(file)
@@ -82,11 +95,18 @@ PRINT*,'The affine transformation matrix is: ',gt
 PRINT*,'Getting the dataset size'
 i2 = gdalgetrasterxsize(ds)
 j2 = gdalgetrasterysize(ds)
+k2 = gdalgetrastercount(ds)
 IF (i1 /= i2 .OR. j1 /= j2) THEN
   PRINT*,'Error, wrong dataset x or y size ',i1,i2,j1,j2
   STOP 1
 ENDIF
 PRINT*,'The x/y size of the raster is: ',i2,j2
+
+IF (k1 /= k2) THEN
+  PRINT*,'Error, wrong raster band number ',k1,k2
+  STOP 1
+ENDIF
+PRINT*,'The number of raster bands is: ',k2
 
 ! apply the affine transformation to some coordinates
 ! original gdal version
@@ -115,21 +135,52 @@ IF (.NOT.gdalassociated(band)) THEN
   STOP 1
 ENDIF
 
-! read data from raster band with the simplified Fortran interface,
+! read data from first raster band with the simplified Fortran interface,
 ! raster band is read starting from the upper(?) left corner
 PRINT*,'Reading data from dataset'
 ierr = gdalrasterio_f(band, GF_Read, 0, 0, z)
 IF (ierr /= 0) THEN
   PRINT*,'Error reading data from GeoTIFF dataset on file ',TRIM(file)
+  PRINT*,'with simplified Fortran interface'
   STOP 1
 ENDIF
 
+PRINT*,'The sum of the buffer read is: ',SUM(z)
 PRINT*,'Average error after write/read process: ',&
  SUM(ABS(z(:,:) - z3(:,:,1)))/(i2*j2)
 
 CALL gdalclose(ds)
 
-DEALLOCATE(z3,z)
+! ==== How to read a gdal dataset from a file, even more simplified Fortran interface ====
+
+PRINT*,'Opening a GeoTIFF gdal dataset for reading'
+PRINT*,'using the even more simplified Fortran interface'
+ds = gdalopen(TRIM(file)//CHAR(0), GA_ReadOnly)
+IF (.NOT.gdalassociated(ds)) THEN
+  PRINT*,'Error opening dataset on file ',TRIM(file)
+  STOP 1
+ENDIF
+
+! read data from first raster band with the even more simplified Fortran interface,
+! raster band is read starting from the upper(?) left corner
+PRINT*,'Reading data from dataset'
+CALL gdalsimpleread_f(ds, 5._c_double, 5._c_double, 20._c_double, 15._c_double, &
+ zr3, x1, y1, x2, y2, xs, ys)
+
+IF (.NOT.ALLOCATED(zr3)) THEN
+  PRINT*,'Error reading data from GeoTIFF dataset on file ',TRIM(file)
+  PRINT*,'with even more simplified Fortran interface'
+  STOP 1
+ENDIF
+
+PRINT*,'The shape of the buffer read is: ',SHAPE(zr3)
+PRINT*,'The sum of the buffer read is: ',SUM(zr3)
+PRINT*,'The raster coordinates of the corners are: ',x1,y1,x2,y2
+PRINT*,'The grid steps are: ',xs,ys
+
+CALL gdalclose(ds)
+
+DEALLOCATE(z3,z,zr3)
 
 END PROGRAM gdal_test
 
