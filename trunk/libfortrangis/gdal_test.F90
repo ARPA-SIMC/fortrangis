@@ -8,7 +8,7 @@ TYPE(gdaldriverh) :: driver
 TYPE(gdaldataseth) :: ds
 TYPE(gdalrasterbandh) :: band
 CHARACTER(len=512) :: file
-REAL(kind=c_double) :: x1, y1, x2, y2, xs, ys, gt(6)
+REAL(kind=c_double) :: x1, y1, x2, y2, gt(6)
 INTEGER(kind=c_int) :: i1, j1, k1, i2, j2, k2, i, j, k, ierr
 REAL,ALLOCATABLE :: z(:,:), z3(:,:,:), zr3(:,:,:)
 
@@ -164,8 +164,8 @@ ENDIF
 ! read data from first raster band with the even more simplified Fortran interface,
 ! raster band is read starting from the upper(?) left corner
 PRINT*,'Reading data from dataset'
-CALL gdalsimpleread_f(ds, 5._c_double, 5._c_double, 20._c_double, 15._c_double, &
- zr3, x1, y1, x2, y2, xs, ys)
+CALL gdaldatasetsimpleread_f(ds, 5._c_double, 5._c_double, 20._c_double, 15._c_double, &
+ zr3, x1, y1, x2, y2)
 
 IF (.NOT.ALLOCATED(zr3)) THEN
   PRINT*,'Error reading data from GeoTIFF dataset on file ',TRIM(file)
@@ -176,7 +176,6 @@ ENDIF
 PRINT*,'The shape of the buffer read is: ',SHAPE(zr3)
 PRINT*,'The sum of the buffer read is: ',SUM(zr3)
 PRINT*,'The raster coordinates of the corners are: ',x1,y1,x2,y2
-PRINT*,'The grid steps are: ',xs,ys
 
 CALL gdalclose(ds)
 

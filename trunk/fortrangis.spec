@@ -1,6 +1,6 @@
 Summary: FortranGIS Fortran interfaces Open Source GIS libraries 
 Name: fortrangis
-VERSION: 2.0
+VERSION: 2.1
 Release: 1
 License: LGPL
 Group: Applications/GIS
@@ -9,7 +9,6 @@ Packager: Davide Cesari <dcesari69@gmail.com>
 Source: %{name}-%{version}.tar.gz
 BuildRoot: /var/tmp/%{name}-buildroot
 BuildRequires: shapelib-devel gdal-devel proj-devel
-#Requires: 
 
 %if 0%{?fedora} < 9
 %define _fmoddir       %{_libdir}/gfortran/modules

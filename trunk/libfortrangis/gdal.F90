@@ -764,6 +764,79 @@ err = gdalrasterio(hband, erwflag, ndsxoff, ndsyoff, &
 
 END FUNCTION gdalrasterio_double_cmplx_loc
 
+!> Determine the size of a dataset subset.
+!! It determines the size and the coordinates of the portion of a
+!! dataset that lies within a requested bounding box, as it will be
+!! read by the \a gdaldatasetsimpleread_f and \a
+!! gdalrastersimpleread_f subroutines, without actually reading the
+!! data. A value of -1 for \a nx and \a ny indicates an error while
+!! accessing the dataset, while if either \a nx or \a ny are zero, it
+!! means that no dataset points fall within the bounding box.
+!!
+!! WARNING: this is an experimental method, so the interface may
+!! change in the future, use with care!
+SUBROUTINE gdaldatasetbbsize_f(hds, bbxmin, bbymin, bbxmax, bbymax, &
+ nx, ny, offsetx, offsety, xmin, ymin, xmax, ymax)
+TYPE(gdaldataseth),VALUE :: hds !< dataset to read
+REAL(kind=c_double),INTENT(in) :: bbxmin !< minimum x georeferenced coordinate of the bounding box
+REAL(kind=c_double),INTENT(in) :: bbymin !< minimum y georeferenced coordinate of the bounding box
+REAL(kind=c_double),INTENT(in) :: bbxmax !< maximum x georeferenced coordinate of the bounding box
+REAL(kind=c_double),INTENT(in) :: bbymax !< maximum y georeferenced coordinate of the bounding box
+INTEGER,intent(out) :: nx !< number of point in bounding box along x direction
+INTEGER,intent(out) :: ny !< number of point in bounding box along y direction
+INTEGER,intent(out) :: offsetx !< offset of bounding box start within dataset along x direction
+INTEGER,intent(out) :: offsety !< offset of bounding box start within dataset along y direction
+REAL(kind=c_double),INTENT(out) :: xmin !< minimum x georeferenced coordinate of the data read into \a pbuffer (center of first grid box)
+REAL(kind=c_double),INTENT(out) :: ymin !< minimum y georeferenced coordinate of the data read into \a pbuffer (center of first grid box)
+REAL(kind=c_double),INTENT(out) :: xmax !< maximum x georeferenced coordinate of the data read into \a pbuffer (center of last grid box)
+REAL(kind=c_double),INTENT(out) :: ymax !< maximum y georeferenced coordinate of the data read into \a pbuffer (center of last grid box)
+!REAL(kind=c_double),INTENT(out) :: sx !< grid step in the x direction
+!REAL(kind=c_double),INTENT(out) :: sy !< grid step in the y direction
+
+INTEGER(kind=c_int) :: ier
+REAL(kind=c_double) :: geotrans(6), invgeotrans(6), i1r, j1r, i2r, j2r, &
+ x1, y1, x2, y2
+REAL(kind=c_double),PARAMETER :: epsy = 0.1
+INTEGER(kind=c_int) :: i1, j1, i2, j2 !, offsetx, offsety, nx, ny
+
+! ensure (anti)diagonality
+ier = gdalgetgeotransform(hds, geotrans)
+IF (.NOT.(geotrans(3) == 0.0_c_double .AND. geotrans(5) == 0.0_c_double) .AND. &
+ .NOT.(geotrans(2) == 0.0_c_double .AND. geotrans(6) == 0.0_c_double)) THEN
+  nx = -1
+  ny = -1
+  RETURN
+ENDIF
+
+! compute real indices of bounding box requested
+ier = gdalinvgeotransform(geotrans, invgeotrans)
+CALL gdalapplygeotransform(invgeotrans, bbxmin, bbymin, i1r, j1r)
+CALL gdalapplygeotransform(invgeotrans, bbxmax, bbymax, i2r, j2r)
+
+! compute integer indices of bounding box requested within the domain
+i1 = MAX(NINT(MIN(i1r, i2r) - epsy), 0)
+j1 = MAX(NINT(MIN(j1r, j2r) - epsy), 0)
+i2 = MIN(NINT(MAX(i1r, i2r) + epsy), gdalgetrasterxsize(hds))
+j2 = MIN(NINT(MAX(j1r, j2r) + epsy), gdalgetrasterysize(hds))
+offsetx = i1
+offsety = j1
+nx = MAX(i2 - i1, 0) ! 0=bounding box outside dataset
+ny = MAX(j2 - j1, 0) ! 0=bounding box outside dataset
+
+! compute output grid corners and steps
+CALL gdalapplygeotransform(geotrans, i1 + 0.5_c_double, j1 + 0.5_c_double, &
+ x1, y1)
+CALL gdalapplygeotransform(geotrans, i2 - 0.5_c_double, j2 - 0.5_c_double, &
+ x2, y2)
+
+xmin = MIN(x1, x2)
+ymin = MIN(y1, y2)
+xmax = MAX(x1, x2)
+ymax = MAX(y1, y2)
+!sx = ABS(geotrans(2)) ! improve
+!sy = ABS(geotrans(6)) ! improve
+
+END SUBROUTINE gdaldatasetbbsize_f
 
 
 !> Even more simplified method for importing data from a dataset
@@ -792,8 +865,8 @@ END FUNCTION gdalrasterio_double_cmplx_loc
 !! \todo convert to a generic interface with different types for pbuffer
 !!
 !! \todo make a write-equivalent?
-SUBROUTINE gdalsimpleread_f(hds, bbxmin, bbymin, bbxmax, bbymax, pbuffer, &
- xmin, ymin, xmax, ymax, sx, sy)
+SUBROUTINE gdaldatasetsimpleread_f(hds, bbxmin, bbymin, bbxmax, bbymax, pbuffer, &
+ xmin, ymin, xmax, ymax)
 TYPE(gdaldataseth),VALUE :: hds !< dataset to read
 REAL(kind=c_double),INTENT(in) :: bbxmin !< minimum x georeferenced coordinate of the bounding box
 REAL(kind=c_double),INTENT(in) :: bbymin !< minimum y georeferenced coordinate of the bounding box
@@ -804,55 +877,66 @@ REAL(kind=c_double),INTENT(out) :: xmin !< minimum x georeferenced coordinate of
 REAL(kind=c_double),INTENT(out) :: ymin !< minimum y georeferenced coordinate of the data read into \a pbuffer (center of first grid box)
 REAL(kind=c_double),INTENT(out) :: xmax !< maximum x georeferenced coordinate of the data read into \a pbuffer (center of last grid box)
 REAL(kind=c_double),INTENT(out) :: ymax !< maximum y georeferenced coordinate of the data read into \a pbuffer (center of last grid box)
-REAL(kind=c_double),INTENT(out) :: sx !< grid step in the x direction
-REAL(kind=c_double),INTENT(out) :: sy !< grid step in the y direction
+!REAL(kind=c_double),INTENT(out) :: sx !< grid step in the x direction
+!REAL(kind=c_double),INTENT(out) :: sy !< grid step in the y direction
 
-INTEGER :: ier
-REAL(kind=c_double) :: geotrans(6), invgeotrans(6), i1r, j1r, i2r, j2r
-REAL(kind=c_double),PARAMETER :: epsy = 0.1
-INTEGER(kind=c_int) :: i1, j1, i2, j2 !, offsetx, offsety, nx, ny
+INTEGER(kind=c_int) :: ier
+INTEGER(kind=c_int) :: nx, ny, offsetx, offsety
 
-! ensure (anti)diagonality
-ier = gdalgetgeotransform(hds, geotrans)
-IF (.NOT.(geotrans(3) == 0.0_c_double .AND. geotrans(5) == 0.0_c_double) .AND. &
- .NOT.(geotrans(2) == 0.0_c_double .AND. geotrans(6) == 0.0_c_double)) THEN
-  RETURN
-ENDIF
 
-! compute real indices of bounding box requested
-ier = gdalinvgeotransform(geotrans, invgeotrans)
-CALL gdalapplygeotransform(invgeotrans, bbxmin, bbymin, i1r, j1r)
-CALL gdalapplygeotransform(invgeotrans, bbxmax, bbymax, i2r, j2r)
+CALL gdaldatasetbbsize_f(hds, bbxmin, bbymin, bbxmax, bbymax, &
+ nx, ny, offsetx, offsety, xmin, ymin, xmax, ymax)
+IF (nx < 0 .OR. ny < 0) RETURN ! dataset read error
 
-! compute integer indices of bounding box requested within the domain
-i1 = MAX(NINT(MIN(i1r, i2r) - epsy), 0)
-j1 = MAX(NINT(MIN(j1r, j2r) - epsy), 0)
-i2 = MIN(NINT(MAX(i1r, i2r) + epsy), gdalgetrasterxsize(hds))
-j2 = MIN(NINT(MAX(j1r, j2r) + epsy), gdalgetrasterysize(hds))
-!offsetx = i1
-!offsety = j1
-!nx = i2 - i1
-!ny = j2 - j1
+ALLOCATE(pbuffer(nx, ny, gdalgetrastercount(hds)))
+IF (nx == 0 .OR. ny == 0) RETURN ! bounding box outside dataset
 
-ALLOCATE(pbuffer(i2-i1, j2-j1,  gdalgetrastercount(hds)))
-
-ier = gdaldatasetrasterio_f(hds, GF_Read, i1, i2, pbuffer)
+ier = gdaldatasetrasterio_f(hds, GF_Read, offsetx, offsety, pbuffer)
 IF (ier /= 0) THEN
   DEALLOCATE(pbuffer)
   RETURN
 ENDIF
 
-! compute output grid corners and steps
-CALL gdalapplygeotransform(geotrans, i1 + 0.5_c_double, j1 + 0.5_c_double, &
- xmin, ymin)
-CALL gdalapplygeotransform(geotrans, i2 - 0.5_c_double, j2 - 0.5_c_double, &
- xmax, ymax)
-sx = ABS(geotrans(2)) ! improve
-sy = ABS(geotrans(6)) ! improve
+! here we should swap/transpose as requested
+
+END SUBROUTINE gdaldatasetsimpleread_f
+
+
+SUBROUTINE gdalrastersimpleread_f(hband, bbxmin, bbymin, bbxmax, bbymax, pbuffer, &
+ xmin, ymin, xmax, ymax)
+TYPE(gdalrasterbandh),VALUE :: hband !< raster band to read
+REAL(kind=c_double),INTENT(in) :: bbxmin !< minimum x georeferenced coordinate of the bounding box
+REAL(kind=c_double),INTENT(in) :: bbymin !< minimum y georeferenced coordinate of the bounding box
+REAL(kind=c_double),INTENT(in) :: bbxmax !< maximum x georeferenced coordinate of the bounding box
+REAL(kind=c_double),INTENT(in) :: bbymax !< maximum y georeferenced coordinate of the bounding box
+REAL(kind=c_float),ALLOCATABLE,INTENT(out) :: pbuffer(:,:) !< buffer containing output data, allocated by the present method, its previous contents, if any, is lost
+REAL(kind=c_double),INTENT(out) :: xmin !< minimum x georeferenced coordinate of the data read into \a pbuffer (center of first grid box)
+REAL(kind=c_double),INTENT(out) :: ymin !< minimum y georeferenced coordinate of the data read into \a pbuffer (center of first grid box)
+REAL(kind=c_double),INTENT(out) :: xmax !< maximum x georeferenced coordinate of the data read into \a pbuffer (center of last grid box)
+REAL(kind=c_double),INTENT(out) :: ymax !< maximum y georeferenced coordinate of the data read into \a pbuffer (center of last grid box)
+!REAL(kind=c_double),INTENT(out) :: sx !< grid step in the x direction
+!REAL(kind=c_double),INTENT(out) :: sy !< grid step in the y direction
+
+INTEGER(kind=c_int) :: ier
+INTEGER(kind=c_int) :: nx, ny, offsetx, offsety
+
+
+CALL gdaldatasetbbsize_f(gdalgetbanddataset(hband), bbxmin, bbymin, bbxmax, bbymax, &
+ nx, ny, offsetx, offsety, xmin, ymin, xmax, ymax)
+IF (nx < 0 .OR. ny < 0) RETURN ! dataset read error
+
+ALLOCATE(pbuffer(nx, ny))
+IF (nx == 0 .OR. ny == 0) RETURN ! bounding box outside dataset
+
+ier = gdalrasterio_f(hband, GF_Read, offsetx, offsety, pbuffer)
+IF (ier /= 0) THEN
+  DEALLOCATE(pbuffer)
+  RETURN
+ENDIF
 
 ! here we should swap/transpose as requested
 
-END SUBROUTINE gdalsimpleread_f
+END SUBROUTINE gdalrastersimpleread_f
 
 
 END MODULE gdal
