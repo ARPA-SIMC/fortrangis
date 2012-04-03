@@ -1,7 +1,8 @@
 /*! \page globe How to import GLOBE DEM data with gdal/FortranGIS
 
-A popular raster dataset available on the internet is the Global Land
-One-kilometer Base Elevation from NOAA, known as GLOBE
+A popular DEM (Digital Elevation Model) raster dataset available on
+the internet is the Global Land One-kilometer Base Elevation from
+NOAA, known as GLOBE
 http://www.ngdc.noaa.gov/mgg/topo/globe.html. This dataset comes split
 into tiles which can be seen by gdal as a unique dataset, only after
 applying some nonobvious tricks. This page explains how to access the
@@ -11,21 +12,22 @@ but of course all the information applies to FortranGIS too.
 \section georeference Georeferencing the tiles
 
 The 16 raw tiles covering the whole Earth and available for download
-from NOAA site have no information about their geographical
-positioning, but browsing the GLOBE site you can get to this page
+from NOAA site contain no information about their geographical
+positioning. However, browsing the GLOBE site, you can get to this page
 http://www.ngdc.noaa.gov/mgg/topo/elev/esri/hdr/ from which you can
 download the ESRI header files associated to the raw tiles.
 
-So, after having downloaded the tiles, the next step is to download the
-corresponding .hdr files and to save them in the same directory where
-the raw tiles are kept. Unfortunately gdal interprets this dataset
-data as composed of unsigned integers, thus it interprets incorrectly
-the points below sea level and the no-data values on sea. To improve
-this situation you should hand-edit the .hdr files adding a line like the
-following at any point:
+So, after having downloaded the tiles, which have an austere \c ?10g
+naming scheme, the next step is to download the corresponding header
+files \c ?10g.hdr and to save them in the same directory where the raw
+tiles are kept. Unfortunately, gdal interprets this dataset as
+composed of unsigned integers, thus it misrepresents the points below
+sea level and the no-data values (=-500) on sea. To improve this
+situation, you should hand-edit the .hdr files adding a line like the
+following:
 
 \code
-PIXELTYPE      SIGNEDINT
+PIXELTYPE       SIGNEDINT
 \endcode
 
 At this point you can check whether gdal can correctly reference the
@@ -35,24 +37,26 @@ single tiles by executing:
 gdalinfo -stats n10g
 \endcode
 
-assuming that you have downloaded the files \c n10g.hdr and \c n10g in
-the current directory.
+assuming that the files \c n10g.hdr and \c n10g are available in the
+current directory.
 
 \section stick Sticking the tiles together
 
-In order to make gdal see all the tiles as an unique dataset you can
-build a so called gdal virtual raster dataset, which consist in a
+In order to let gdal see all the tiles as an unique dataset, you can
+build a so-called gdal virtual raster dataset, which consist of a
 metafile in xml format understood by gdal, describing one or more
-known external datasets, without duplicating the data. For this you
-need a relatively recent version of gdal having the \c gdalbuildvrt
-command, and simply execute:
+external datasets in a known format, without duplicating the data, see
+also http://www.gdal.org/gdal_vrttut.html for a complete
+description. For this purpose you need gdal version 1.6.1 or newer,
+having the \c gdalbuildvrt command, and simply execute:
 
 \code
-gdalbuildvrt globe.vrt *.bil ?10g
+gdalbuildvrt globe.vrt ?10g
 \endcode
 
-If that is successful, when you will point gdal to the \c globe.vrt
-dataset it will see a truly global set of data, hiding the details of
-accessing the correct tiles according to the area you request.
+If the execution is successful, when you will point gdal to the \c
+globe.vrt dataset it will see a truly global set of data, hiding the
+details of accessing the correct tiles according to the area you
+request. 
 
 */
