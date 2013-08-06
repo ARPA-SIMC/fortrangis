@@ -2,12 +2,14 @@ lib_LTLIBRARIES = libfortrangis.la
 libfortrangis_la_SOURCES = 
 libfortrangis_la_LIBADD = ../libfortranc/libfortranc.la
 libfortrangis_la_CPPFLAGS = -I../libfortranc -I../include
+libfortrangis_la_LDFLAGS =
 nodist_include_HEADERS = 
 noinst_PROGRAMS =
 
 if VERSIONINFO
-libfortrangis_la_LDFLAGS = -version-info @VERSIONLIB@
+libfortrangis_la_LDFLAGS += -version-info @VERSIONLIB@
 endif
+libfortrangis_la_LDFLAGS += -no-undefined
 
 check_PROGRAMS =
 TESTS = $(check_PROGRAMS)
@@ -42,12 +44,27 @@ libfortrangis_la_SOURCES += gdal.F90
 libfortrangis_la_LIBADD += $(GDAL_LIBS)
 nodist_include_HEADERS += gdal.mod
 
+libfortrangis_la_LDFLAGS += $(GDAL_LIBS)
+
 check_PROGRAMS += gdal_test
 gdal_test_SOURCES = gdal_test.F90
 gdal_test_CPPFLAGS = -I../libfortranc
 gdal_test_FCFLAGS = -I../libfortranc
 gdal_test_LDADD = libfortrangis.la ../libfortranc/libfortranc.la
 endif
+
+if READOSM
+libfortrangis_la_SOURCES += readosm.F90
+libfortrangis_la_LIBADD += $(READOSM_LIBS)
+nodist_include_HEADERS += readosm.mod
+
+check_PROGRAMS += readosm_test
+readosm_test_SOURCES = readosm_test.F90
+readosm_test_CPPFLAGS = -I../libfortranc
+readosm_test_LDADD = libfortrangis.la ../libfortranc/libfortranc.la
+readosm_test.o: readosm.$(OBJEXT)
+endif
+
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) *.mod testshape.dbf testshape.shp testshape.shx

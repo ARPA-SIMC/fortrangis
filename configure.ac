@@ -21,18 +21,33 @@ AC_ARG_ENABLE(gdal, AC_HELP_STRING([--disable-gdal],
 AM_CONDITIONAL(GDAL, test "x$enableval" = "xyes")
 
 if test "x$enableval" = "xyes"; then
+if test "x$host" = "xi686-pc-mingw32"; then
+dnl find a better way to check whether we are cross compiling for mingw
+  if test "x$GDAL_LIBS" = "x"; then
+#  GDAL_LIBS="-lgdal_i"
+    GDAL_LIBS="-lgdal19"
+  fi
+  AC_SUBST(GDAL_LIBS)
+  AC_DEFINE(HAVE_LIBGDAL, 1, [Enable gdal]),
+else
 AC_CHECK_PROG(gdal_config, [gdal-config], [yes], [no],,)
 if test "x$gdal_config" = "xyes"; then
   GDAL_LIBS=`gdal-config --libs`
   AC_SUBST(GDAL_LIBS)
   AC_DEFINE(HAVE_LIBGDAL, 1, [Enable gdal])
 else
-AC_CHECK_LIB([gdal], [GDALAllRegister],
+dnl AC_CHECK_LIB([gdal], [GDALAllRegister],
+AC_SEARCH_LIBS([GDALAllRegister], [gdal],
  gdal=yes
- GDAL_LIBS="-lgdal"
+ if "x$ac_cv_search_GDALAllRegister" != "xnone required" ]; then
+   GDAL_LIBS="-lgdal"
+ else
+   GDAL_LIBS=""
+ fi
  AC_SUBST(GDAL_LIBS)
  AC_DEFINE(HAVE_LIBGDAL, 1, [Enable gdal]),
  AC_MSG_ERROR([gdal library not found]), )
+fi
 fi
 fi
 
@@ -64,6 +79,20 @@ AC_CHECK_LIB([shp], [SHPOpen],
  AC_MSG_ERROR([shapelib library not found]), )
 AC_CHECK_HEADER([shapefil.h],,
  AC_MSG_ERROR([you probably have to provide the correct CPPFLAGS=-I... option e.g. CPPFLAGS=-I/usr/include/libshp]))
+fi
+
+AC_ARG_ENABLE(readosm, AC_HELP_STRING([--enable-readosm],
+[enable build of Fortran 2003 bindings for readosm]),,
+[enableval=no])dnl default disable
+AM_CONDITIONAL(READOSM, test "x$enableval" = "xyes")
+
+if test "x$enableval" = "xyes"; then
+AC_CHECK_LIB([readosm], [readosm_open],
+ readosm=yes
+ READOSM_LIBS="-lreadosm"
+ AC_SUBST(READOSM_LIBS)
+ AC_DEFINE(HAVE_LIBREADOSM, 1, [Enable readosm]),
+ AC_MSG_ERROR([readosm library not found]), )
 fi
 
 dnl Locate Fortran 90 compiler among these if not specified
@@ -118,7 +147,11 @@ FCFLAGS="$FCFLAGS -O"
 fi
 AM_CONDITIONAL(DEBUG, test "x$enableval" = "xyes")
 
-AC_PROG_LIBTOOL
+AC_PROG_LIBTOOL([win32-dll])
+dnl if test "x$host" = "xi686-pc-mingw32"; then
+dnl   AM_LIBTOOLFLAGS=-no-undefined
+dnl   AC_SUBST(AM_LIBTOOLFLAGS)
+dnl fi
 
 pkgdocdir='${datadir}/doc/${PACKAGE}-${VERSION}'
 AC_SUBST(pkgdocdir)
