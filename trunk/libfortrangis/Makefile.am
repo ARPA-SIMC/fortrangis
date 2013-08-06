@@ -65,6 +65,7 @@ readosm_test_LDADD = libfortrangis.la ../libfortranc/libfortranc.la
 readosm_test.o: readosm.$(OBJEXT)
 endif
 
+EXTRA_DIST = readosm_test.osm
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) *.mod testshape.dbf testshape.shp testshape.shx

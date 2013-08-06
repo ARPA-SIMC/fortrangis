@@ -185,6 +185,7 @@ LOGICAL, INTENT(in), OPTIONAL :: nodestroy !< if provided and \c .TRUE. , the de
 #endif
 LOGICAL, INTENT(in), OPTIONAL :: nodealloc !< if provided and \c .TRUE. , the space reserved for the array is not deallocated, thus the values are retained, while the array pointer is nullified, this means that the caller must have previously assigned the pointer contents this%array to another pointer to prevent memory leaks
 
+TYPE(ARRAYOF_TYPE) :: empty
 
 #ifdef ARRAYOF_ORIGDESTRUCTOR
 INTEGER :: i
@@ -218,7 +219,7 @@ IF (ASSOCIATED(this%array)) THEN
   ENDIF
 ENDIF
 ! give empty values
-this=ARRAYOF_TYPE/**/_new()
+this=empty
 
 END SUBROUTINE ARRAYOF_TYPE/**/_delete
 
