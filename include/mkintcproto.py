@@ -156,11 +156,14 @@ for line in ic.readlines():
             if arglist == '': arglist = fname
             else: arglist = arglist+', '+fname
 
+
         ointerf.write(" &\n".join(textwrap.wrap( \
             ("%s %s(%s) BIND(C,name='%s')") % \
             (proc, name.lower(), arglist, name),\
                 width=127, initial_indent="  ", subsequent_indent="   ")))
         ointerf.write("\n  IMPORT\n")
+# for interfacing to win32 libs with gcc/gfortran
+        ointerf.write("!GCC$ ATTRIBUTES STDCALL :: %s\n" % (name,))
         odoxy.write("!!  - %s() -> %s %s()\n" % (name, proc, name.lower()))
 
         for line in argdecllist: ointerf.write("  "+line+"\n")

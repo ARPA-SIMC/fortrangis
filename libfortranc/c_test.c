@@ -2,11 +2,11 @@
 
 extern char **environ;
 
-static char *c_ptr_ptr_test[4] = { "first", "segundo", "troisieme", NULL };
+static char *c_ptr_ptr_test[4] = { "first", "segundo", "troisieme", 0 };
 static char *charp_empty = "", *charp_8="8risotto";
 
 char* return_null_charp() {
-  return NULL;
+  return 0;
 }
 
 char* return_empty_charp() {

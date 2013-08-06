@@ -76,7 +76,7 @@ void *GDALGetInternalHandle(GDALDatasetH hDS,const char *pszRequest);
 int GDALReferenceDataset(GDALDatasetH hDataset);
 int GDALDereferenceDataset(GDALDatasetH hDataset);
 CPLErr GDALBuildOverviews(GDALDatasetH hDataset,const char *pszResampling,int nOverviews,int *panOverviewList,int nListBands,int *panBandList,GDALProgressFunc pfnProgress,void *pProgressData);
-void GDALGetOpenDatasets(GDALDatasetH **hDS, int *pnCount);
+void GDALGetOpenDatasets(GDALDatasetH **hDS, int *pnCount);/*out*/
 int GDALGetAccess(GDALDatasetH hDS);
 void GDALFlushCache(GDALDatasetH hDS);
 CPLErr GDALCreateDatasetMaskBand(GDALDatasetH hDS, int nFlags);
@@ -113,7 +113,7 @@ int GDALGetOverviewCount(GDALRasterBandH hBand);
 
 GDALRasterBandH GDALGetOverview(GDALRasterBandH hBand, int i);
 
-double GDALGetRasterNoDataValue(GDALRasterBandH hBand, int *pbSuccess);
+double GDALGetRasterNoDataValue(GDALRasterBandH hBand, int *pbSuccess);/*out*/
 
 CPLErr GDALSetRasterNoDataValue(GDALRasterBandH hBand, double dfValue);
 
@@ -122,9 +122,9 @@ char ** GDALGetRasterCategoryNames(GDALRasterBandH hBand);
 CPLErr GDALSetRasterCategoryNames(GDALRasterBandH hBand,char **papsz
 Names);
 
-double GDALGetRasterMinimum(GDALRasterBandH hBand, int *pbSuccess);
+double GDALGetRasterMinimum(GDALRasterBandH hBand, int *pbSuccess);/*out*/
 
-double GDALGetRasterMaximum(GDALRasterBandH hBand, int *pbSuccess);
+double GDALGetRasterMaximum(GDALRasterBandH hBand, int *pbSuccess);/*out*/
 
 CPLErr GDALGetRasterStatistics(GDALRasterBandH hBand, int bApproxOK, int bForce, double *pdfMin, double *pdfMax, double *pdfMean, double *pdfStdDev);
 
@@ -136,11 +136,11 @@ const char * GDALGetRasterUnitType(GDALRasterBandH hBand);
 
 CPLErr GDALSetRasterUnitType(GDALRasterBandH hBand, const char *pszNewValue);
 
-double GDALGetRasterOffset(GDALRasterBandH hBand, int *pbSuccess);
+double GDALGetRasterOffset(GDALRasterBandH hBand, int *pbSuccess);/*out*/
 
 CPLErr GDALSetRasterOffset(GDALRasterBandH hBand, double dfNewOffset);
 
-double GDALGetRasterScale(GDALRasterBandH hBand, int *pbSuccess);
+double GDALGetRasterScale(GDALRasterBandH hBand, int *pbSuccess);/*out*/
 
 CPLErr GDALSetRasterScale(GDALRasterBandH hBand, double dfNewOffset);
 
@@ -150,7 +150,7 @@ CPLErr GDALFlushRasterCache(GDALRasterBandH hBand);
 
 CPLErr GDALGetRasterHistogram(GDALRasterBandH hBand, double dfMin, double dfMax, int nBuckets, int *panHistogram, int bIncludeOutOfRange, int bApproxOK, GDALProgressFunc pfnProgress, void *pProgressData);
 
-CPLErr GDALGetDefaultHistogram(GDALRasterBandH hBand, double *pdfMin, double *pdfMax, int *pnBuckets, int **ppanHistogram, int bForce, GDALProgressFunc pfnProgress, void *pProgressData);
+CPLErr GDALGetDefaultHistogram(GDALRasterBandH hBand, double *pdfMin, double *pdfMax, int *pnBuckets, int **ppanHistogram, int bForce, GDALProgressFunc pfnProgress, void *pProgressData);/*out??*/
 
 CPLErr GDALSetDefaultHistogram(GDALRasterBandH hBand, double dfMin, double dfMax, int nBuckets, int *panHistogram);
 
