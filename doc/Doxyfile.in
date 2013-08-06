@@ -1470,7 +1470,7 @@ INCLUDE_PATH           = @top_srcdir@ @top_srcdir@/libfortranc @top_srcdir@/incl
 # directories. If left blank, the patterns specified with FILE_PATTERNS will
 # be used.
 
-INCLUDE_FILE_PATTERNS  = *.f90 *.h
+INCLUDE_FILE_PATTERNS  = *.f90 *.F90 *.h
 
 # The PREDEFINED tag can be used to specify one or more macro names that
 # are defined before the preprocessor is started (similar to the -D option of

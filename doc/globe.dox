@@ -43,12 +43,13 @@ current directory.
 \section stick Sticking the tiles together
 
 In order to let gdal see all the tiles as an unique dataset, you can
-build a so-called gdal virtual raster dataset, which consist of a
+build a so-called gdal virtual raster dataset, which consists of a
 metafile in xml format understood by gdal, describing one or more
-external datasets in a known format, without duplicating the data, see
-also http://www.gdal.org/gdal_vrttut.html for a complete
-description. For this purpose you need gdal version 1.6.1 or newer,
-having the \c gdalbuildvrt command, and simply execute:
+external datasets in a format known by gdal, without duplicating the
+data, see also http://www.gdal.org/gdal_vrttut.html for a complete
+description. For this purpose you need to have gdal version 1.6.1 or
+newer, having the \c gdalbuildvrt command, and you should simply
+execute:
 
 \code
 gdalbuildvrt globe.vrt ?10g
