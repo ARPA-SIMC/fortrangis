@@ -123,6 +123,9 @@ CONTAINS
 
 
 PURE FUNCTION strlen_char(string) RESULT(strlen)
+#ifdef DLL_EXPORT
+!GCC$ ATTRIBUTES DLLEXPORT :: strlen_char
+#endif
 CHARACTER(kind=c_char,len=*),INTENT(in) :: string
 INTEGER :: strlen
 
@@ -137,6 +140,9 @@ END FUNCTION strlen_char
 
 
 PURE FUNCTION strlen_chararr(string) RESULT(strlen)
+#ifdef DLL_EXPORT
+!GCC$ ATTRIBUTES DLLEXPORT :: strlen_chararr
+#endif
 CHARACTER(kind=c_char,len=1),INTENT(in) :: string(:)
 INTEGER :: strlen
 
@@ -151,6 +157,9 @@ END FUNCTION strlen_chararr
 
 
 PURE FUNCTION strlen_intarr(string) RESULT(strlen)
+#ifdef DLL_EXPORT
+!GCC$ ATTRIBUTES DLLEXPORT :: strlen_intarr
+#endif
 INTEGER(kind=c_signed_char),INTENT(in) :: string(:)
 INTEGER :: strlen
 
@@ -165,6 +174,9 @@ END FUNCTION strlen_intarr
 
 
 FUNCTION strlen_ptr(string) RESULT(strlen)
+#ifdef DLL_EXPORT
+!GCC$ ATTRIBUTES DLLEXPORT :: strlen_ptr
+#endif
 TYPE(c_ptr),INTENT(in) :: string
 INTEGER :: strlen
 
@@ -188,6 +200,9 @@ END FUNCTION strlen_ptr
 
 #ifdef WITH_VARYING_STRING
 PURE FUNCTION strlen_var_str(string) RESULT(strlen)
+#ifdef DLL_EXPORT
+!GCC$ ATTRIBUTES DLLEXPORT :: strlen_var_str
+#endif
 TYPE(varying_string),INTENT(in) :: string
 INTEGER :: strlen
 
@@ -198,6 +213,9 @@ END FUNCTION strlen_var_str
 
 
 FUNCTION strtofchar_char(string) RESULT(fchar)
+#ifdef DLL_EXPORT
+!GCC$ ATTRIBUTES DLLEXPORT :: strtofchar_char
+#endif
 CHARACTER(kind=c_char,len=*),INTENT(in) :: string
 CHARACTER(len=strlen(string)) :: fchar
 
@@ -207,6 +225,9 @@ END FUNCTION strtofchar_char
 
 
 FUNCTION strtofchar_chararr(string) RESULT(fchar)
+#ifdef DLL_EXPORT
+!GCC$ ATTRIBUTES DLLEXPORT :: strtofchar_chararr
+#endif
 CHARACTER(kind=c_char,len=1),INTENT(in) :: string(:)
 CHARACTER(len=strlen(string)) :: fchar
 
@@ -220,6 +241,9 @@ END FUNCTION strtofchar_chararr
 
 
 FUNCTION strtofchar_intarr(string) RESULT(fchar)
+#ifdef DLL_EXPORT
+!GCC$ ATTRIBUTES DLLEXPORT :: strtofchar_intarr
+#endif
 INTEGER(kind=c_signed_char),INTENT(in) :: string(:)
 CHARACTER(len=strlen(string)) :: fchar
 
@@ -250,6 +274,9 @@ END FUNCTION strtofchar_intarr
 
 
 FUNCTION strtofchar_ptr_2(string, fixlen) RESULT(fchar)
+#ifdef DLL_EXPORT
+!GCC$ ATTRIBUTES DLLEXPORT :: strtofchar_ptr_2
+#endif
 TYPE(c_ptr),INTENT(in) :: string
 INTEGER,INTENT(in) :: fixlen
 CHARACTER(len=fixlen) :: fchar
@@ -273,6 +300,9 @@ END FUNCTION strtofchar_ptr_2
 !! interoperable with a C null-terminated string argument <tt>const
 !! char*</tt> interfaced as <tt>CHARACTER(kind=c_char) :: cstr</tt>.
 FUNCTION fchartostr(fchar) RESULT(string)
+#ifdef DLL_EXPORT
+!GCC$ ATTRIBUTES DLLEXPORT :: fchartostr
+#endif
 CHARACTER(len=*),INTENT(in) :: fchar !< Fortran \a CHARACTER variable to convert
 CHARACTER(kind=c_char,len=LEN(fchar)+1) :: string
 
@@ -287,6 +317,9 @@ END FUNCTION fchartostr
 !! argument <tt>const char*</tt> interfaced as
 !! <tt>CHARACTER(kind=c_char) :: cstr</tt>.
 FUNCTION fchartrimtostr(fchar) RESULT(string)
+#ifdef DLL_EXPORT
+!GCC$ ATTRIBUTES DLLEXPORT :: fchartrimtostr
+#endif
 CHARACTER(len=*),INTENT(in) :: fchar !< Fortran \a CHARACTER variable to convert
 CHARACTER(kind=c_char,len=LEN_TRIM(fchar)+1) :: string
 
@@ -301,6 +334,9 @@ END FUNCTION fchartrimtostr
 !! queried by means of the \a c_ptr_ptr_getsize and \a
 !! c_ptr_ptr_getptr methods, but it should not be modified by Fortran.
 FUNCTION c_ptr_ptr_new_from_c(c_ptr_ptr_c) RESULT(this)
+#ifdef DLL_EXPORT
+!GCC$ ATTRIBUTES DLLEXPORT :: c_ptr_ptr_new_from_c
+#endif
 TYPE(c_ptr),VALUE :: c_ptr_ptr_c !< pointer returned by a C procedure
 TYPE(c_ptr_ptr) :: this
 
@@ -312,7 +348,7 @@ IF (C_ASSOCIATED(c_ptr_ptr_c)) THEN
   CALL C_F_POINTER(c_ptr_ptr_c, charp, (/HUGE(1)/))
   DO i = 1, SIZE(charp)
     IF (.NOT.C_ASSOCIATED(charp(i))) THEN
-      CALL C_F_POINTER(c_ptr_ptr_c, this%elem, (/i-1/))
+      CALL C_F_POINTER(c_ptr_ptr_c, this%elem, (/i/))
       RETURN
     ENDIF
   ENDDO
@@ -330,21 +366,24 @@ FUNCTION c_ptr_ptr_new_from_fchar(fchar) RESULT(this)
 CHARACTER(len=*) :: fchar(:) !< array of characters that will compose the object
 TYPE(c_ptr_ptr) :: this
 
-INTEGER :: i, j
+INTEGER :: i, j, totlen
 
-ALLOCATE(this%buffer((LEN(fchar)+1)*SIZE(fchar)))
+totlen = 0
 DO i = 1, SIZE(fchar)
+  totlen = totlen + LEN_TRIM(fchar(i)) + 1
+ENDDO
+ALLOCATE(this%buffer(totlen), this%elem(SIZE(fchar) + 1))
+totlen = 1
+DO i = 1, SIZE(fchar)
+  this%elem(i) = C_LOC(this%buffer(totlen))
   DO j = 1, LEN_TRIM(fchar(i))
-    this%buffer((LEN(fchar)+1)*(i-1)+j) = &
-     fchar(i)(j:j)
+    this%buffer(totlen) = fchar(i)(j:j)
+    totlen = totlen + 1
   ENDDO
-  this%buffer((LEN(fchar)+1)*(i-1)+j) = CHAR(0)
+  this%buffer(totlen) = CHAR(0)
+  totlen = totlen + 1
 ENDDO
-ALLOCATE(this%elem(SIZE(fchar) + 1))
-DO i = 1, SIZE(fchar)
-  this%elem(i) = C_LOC(this%buffer((LEN(fchar)+1)*(i-1)+1))
-ENDDO
-this%elem(SIZE(fchar) + 1) = C_NULL_PTR
+this%elem(i) = C_NULL_PTR
 
 END FUNCTION c_ptr_ptr_new_from_fchar
 
@@ -353,11 +392,14 @@ END FUNCTION c_ptr_ptr_new_from_fchar
 !! If the object has not been initialized or has been initialized with
 !! errors, zero is returned.
 FUNCTION c_ptr_ptr_getsize(this)
+#ifdef DLL_EXPORT
+!GCC$ ATTRIBUTES DLLEXPORT :: c_ptr_ptr_getsize
+#endif
 TYPE(c_ptr_ptr),INTENT(in) :: this
 INTEGER :: c_ptr_ptr_getsize
 
 IF (ASSOCIATED(this%elem)) THEN
-  c_ptr_ptr_getsize = SIZE(this%elem)
+  c_ptr_ptr_getsize = SIZE(this%elem) - 1
 ELSE
   c_ptr_ptr_getsize = 0
 ENDIF
@@ -373,13 +415,16 @@ END FUNCTION c_ptr_ptr_getsize
 !! as a Fortran \a CHARACTER variable of the proper length by using
 !! the \a strtofchar function.
 FUNCTION c_ptr_ptr_getptr(this, n)
+#ifdef DLL_EXPORT
+!GCC$ ATTRIBUTES DLLEXPORT :: c_ptr_ptr_getptr
+#endif
 TYPE(c_ptr_ptr),INTENT(in) :: this !< object to query
 INTEGER,INTENT(in) :: n !< the number of pointer to get (starting from 1)
 TYPE(c_ptr) :: c_ptr_ptr_getptr
 
 c_ptr_ptr_getptr = C_NULL_PTR
 IF (ASSOCIATED(this%elem)) THEN
-  IF (n <= SIZE(this%elem)) THEN
+  IF (n > 0 .AND. n <= SIZE(this%elem)) THEN
     c_ptr_ptr_getptr = this%elem(n)
   ENDIF
 ENDIF

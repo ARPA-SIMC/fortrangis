@@ -55,7 +55,7 @@ ENDIF
 PRINT*,'Strlen returns the expected values'
 
 
-! ==== How to use c_ptr_ptr ====
+! ==== How to use c_ptr_ptr for decoding a char** object received from C ====
 
 ! get a char** object from C function return_c_ptr_ptr(), the function
 ! result has been declared as:
@@ -93,5 +93,44 @@ IF (strtofchar(c_ptr_ptr_getptr(strarrp, 4),100) /= '') THEN
 ENDIF
 
 PRINT*,'The object contains the expected data'
+
+
+! ==== How to use c_ptr_ptr for creating a char** object and pass it to C ====
+
+! create a char** object from a Fortran array of characters
+PRINT*,'Creating a c_ptr_ptr object from a Fortran array of characters'
+strarrp = c_ptr_ptr_new((/'first    ','segundo  ','troisieme'/))
+! strarrp is now ready to be passed to an interfaced C procedure
+! expecting a char** variable
+
+! we check it as before
+! get the number of valid pointers in strarrp
+PRINT*,'The object has ',c_ptr_ptr_getsize(strarrp),' elements'
+IF (c_ptr_ptr_getsize(strarrp) /= 3) THEN
+  PRINT*,'Error in c_ptr_ptr_getsize:',3,c_ptr_ptr_getsize(strarrp)
+  STOP 1
+ENDIF
+
+! get the content of selected pointers as a Fortran CHARACTER variable
+! of the right length, count starts from 1
+IF (strtofchar(c_ptr_ptr_getptr(strarrp, 1),100) /= 'first') THEN
+  PRINT*,'Error in c_ptr_ptr_getptr:',strtofchar(c_ptr_ptr_getptr(strarrp, 1),100),':first'
+  STOP 1
+ENDIF
+IF (strtofchar(c_ptr_ptr_getptr(strarrp, 2),100) /= 'segundo') THEN
+  PRINT*,'Error in c_ptr_ptr_getptr:',strtofchar(c_ptr_ptr_getptr(strarrp, 2),100),':segundo'
+  STOP 1
+ENDIF
+IF (strtofchar(c_ptr_ptr_getptr(strarrp, 3),100) /= 'troisieme') THEN
+  PRINT*,'Error in c_ptr_ptr_getptr:',strtofchar(c_ptr_ptr_getptr(strarrp, 3),100),':troisieme'
+  STOP 1
+ENDIF
+IF (strtofchar(c_ptr_ptr_getptr(strarrp, 4),100) /= '') THEN
+  PRINT*,'Error in c_ptr_ptr_getptr: out of bound request should return empty string:',strtofchar(c_ptr_ptr_getptr(strarrp, 4),100)
+  STOP 1
+ENDIF
+
+PRINT*,'The object contains the expected data'
+
 
 END PROGRAM fortranc_test
