@@ -115,8 +115,12 @@ INTERFACE c_ptr_ptr_new
   MODULE PROCEDURE c_ptr_ptr_new_from_c, c_ptr_ptr_new_from_fchar
 END INTERFACE c_ptr_ptr_new
 
+INTERFACE ASSIGNMENT(=)
+  MODULE PROCEDURE strtofchararr_assign
+END INTERFACE ASSIGNMENT(=)
+
 PRIVATE
-PUBLIC strlen, strtofchar, fchartostr, fchartrimtostr
+PUBLIC strlen, strtofchar, fchartostr, fchartrimtostr, ASSIGNMENT(=)
 PUBLIC c_ptr_ptr, c_ptr_ptr_new, c_ptr_ptr_getsize, c_ptr_ptr_getptr, c_ptr_ptr_getobject
 
 CONTAINS
@@ -326,6 +330,25 @@ CHARACTER(kind=c_char,len=LEN_TRIM(fchar)+1) :: string
 string = TRIM(fchar)//CHAR(0)
 
 END FUNCTION fchartrimtostr
+
+
+SUBROUTINE strtofchararr_assign(fchar, string)
+#ifdef DLL_EXPORT
+!GCC$ ATTRIBUTES DLLEXPORT :: strtofchar_chararr
+#endif
+CHARACTER(kind=c_char,len=1),ALLOCATABLE,INTENT(out) :: fchar(:)
+TYPE(c_ptr),INTENT(in) :: string
+
+CHARACTER(kind=c_char),POINTER :: pstring(:)
+INTEGER :: l
+
+l = strlen(string)
+CALL C_F_POINTER(string, pstring, (/l/))
+ALLOCATE(fchar(l))
+fchar(:) = pstring(:)
+
+END SUBROUTINE strtofchararr_assign
+
 
 !> Constructor for a \a c_ptr_ptr object.
 !! The argument, a generic C pointer, must be a C array of pointers
