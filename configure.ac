@@ -131,14 +131,17 @@ fi
 AM_CONDITIONAL(DOXYDOC, test "x$DOXYBIN" = "xyes")
 
 
-
 dnl check for debug mode
 AC_ARG_ENABLE(debug-mode, AC_HELP_STRING([--enable-debug-mode],
   [enable debug mode]), , [enableval=no])dnl default disable
 if test "x$enableval" = "xyes"; then
 CFLAGS="$CFLAGS -g"
 CXXFLAGS="$CXXFLAGS -g"
-FCFLAGS="$FCFLAGS -g"
+if test "x$FC" = "xgfortran"; then
+FCFLAGS="$FCFLAGS -g -fbounds-check -O0 -fexceptions -Wall"
+else
+FCFLAGS="$FCFLAGS -g -C"
+fi
 AC_DEFINE(_DEBUG, 1, [Enable debugging mode])
 else
 CFLAGS="$CFLAGS -O"
