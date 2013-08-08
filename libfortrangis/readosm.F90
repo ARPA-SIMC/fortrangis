@@ -43,7 +43,7 @@
 !! \ingroup libfortrangis
 MODULE readosm
 USE,INTRINSIC :: ISO_C_BINDING
-!USE fortranc
+USE fortranc
 IMPLICIT NONE
 
 
@@ -66,10 +66,17 @@ INTEGER,PARAMETER :: READOSM_ABORT = -11 !< user-required parser abort
 
 !> Object describing a TAG structure.
 !! A derived type representing a <b>key:value</b> pair.
-TYPE readosm_tag
+TYPE,BIND(C) :: readosm_tag
   TYPE(c_ptr) :: key !< the KEY
   TYPE(c_ptr) :: value !< the VALUE
 END TYPE readosm_tag
+
+!> A more Fortran-friendly object describing a TAG structure.
+TYPE :: readosm_tag_f
+  CHARACTER(kind=c_char,len=1),ALLOCATABLE :: key(:) !< the KEY
+  CHARACTER(kind=c_char,len=1),ALLOCATABLE :: value(:) !< the VALUE
+END TYPE readosm_tag_f
+
 
 !> Object describing a NODE structure.
 !! A derived type representing a NODE object, wrapping a complex
@@ -84,26 +91,26 @@ TYPE,BIND(C) :: readosm_node
   INTEGER(kind=c_long_long) :: id !< NODE-ID (expected to be a unique value)
   REAL(kind=c_double) :: latitude !< geographic latitude
   REAL(kind=c_double) :: longitude !< geographic longitude
-  INTEGER(kind=c_int) :: version; !< object version
-  INTEGER(kind=c_long_long) :: changeset; !< ChangeSet ID
+  INTEGER(kind=c_int) :: version !< object version
+  INTEGER(kind=c_long_long) :: changeset !< ChangeSet ID
   TYPE(c_ptr) :: user !< name of the User defining this NODE
   INTEGER(kind=c_int) :: uid !< corresponding numeric UserID
-  TYPE(c_ptr) :: timestamp; !< when this NODE was defined
-  INTEGER(kind=c_int) :: tag_count; !< number of associated TAGs (may be zero)
+  TYPE(c_ptr) :: timestamp !< when this NODE was defined
+  INTEGER(kind=c_int) :: tag_count !< number of associated TAGs (may be zero)
   TYPE(c_ptr) :: tags !< array of TAG objects (may be NULL)
 END TYPE readosm_node
 
 !> A more Fortran-friendly object describing a NODE structure.
 TYPE :: readosm_node_f
-  INTEGER(kind=c_long_long) :: id !< NODE-ID (expected to be a unique value)
+  INTEGER(kind=c_long_long) :: id=0 !< NODE-ID (expected to be a unique value)
   REAL(kind=c_double) :: latitude !< geographic latitude
   REAL(kind=c_double) :: longitude !< geographic longitude
-  INTEGER(kind=c_int) :: version; !< object version
-  INTEGER(kind=c_long_long) :: changeset; !< ChangeSet ID
-  TYPE(c_ptr) :: user !< name of the User defining this NODE
+  INTEGER(kind=c_int) :: version !< object version
+  INTEGER(kind=c_long_long) :: changeset !< ChangeSet ID
+!  TYPE(c_ptr) :: user !< name of the User defining this NODE
   INTEGER(kind=c_int) :: uid !< corresponding numeric UserID
-  TYPE(c_ptr) :: timestamp; !< when this NODE was defined
-  TYPE(readosm_tag),POINTER :: tags(:) !< array of TAG objects (may be NULL)
+!  TYPE(c_ptr) :: timestamp !< when this NODE was defined
+  TYPE(readosm_tag_f),ALLOCATABLE :: tags(:) !< array of TAG objects (may be NULL)
 END TYPE readosm_node_f
 
 
@@ -122,26 +129,26 @@ END TYPE readosm_node_f
 TYPE,BIND(C) :: readosm_way
   INTEGER(kind=c_long_long) :: id !< WAY-ID (expected to be a unique value)
   INTEGER(kind=c_int) :: version; !< object version
-  INTEGER(kind=c_long_long) :: changeset; !< ChangeSet ID
+  INTEGER(kind=c_long_long) :: changeset !< ChangeSet ID
   TYPE(c_ptr) :: user !< name of the User defining this WAY
   INTEGER(kind=c_int) :: uid !< corresponding numeric UserID
   TYPE(c_ptr) :: timestamp; !< when this WAY was defined
   INTEGER(kind=c_int) :: node_ref_count !< number of referenced NODE-IDs (may be zero)
   TYPE(c_ptr) :: node_refs !< array of NODE-IDs (may be NULL)
-  INTEGER(kind=c_int) :: tag_count; !< number of associated TAGs (may be zero)
+  INTEGER(kind=c_int) :: tag_count !< number of associated TAGs (may be zero)
   TYPE(c_ptr) :: tags !< array of TAG objects (may be NULL)
 END TYPE readosm_way
 
 !> A more Fortran-friendly object describing a WAY structure.
 TYPE :: readosm_way_f
-  INTEGER(kind=c_long_long) :: id !< WAY-ID (expected to be a unique value)
+  INTEGER(kind=c_long_long) :: id=0 !< WAY-ID (expected to be a unique value)
   INTEGER(kind=c_int) :: version; !< object version
   INTEGER(kind=c_long_long) :: changeset; !< ChangeSet ID
-  TYPE(c_ptr) :: user !< name of the User defining this WAY
+!  TYPE(c_ptr) :: user !< name of the User defining this WAY
   INTEGER(kind=c_int) :: uid !< corresponding numeric UserID
-  TYPE(c_ptr) :: timestamp; !< when this WAY was defined
-  INTEGER(kind=c_long_long),POINTER :: node_refs(:) !< array of NODE-IDs (may be NULL)
-  TYPE(readosm_tag),POINTER :: tags(:) !< array of TAG objects (may be NULL)
+!  TYPE(c_ptr) :: timestamp; !< when this WAY was defined
+  INTEGER(kind=c_long_long),ALLOCATABLE :: node_refs(:) !< array of NODE-IDs (may be NULL)
+  TYPE(readosm_tag_f),ALLOCATABLE :: tags(:) !< array of TAG objects (may be NULL)
 END TYPE readosm_way_f
 
 
@@ -154,8 +161,15 @@ END TYPE readosm_way_f
 TYPE,BIND(C) :: readosm_member
   INTEGER(kind=c_int) :: member_type !< can be one of: READOSM_MEMBER_NODE, READOSM_MEMBER_WAY or READOSM_MEMBER_RELATION
   INTEGER(kind=c_long_long) :: id !< ID-value identifying the referenced object
-  TYPE(c_ptr) ::role !< intended role for this reference
+  TYPE(c_ptr) :: role !< intended role for this reference
 END TYPE readosm_member
+
+!> A more Fortran-friendly object describing a RELATION-MEMEBER structure.
+TYPE :: readosm_member_f
+  INTEGER(kind=c_int) :: member_type=READOSM_UNDEFINED !< can be one of: READOSM_MEMBER_NODE, READOSM_MEMBER_WAY or READOSM_MEMBER_RELATION
+  INTEGER(kind=c_long_long) :: id !< ID-value identifying the referenced object
+  CHARACTER(kind=c_char,len=1),ALLOCATABLE :: role(:) !< intended role for this reference
+END TYPE readosm_member_f
 
 
 !> Object describing a RELATION structure.
@@ -187,14 +201,14 @@ TYPE :: readosm_relation_f
   INTEGER(kind=c_long_long) :: id !< RELATION-ID (expected to be a unique value)
   INTEGER(kind=c_int) :: version; !< object version
   INTEGER(kind=c_long_long) :: changeset; !< ChangeSet ID
-  TYPE(c_ptr) :: user !< name of the User defining this RELATION
+!  TYPE(c_ptr) :: user !< name of the User defining this RELATION
   INTEGER(kind=c_int) :: uid !< corresponding numeric UserID
-  TYPE(c_ptr) :: timestamp; !< when this RELATION was defined
-  TYPE(readosm_member),POINTER :: members(:) !< array of MEMBER objects (may be NULL)
-  TYPE(readosm_tag),POINTER :: tags(:) !< array of TAG objects (may be NULL)
+!  TYPE(c_ptr) :: timestamp; !< when this RELATION was defined
+  TYPE(readosm_member_f),ALLOCATABLE :: members(:) !< array of MEMBER objects (may be NULL)
+  TYPE(readosm_tag_f),ALLOCATABLE :: tags(:) !< array of TAG objects (may be NULL)
 END TYPE readosm_relation_f
 
-! define dynamically extendible arrays of the _f types, first part
+! define dynamically extensible arrays of the _f types, first part
 #undef ARRAYOF_ORIGEQ
 
 #undef ARRAYOF_ORIGTYPE
@@ -236,8 +250,7 @@ END TYPE readosm_full_f
 INTERFACE
   FUNCTION readosm_open(path, osm_handle) BIND(C,name='readosm_open')
   IMPORT
-  CHARACTER(kind=c_char),INTENT(in) :: path !< full or relative pathname of the input file
-!  TYPE(c_ptr),VALUE :: path
+  CHARACTER(kind=c_char),INTENT(in) :: path(*) !< full or relative pathname of the input file
   TYPE(c_ptr),INTENT(out) :: osm_handle !< an opaque reference (handle) to be used in each subsequent function
   INTEGER(kind=c_int) :: readosm_open
   END FUNCTION readosm_open
@@ -367,6 +380,59 @@ readosm_parse_f = readosm_parse(osm_handle, user_data, nf, wf, rf)
 END FUNCTION readosm_parse_f
 
 
+! private function for "fortranizing" tags array, it has been
+! temporarily converted to a subroutine because of (de)allocations
+! problems with gfortran 4.6.3
+SUBROUTINE readosm_object_f_tags(tags, tag_count, f_type) ! RESULT(f_type)
+TYPE(c_ptr) :: tags ! array of TAG objects (may be NULL)
+INTEGER(kind=c_int) :: tag_count; ! number of associated TAGs (may be zero)
+
+TYPE(readosm_tag_f),INTENT(out),ALLOCATABLE :: f_type(:)
+
+TYPE(readosm_tag),POINTER :: tmptags(:)
+INTEGER :: i
+
+IF (tag_count > 0 .AND. C_ASSOCIATED(tags)) THEN
+  CALL C_F_POINTER(tags, tmptags, (/tag_count/))
+  ALLOCATE(f_type(tag_count))
+  DO i = 1, tag_count
+    f_type(i)%key = tmptags(i)%key
+    f_type(i)%value = tmptags(i)%value
+  ENDDO
+ELSE
+  ALLOCATE(f_type(0))
+ENDIF
+
+END SUBROUTINE readosm_object_f_tags
+
+
+! private function for "fortranizing" members array, it has been
+! temporarily converted to a subroutine because of (de)allocations
+! problems with gfortran 4.6.3
+SUBROUTINE readosm_object_f_members(members, member_count, f_type) ! RESULT(f_type)
+TYPE(c_ptr) :: members ! array of MEMBER objects (may be NULL)
+INTEGER(kind=c_int) :: member_count; ! number of associated MEMBERs (may be zero)
+
+TYPE(readosm_member_f),INTENT(out),ALLOCATABLE :: f_type(:)
+
+TYPE(readosm_member),POINTER :: tmpmembers(:)
+INTEGER :: i
+
+IF (member_count > 0 .AND. C_ASSOCIATED(members)) THEN
+  CALL C_F_POINTER(members, tmpmembers, (/member_count/))
+  ALLOCATE(f_type(member_count))
+  DO i = 1, member_count
+    f_type(i)%member_type = tmpmembers(i)%member_type
+    f_type(i)%id = tmpmembers(i)%id
+    f_type(i)%role = tmpmembers(i)%role
+  ENDDO
+ELSE
+  ALLOCATE(f_type(0))
+ENDIF
+
+END SUBROUTINE readosm_object_f_members
+
+
 FUNCTION readosm_object_f_node(c_type) RESULT(f_type)
 TYPE(readosm_node),INTENT(in) :: c_type
 
@@ -377,14 +443,11 @@ f_type%latitude = c_type%latitude
 f_type%longitude = c_type%longitude
 f_type%version = c_type%version
 f_type%changeset = c_type%changeset
-f_type%user = c_type%user
+!f_type%user = c_type%user
 f_type%uid = c_type%uid
-f_type%timestamp = c_type%timestamp
-IF (c_type%tag_count > 0 .AND. C_ASSOCIATED(c_type%tags)) THEN
-  CALL C_F_POINTER(c_type%tags, f_type%tags, (/c_type%tag_count/))
-ELSE
-  NULLIFY(f_type%tags)
-ENDIF
+!f_type%timestamp = c_type%timestamp
+CALL readosm_object_f_tags(c_type%tags, c_type%tag_count, f_type%tags)
+!f_type%tags = readosm_object_f_tags(c_type%tags, c_type%tag_count)
 
 END FUNCTION readosm_object_f_node
 
@@ -394,22 +457,22 @@ TYPE(readosm_way),INTENT(in) :: c_type
 
 TYPE(readosm_way_f) :: f_type
 
+INTEGER(kind=c_long_long),POINTER :: node_refs(:)
+
 f_type%id = c_type%id
 f_type%version = c_type%version
 f_type%changeset = c_type%changeset
-f_type%user = c_type%user
+!f_type%user = c_type%user
 f_type%uid = c_type%uid
-f_type%timestamp = c_type%timestamp
+!f_type%timestamp = c_type%timestamp
 IF (c_type%node_ref_count > 0 .AND. C_ASSOCIATED(c_type%node_refs)) THEN
-  CALL C_F_POINTER(c_type%node_refs, f_type%node_refs, (/c_type%node_ref_count/))
+  CALL C_F_POINTER(c_type%node_refs, node_refs, (/c_type%node_ref_count/))
+  f_type%node_refs = node_refs
 ELSE
-  NULLIFY(f_type%node_refs)
+  ALLOCATE(f_type%node_refs(0))
 ENDIF
-IF (c_type%tag_count > 0 .AND. C_ASSOCIATED(c_type%tags)) THEN
-  CALL C_F_POINTER(c_type%tags, f_type%tags, (/c_type%tag_count/))
-ELSE
-  NULLIFY(f_type%tags)
-ENDIF
+CALL readosm_object_f_tags(c_type%tags, c_type%tag_count, f_type%tags)
+!f_type%tags = readosm_object_f_tags(c_type%tags, c_type%tag_count)
 
 END FUNCTION readosm_object_f_way
 
@@ -422,19 +485,12 @@ TYPE(readosm_relation_f) :: f_type
 f_type%id = c_type%id
 f_type%version = c_type%version
 f_type%changeset = c_type%changeset
-f_type%user = c_type%user
+!f_type%user = c_type%user
 f_type%uid = c_type%uid
-f_type%timestamp = c_type%timestamp
-IF (c_type%member_count > 0 .AND. C_ASSOCIATED(c_type%members)) THEN
-  CALL C_F_POINTER(c_type%members, f_type%members, (/c_type%member_count/))
-ELSE
-  NULLIFY(f_type%members)
-ENDIF
-IF (c_type%tag_count > 0 .AND. C_ASSOCIATED(c_type%tags)) THEN
-  CALL C_F_POINTER(c_type%tags, f_type%tags, (/c_type%tag_count/))
-ELSE
-  NULLIFY(f_type%tags)
-ENDIF
+!f_type%timestamp = c_type%timestamp
+CALL readosm_object_f_members(c_type%members, c_type%member_count, f_type%members)
+CALL readosm_object_f_tags(c_type%tags, c_type%tag_count, f_type%tags)
+!f_type%tags = readosm_object_f_tags(c_type%tags, c_type%tag_count)
 
 END FUNCTION readosm_object_f_relation
 
@@ -464,8 +520,8 @@ END FUNCTION readosm_object_f_relation
 !> Simplified parsing method for quickly retrieving all the
 !! information from a osm file.  This method can be called in place of
 !! \a readosm_parse, thus avoiding the need to define own
-!! callbacks. After successful execution the \a fulldata argument will
-!! contain the full information from the file in a DOM (Document
+!! callbacks. After successful execution, the \a fulldata argument
+!! will contain the full information from the file in a DOM (Document
 !! Object Model) style. It must be used with care on big datasets
 !! since it can consume a lot of memory. It uses the \a
 !! readosm_full_node, \a readosm_full_way and \a readosm_full_relation
