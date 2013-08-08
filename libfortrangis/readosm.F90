@@ -22,8 +22,8 @@
 !! data from within an Open Street Map input file. It can read files
 !! in the .osm and .osm.pbf formats.  ReadOSM is developed and
 !! maintained by Alessandro Furieri.  This module defines an API which
-!! reflects the original readosm C API, plus some additional functions
-!! and objects to simplifay the use from Fortran.
+!! reflects the original readosm C API, plus some additional objects
+!! and methods to simplify the use from Fortran.
 !!
 !! The reading of the file is callback-based, i.e. a user-defined
 !! function is called whenever a node, way or relation is encounterd
