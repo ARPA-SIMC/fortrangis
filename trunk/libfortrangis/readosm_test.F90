@@ -62,10 +62,10 @@ PRINT*,node%longitude,node%latitude
 node_f = readosm_object_f(node)
 
 ! scan the attribute list if present
-IF (ASSOCIATED(node_f%tags)) THEN
+IF (ALLOCATED(node_f%tags)) THEN
   DO i = 1, SIZE(node_f%tags)
-    WRITE(*,'(A,'' = '',A)')TRIM(strtofchar(node_f%tags(i)%key,64)), &
-     TRIM(strtofchar(node_f%tags(i)%value,64))
+!    WRITE(*,'(A,'' = '',A)')TRIM(strtofchar(node_f%tags(i)%key)), &
+!     TRIM(strtofchar(node_f%tags(i)%value))
   ENDDO
 ENDIF
 
@@ -109,13 +109,13 @@ ENDIF
 DO j = 1, fulldata%nodes%arraysize
   PRINT*,fulldata%nodes%array(j)%longitude,fulldata%nodes%array(j)%latitude
 !  PRINT*,TRIM(strtofchar(fulldata%nodes%array(j)%timestamp, 64))
-
-!  IF (ASSOCIATED(fulldata%nodes%array(j)%tags)) THEN
-!    DO i = 1, SIZE(fulldata%nodes%array(j)%tags)
-!      WRITE(*,'(A,'' = '',A)')TRIM(strtofchar(fulldata%nodes%array(j)%tags(i)%key,64)), &
-!       TRIM(strtofchar(fulldata%nodes%array(j)%tags(i)%value,64))
-!    ENDDO
-!  ENDIF
+!  PRINT*,ALLOCATED(fulldata%nodes%array(j)%tags)
+  IF (ALLOCATED(fulldata%nodes%array(j)%tags)) THEN
+    DO i = 1, SIZE(fulldata%nodes%array(j)%tags)
+      WRITE(*,*)fulldata%nodes%array(j)%tags(i)%key, &
+       fulldata%nodes%array(j)%tags(i)%value
+    ENDDO
+  ENDIF
 
 ENDDO
 
