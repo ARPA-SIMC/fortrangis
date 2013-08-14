@@ -83,6 +83,7 @@ TYPE(c_ptr) :: handle ! readosm file object
 TYPE(readosm_full_f) :: fulldata
 CHARACTER(len=512) :: file
 INTEGER :: i, j
+CHARACTER(len=1),ALLOCATABLE :: key(:), val(:)
 
 CALL getarg(1, file)
 IF (LEN_TRIM(file) == 0) file = 'readosm_test.osm'
@@ -108,12 +109,13 @@ ENDIF
 
 DO j = 1, fulldata%nodes%arraysize
   PRINT*,fulldata%nodes%array(j)%longitude,fulldata%nodes%array(j)%latitude
-!  PRINT*,TRIM(strtofchar(fulldata%nodes%array(j)%timestamp, 64))
-!  PRINT*,ALLOCATED(fulldata%nodes%array(j)%tags)
   IF (ALLOCATED(fulldata%nodes%array(j)%tags)) THEN
     DO i = 1, SIZE(fulldata%nodes%array(j)%tags)
-      WRITE(*,*)fulldata%nodes%array(j)%tags(i)%key, &
-       fulldata%nodes%array(j)%tags(i)%value
+      key = fulldata%nodes%array(j)%tags(i)%key
+      val = fulldata%nodes%array(j)%tags(i)%value
+!      WRITE(*,'(A,''='',A)')strtofchar(key),strtofchar(val)
+!      WRITE(*,*)fulldata%nodes%array(j)%tags(i)%key, &
+!       fulldata%nodes%array(j)%tags(i)%value
     ENDDO
   ENDIF
 
