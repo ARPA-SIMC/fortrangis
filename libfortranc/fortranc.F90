@@ -61,7 +61,7 @@ IMPLICIT NONE
 !! TYPE(c_ptr_ptr) :: envp
 !! ...
 !! envp = c_ptr_ptr_new((/'APPLE=3  ','PEAR=2  ','ORANGE=20'/))
-!! CALL interfaced_c_procedure(envp)
+!! CALL interfaced_c_procedure(c_ptr_ptr_getobject(envp))
 !! CALL delete(envp)
 !! ...
 !! \endcode
