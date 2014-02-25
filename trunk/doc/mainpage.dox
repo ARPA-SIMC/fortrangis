@@ -10,8 +10,8 @@ Namespaces (i,e, \a MODULE in Fortran) menu. The documentation pages
 of the modules sometimes include the corresponding *_test.f90 source
 file which can be used as a commented example of use of the library.
 
-Some more information can be found in the howto pages \ref build and
-\ref globe.
+Some more information can be found in the howto pages \ref build, 
+\ref globe and \ref metadata.
 
 Davide Cesari
 
