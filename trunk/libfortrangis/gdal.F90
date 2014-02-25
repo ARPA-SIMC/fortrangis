@@ -25,6 +25,10 @@
 !! refer to the original gdal C API documentation, e.g. at the address
 !! http://www.gdal.org/gdal_8h.html , for their use:
 #include "gdalproto_doxy.f90"
+!! 
+!! As a general guideline, note that when a \c char** object is
+!! encountered in the C interface, it should usually be interfaced in
+!! Fortran by means of the fortranc::c_ptr_ptr derived type.
 !!
 !! Other Fortran-style subroutines, functions and procedure interfaces
 !! are documented explicitely here.
@@ -218,6 +222,22 @@ PRIVATE gdalrasterio_int8, gdalrasterio_int16, &
  gdalrasterio_int32, &
  gdalrasterio_float, gdalrasterio_double, &
  gdalrasterio_float_cmplx, gdalrasterio_double_cmplx
+
+!> Fortran interface for formally converting a dataset, rasterband or driver
+!! opaque object into a generic gdal object of type \a
+!! gdalmajorobjecth to be used in some methods such as GDALGetMetadata.
+!!
+!! TYPE(gdalmajorobjecth) FUNCTION gdalmajorobjecth_new(gdalobject)
+!! \param TYPE(gdaldataseth)|TYPE(gdalrasterbandh)|TYPE(gdaldriverh),VALUE::gdalobject  object to convert
+INTERFACE gdalmajorobjecth_new
+  MODULE PROCEDURE gdalmajorobject_fromdataset_new, &
+   gdalmajorobject_fromrasterband_new, &
+   gdalmajorobject_fromdriver_new
+END INTERFACE gdalmajorobjecth_new
+
+PRIVATE gdalmajorobject_fromdataset_new, &
+ gdalmajorobject_fromrasterband_new, &
+ gdalmajorobject_fromdriver_new
 
 ! internal interfaces
 INTERFACE gdaldatasetrasterio_loc
@@ -904,6 +924,25 @@ ENDIF
 END SUBROUTINE gdaldatasetsimpleread_f
 
 
+!> Even more simplified method for importing data from a raster band
+!! within a bounding box specified in georeferenced coordinates.
+!! This method imports a single raster band of a dataset \a hband keeping
+!! the data included in a rectangular bounding box specified in terms
+!! of georeferenced coordinates and clipped to the dataset domain
+!! extension. Datasets with a rotational geotransform are not
+!! supported. The result is stored in a 2-d buffer that must be
+!! declared as \c ALLOCATABLE and is allocated inside the method
+!! (f2003 feature). The actual bounding box of data obtained, in terms
+!! of georeferenced coordinates of centers of first and last grid boxes,
+!! and the grid step are returned in output. If an error occurs while
+!! accessing the dataset, the buffer is not allocated (check with the
+!! \c ALLOCATED() intrinsic function), while if the bounding box lies
+!! outside of the dataset domain, one or more dimensions are allocated
+!! to zero size (check with the \c SIZE() intrinsic function). The
+!! data is kept in the dataset resolution, no interpolation is done.
+!!
+!! WARNING: this is an experimental method, so the interface may
+!! change in the future, use with care!
 SUBROUTINE gdalrastersimpleread_f(hband, bbxmin, bbymin, bbxmax, bbymax, pbuffer, &
  xmin, ymin, xmax, ymax)
 TYPE(gdalrasterbandh),VALUE :: hband !< raster band to read
@@ -940,5 +979,23 @@ ENDIF
 
 END SUBROUTINE gdalrastersimpleread_f
 
+
+FUNCTION gdalmajorobject_fromdataset_new(gdalobject) RESULT(majorobject)
+TYPE(gdaldataseth),VALUE :: gdalobject
+TYPE(gdalmajorobjecth) :: majorobject
+majorobject%ptr = gdalobject%ptr
+END FUNCTION gdalmajorobject_fromdataset_new
+
+FUNCTION gdalmajorobject_fromrasterband_new(gdalobject) RESULT(majorobject)
+TYPE(gdalrasterbandh),VALUE :: gdalobject
+TYPE(gdalmajorobjecth) :: majorobject
+majorobject%ptr = gdalobject%ptr
+END FUNCTION gdalmajorobject_fromrasterband_new
+
+FUNCTION gdalmajorobject_fromdriver_new(gdalobject) RESULT(majorobject)
+TYPE(gdaldriverh),VALUE :: gdalobject
+TYPE(gdalmajorobjecth) :: majorobject
+majorobject%ptr = gdalobject%ptr
+END FUNCTION gdalmajorobject_fromdriver_new
 
 END MODULE gdal

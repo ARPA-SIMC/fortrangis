@@ -289,7 +289,7 @@ INTERFACE
   FUNCTION gdalgetmetadata(hobject, pszdomain) BIND(C,name='GDALGetMetadata')
   IMPORT
 !GCC$ ATTRIBUTES STDCALL :: GDALGetMetadata
-  TYPE(c_ptr),VALUE :: hobject
+  TYPE(gdalmajorobjecth),VALUE :: hobject
   CHARACTER(kind=c_char),INTENT(in) :: pszdomain(*)
   TYPE(c_ptr) :: gdalgetmetadata ! TYPE(c_ptr_ptr)
   END FUNCTION gdalgetmetadata
@@ -299,7 +299,7 @@ INTERFACE
   FUNCTION gdalsetmetadata(hobject, papszmd, pszdomain) BIND(C,name='GDALSetMetadata')
   IMPORT
 !GCC$ ATTRIBUTES STDCALL :: GDALSetMetadata
-  TYPE(c_ptr),VALUE :: hobject
+  TYPE(gdalmajorobjecth),VALUE :: hobject
   TYPE(c_ptr),VALUE :: papszmd ! TYPE(c_ptr_ptr)
   CHARACTER(kind=c_char),INTENT(in) :: pszdomain(*)
   INTEGER(kind=c_int) :: gdalsetmetadata ! CPLErr
@@ -310,7 +310,7 @@ INTERFACE
   FUNCTION gdalgetmetadataitem(hobject, pszname, pszdomain) BIND(C,name='GDALGetMetadataItem')
   IMPORT
 !GCC$ ATTRIBUTES STDCALL :: GDALGetMetadataItem
-  TYPE(c_ptr),VALUE :: hobject
+  TYPE(gdalmajorobjecth),VALUE :: hobject
   CHARACTER(kind=c_char),INTENT(in) :: pszname(*)
   CHARACTER(kind=c_char),INTENT(in) :: pszdomain(*)
   TYPE(c_ptr) :: gdalgetmetadataitem ! char*
@@ -321,7 +321,7 @@ INTERFACE
   FUNCTION gdalsetmetadataitem(hobject, pszname, pszvalue, pszdomain) BIND(C,name='GDALSetMetadataItem')
   IMPORT
 !GCC$ ATTRIBUTES STDCALL :: GDALSetMetadataItem
-  TYPE(c_ptr),VALUE :: hobject
+  TYPE(gdalmajorobjecth),VALUE :: hobject
   CHARACTER(kind=c_char),INTENT(in) :: pszname(*)
   CHARACTER(kind=c_char),INTENT(in) :: pszvalue(*)
   CHARACTER(kind=c_char),INTENT(in) :: pszdomain(*)
@@ -333,7 +333,7 @@ INTERFACE
   FUNCTION gdalgetdescription(hobject) BIND(C,name='GDALGetDescription')
   IMPORT
 !GCC$ ATTRIBUTES STDCALL :: GDALGetDescription
-  TYPE(c_ptr),VALUE :: hobject
+  TYPE(gdalmajorobjecth),VALUE :: hobject
   TYPE(c_ptr) :: gdalgetdescription ! char*
   END FUNCTION gdalgetdescription
 END INTERFACE
@@ -342,7 +342,7 @@ INTERFACE
   SUBROUTINE gdalsetdescription(hobject, psznewdesc) BIND(C,name='GDALSetDescription')
   IMPORT
 !GCC$ ATTRIBUTES STDCALL :: GDALSetDescription
-  TYPE(c_ptr),VALUE :: hobject
+  TYPE(gdalmajorobjecth),VALUE :: hobject
   CHARACTER(kind=c_char),INTENT(in) :: psznewdesc(*)
   END SUBROUTINE gdalsetdescription
 END INTERFACE
