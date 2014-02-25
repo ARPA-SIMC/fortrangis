@@ -27,6 +27,7 @@ dertypes_ptr = {
     'GDALDriverH':'TYPE(gdaldriverh)',
     'GDALColorTableH':'TYPE(gdalcolortableh)',
     'GDALRasterAttributeTableH':'TYPE(gdalrasterattributetableh)',
+    'GDALMajorObjectH':'TYPE(gdalmajorobjecth)'
 }
 dertypes = {
     'GDAL_GCP':'TYPE(gdal_gcp)',
@@ -108,6 +109,10 @@ for ctype,ftype in dertypes_ptr.iteritems():
     otype.write("  MODULE PROCEDURE gdalnullify_%s\n" % (ctype.lower()))
 otype.write("END INTERFACE\n")
 
+# otype.write("INTERFACE gdalget_c_ptr\n")
+# for ctype,ftype in dertypes_ptr.iteritems():
+#     otype.write("  MODULE PROCEDURE gdalget_c_ptr_%s\n" % (ctype.lower()))
+# otype.write("END INTERFACE\n")
 
 for ctype,ftype in dertypes_ptr.iteritems():
 
