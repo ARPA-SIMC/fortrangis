@@ -6,7 +6,7 @@ import textwrap
 # usage:
 # cpp -Ixx src.c | cproto | ../mkintcproto.py > interface.f90
 
-declre = re.compile(r"^(const )?(.*[ *] ?)([a-zA-Z_][a-zA-Z_0-9]*)\((.*)\) *; *$")
+declre = re.compile(r"^(const )?(.*[ *] ?)([a-zA-Z_][a-zA-Z_0-9]*)\((.*)\) *; *(/\* *out\*/)? *$")
 argre = re.compile(r"^(const )?([a-zA-Z_][a-zA-Z_0-9]* ?)(\*\*?)? ?([a-zA-Z_][a-zA-Z_0-9]*)")
 
 enumtypes = {
@@ -35,7 +35,7 @@ dertypes = {
     'GDALColorEntry':'TYPE(gdalcolorentry)',
 }
 
-def makearg(carg, valuetag=',VALUE', result=False):
+def makearg(carg, valuetag=',VALUE', result=False, ptrisout=False):
     argmatch = argre.search(carg)
     if argmatch is None: return ('unknown1:'+carg,'err')
     gr = argmatch.groups()
@@ -54,7 +54,11 @@ def makearg(carg, valuetag=',VALUE', result=False):
     else:
         if gr[2] == '*':
             refval = ''
-            arr = '(*)'
+            if ptrisout:
+                arr = ''
+                intent = ',INTENT(inout)'
+            else:
+                arr = '(*)'
         elif gr[2] == '**':
             cdef = 'c_ptr_ptr'
             comm = ' ! TYPE(c_ptr_ptr)'
@@ -155,8 +159,12 @@ for line in ic.readlines():
             proctype, dummy = makearg(type+' '+name, valuetag='', result=True)
         arglist = ''
         argdecllist = []
+        ptrisout = False
+# found ad hoc "out" comment indicating intent((in)out) rather than array
+        if gr[4] is not None:
+            ptrisout = len(gr[4]) > 0
         for arg in args:
-            fdecl, fname = makearg(arg)
+            fdecl, fname = makearg(arg, ptrisout=ptrisout)
             argdecllist.append(fdecl)
             if arglist == '': arglist = fname
             else: arglist = arglist+', '+fname
