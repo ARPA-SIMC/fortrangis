@@ -1,4 +1,4 @@
-New in release 2.4:
+New in version 2.4:
 - Bug fix for some gdal interfaces missing
 - Array arguments replaced by intent(out) where required
 
