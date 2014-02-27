@@ -150,7 +150,7 @@ CPLErr GDALFlushRasterCache(GDALRasterBandH hBand);
 
 CPLErr GDALGetRasterHistogram(GDALRasterBandH hBand, double dfMin, double dfMax, int nBuckets, int *panHistogram, int bIncludeOutOfRange, int bApproxOK, GDALProgressFunc pfnProgress, void *pProgressData);
 
-CPLErr GDALGetDefaultHistogram(GDALRasterBandH hBand, double *pdfMin, double *pdfMax, int *pnBuckets, int **ppanHistogram, int bForce, GDALProgressFunc pfnProgress, void *pProgressData);/*out??*/
+CPLErr GDALGetDefaultHistogram(GDALRasterBandH hBand, double *pdfMin, double *pdfMax, int *pnBuckets, int **ppanHistogram, int bForce, GDALProgressFunc pfnProgress, void *pProgressData);
 
 CPLErr GDALSetDefaultHistogram(GDALRasterBandH hBand, double dfMin, double dfMax, int nBuckets, int *panHistogram);
 

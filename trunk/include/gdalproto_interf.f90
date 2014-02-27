@@ -601,6 +601,15 @@ INTERFACE
 END INTERFACE
 
 INTERFACE
+  SUBROUTINE gdalgetopendatasets(hds, pncount) BIND(C,name='GDALGetOpenDatasets')
+  IMPORT
+!GCC$ ATTRIBUTES STDCALL :: GDALGetOpenDatasets
+  TYPE(c_ptr),VALUE :: hds ! TYPE(c_ptr_ptr)
+  INTEGER(kind=c_int),INTENT(inout) :: pncount
+  END SUBROUTINE gdalgetopendatasets
+END INTERFACE
+
+INTERFACE
   FUNCTION gdalgetaccess(hds) BIND(C,name='GDALGetAccess')
   IMPORT
 !GCC$ ATTRIBUTES STDCALL :: GDALGetAccess
@@ -830,6 +839,16 @@ INTERFACE
 END INTERFACE
 
 INTERFACE
+  FUNCTION gdalgetrasternodatavalue(hband, pbsuccess) BIND(C,name='GDALGetRasterNoDataValue')
+  IMPORT
+!GCC$ ATTRIBUTES STDCALL :: GDALGetRasterNoDataValue
+  TYPE(gdalrasterbandh),VALUE :: hband
+  INTEGER(kind=c_int),INTENT(inout) :: pbsuccess
+  REAL(kind=c_double) :: gdalgetrasternodatavalue
+  END FUNCTION gdalgetrasternodatavalue
+END INTERFACE
+
+INTERFACE
   FUNCTION gdalsetrasternodatavalue(hband, dfvalue) BIND(C,name='GDALSetRasterNoDataValue')
   IMPORT
 !GCC$ ATTRIBUTES STDCALL :: GDALSetRasterNoDataValue
@@ -846,6 +865,26 @@ INTERFACE
   TYPE(gdalrasterbandh),VALUE :: hband
   TYPE(c_ptr) :: gdalgetrastercategorynames ! TYPE(c_ptr_ptr)
   END FUNCTION gdalgetrastercategorynames
+END INTERFACE
+
+INTERFACE
+  FUNCTION gdalgetrasterminimum(hband, pbsuccess) BIND(C,name='GDALGetRasterMinimum')
+  IMPORT
+!GCC$ ATTRIBUTES STDCALL :: GDALGetRasterMinimum
+  TYPE(gdalrasterbandh),VALUE :: hband
+  INTEGER(kind=c_int),INTENT(inout) :: pbsuccess
+  REAL(kind=c_double) :: gdalgetrasterminimum
+  END FUNCTION gdalgetrasterminimum
+END INTERFACE
+
+INTERFACE
+  FUNCTION gdalgetrastermaximum(hband, pbsuccess) BIND(C,name='GDALGetRasterMaximum')
+  IMPORT
+!GCC$ ATTRIBUTES STDCALL :: GDALGetRasterMaximum
+  TYPE(gdalrasterbandh),VALUE :: hband
+  INTEGER(kind=c_int),INTENT(inout) :: pbsuccess
+  REAL(kind=c_double) :: gdalgetrastermaximum
+  END FUNCTION gdalgetrastermaximum
 END INTERFACE
 
 INTERFACE
@@ -914,6 +953,16 @@ INTERFACE
 END INTERFACE
 
 INTERFACE
+  FUNCTION gdalgetrasteroffset(hband, pbsuccess) BIND(C,name='GDALGetRasterOffset')
+  IMPORT
+!GCC$ ATTRIBUTES STDCALL :: GDALGetRasterOffset
+  TYPE(gdalrasterbandh),VALUE :: hband
+  INTEGER(kind=c_int),INTENT(inout) :: pbsuccess
+  REAL(kind=c_double) :: gdalgetrasteroffset
+  END FUNCTION gdalgetrasteroffset
+END INTERFACE
+
+INTERFACE
   FUNCTION gdalsetrasteroffset(hband, dfnewoffset) BIND(C,name='GDALSetRasterOffset')
   IMPORT
 !GCC$ ATTRIBUTES STDCALL :: GDALSetRasterOffset
@@ -921,6 +970,16 @@ INTERFACE
   REAL(kind=c_double),VALUE :: dfnewoffset
   INTEGER(kind=c_int) :: gdalsetrasteroffset ! CPLErr
   END FUNCTION gdalsetrasteroffset
+END INTERFACE
+
+INTERFACE
+  FUNCTION gdalgetrasterscale(hband, pbsuccess) BIND(C,name='GDALGetRasterScale')
+  IMPORT
+!GCC$ ATTRIBUTES STDCALL :: GDALGetRasterScale
+  TYPE(gdalrasterbandh),VALUE :: hband
+  INTEGER(kind=c_int),INTENT(inout) :: pbsuccess
+  REAL(kind=c_double) :: gdalgetrasterscale
+  END FUNCTION gdalgetrasterscale
 END INTERFACE
 
 INTERFACE
@@ -968,6 +1027,23 @@ INTERFACE
   TYPE(c_ptr),VALUE :: pprogressdata ! void*
   INTEGER(kind=c_int) :: gdalgetrasterhistogram ! CPLErr
   END FUNCTION gdalgetrasterhistogram
+END INTERFACE
+
+INTERFACE
+  FUNCTION gdalgetdefaulthistogram(hband, pdfmin, pdfmax, pnbuckets, ppanhistogram, bforce, pfnprogress, pprogressdata) &
+   BIND(C,name='GDALGetDefaultHistogram')
+  IMPORT
+!GCC$ ATTRIBUTES STDCALL :: GDALGetDefaultHistogram
+  TYPE(gdalrasterbandh),VALUE :: hband
+  REAL(kind=c_double) :: pdfmin(*)
+  REAL(kind=c_double) :: pdfmax(*)
+  INTEGER(kind=c_int) :: pnbuckets(*)
+  TYPE(c_ptr),VALUE :: ppanhistogram ! TYPE(c_ptr_ptr)
+  INTEGER(kind=c_int),VALUE :: bforce
+  TYPE(c_ptr),VALUE :: pfnprogress
+  TYPE(c_ptr),VALUE :: pprogressdata ! void*
+  INTEGER(kind=c_int) :: gdalgetdefaulthistogram ! CPLErr
+  END FUNCTION gdalgetdefaulthistogram
 END INTERFACE
 
 INTERFACE
