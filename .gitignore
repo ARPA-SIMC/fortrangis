@@ -1,0 +1,14 @@
+*~
+configure
+config.log
+Makefile
+Makefile.in
+Doxyfile
+aclocal.m4
+install-sh
+missing
+config.status
+*.o
+*.lo
+*.la
+*.mod
