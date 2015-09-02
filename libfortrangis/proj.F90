@@ -22,46 +22,90 @@ MODULE proj
 USE,INTRINSIC :: ISO_C_BINDING
 IMPLICIT NONE
 
+!> Object describing a cartographic projection.
+!! Its components are private so they should not be manipulated
+!! directly.
+TYPE,BIND(C) :: pj_object
+  PRIVATE
+  TYPE(c_ptr) :: ptr = C_NULL_PTR
+END TYPE pj_object
+
+
+TYPE,BIND(C) :: pjuv_object
+  REAL(kind=c_double) :: u=HUGE(1.0_c_double)
+  REAL(kind=c_double) :: v=HUGE(1.0_c_double)
+END TYPE pjuv_object
+
+!> Object representing a null cartographic projection.
+!! It should be used for comparison of function results
+!! with the \a == operator for error checking.
+TYPE(pj_object),PARAMETER :: pj_object_null=pj_object(C_NULL_PTR)
+
 INTERFACE
   FUNCTION pj_init_plus(name) BIND(C,name='pj_init_plus')
   IMPORT
   CHARACTER(kind=c_char) :: name(*)
-  TYPE(c_ptr) :: pj_init_plus
+  TYPE(pj_object) :: pj_init_plus
   END FUNCTION pj_init_plus
 END INTERFACE
 
-INTERFACE
-  FUNCTION pj_transform(src, dst, point_count, point_offset, x, y, z) &
+INTERFACE pj_transform
+  FUNCTION pj_transform_c(src, dst, point_count, point_offset, x, y, z) &
    BIND(C,name='pj_transform')
   IMPORT
-  TYPE(c_ptr),VALUE :: src
-  TYPE(c_ptr),VALUE :: dst
+  TYPE(pj_object),VALUE :: src
+  TYPE(pj_object),VALUE :: dst
   INTEGER(kind=c_long),VALUE :: point_count
   INTEGER(kind=c_int),VALUE :: point_offset
   REAL(kind=c_double) :: x(*)
   REAL(kind=c_double) :: y(*)
   REAL(kind=c_double) :: z(*)
   INTEGER(kind=c_int) :: pj_transform
-  END FUNCTION pj_transform
+  END FUNCTION pj_transform_c
+
+  MODULE PROCEDURE pj_transform_f
+
 END INTERFACE
 
-INTERFACE
-  FUNCTION pj_datum_transform(src, dst, point_count, point_offset, x, y, z) &
+INTERFACE pj_datum_transform
+  FUNCTION pj_datum_transform_c(src, dst, point_count, point_offset, x, y, z) &
    BIND(C,name='pj_datum_transform')
   IMPORT
-  TYPE(c_ptr),VALUE :: src
-  TYPE(c_ptr),VALUE :: dst
+  TYPE(pj_object),VALUE :: src
+  TYPE(pj_object),VALUE :: dst
   INTEGER(kind=c_long),VALUE :: point_count
   INTEGER(kind=c_int),VALUE :: point_offset
   REAL(kind=c_double) :: x(*)
   REAL(kind=c_double) :: y(*)
   REAL(kind=c_double) :: z(*)
   INTEGER(kind=c_int) :: pj_datum_transform
-  END FUNCTION pj_datum_transform
+  END FUNCTION pj_datum_transform_c
+
+  MODULE PROCEDURE pj_datum_transform_f
+
+END INTERFACE
+
+
+INTERFACE
+  FUNCTION pj_fwd(val, proj) BIND(C,name='pj_fwd')
+  IMPORT
+  TYPE(pjuv_object),VALUE :: val
+  TYPE(pj_object),VALUE :: proj
+  TYPE(pjuv_object) :: pj_fwd
+  END FUNCTION pj_fwd
 END INTERFACE
 
 INTERFACE
-  FUNCTION pj_geocentric_to_geodetic(a, es, point_count, point_offset, x, y, z) &
+  FUNCTION pj_inv(val, proj) BIND(C,name='pj_inv')
+  IMPORT
+  TYPE(pjuv_object),VALUE :: val
+  TYPE(pj_object),VALUE :: proj
+  TYPE(pjuv_object) :: pj_inv
+  END FUNCTION pj_inv
+END INTERFACE
+
+INTERFACE pj_geocentric_to_geodetic
+  FUNCTION pj_geocentric_to_geodetic_c(a, es, point_count, point_offset, x, y, z) &
    BIND(C,name='pj_geocentric_to_geodetic')
   IMPORT
   REAL(kind=c_double),VALUE :: a
@@ -72,11 +116,14 @@ INTERFACE
   REAL(kind=c_double) :: y(*)
   REAL(kind=c_double) :: z(*)
   INTEGER(kind=c_int) :: pj_geocentric_to_geodetic
-  END FUNCTION pj_geocentric_to_geodetic
-END INTERFACE
+  END FUNCTION pj_geocentric_to_geodetic_c
 
-INTERFACE
-  FUNCTION pj_geodetic_to_geocentric(a, es, point_count, point_offset, x, y, z) &
+  MODULE PROCEDURE pj_geocentric_to_geodetic_f
+
+END INTERFACE pj_geocentric_to_geodetic
+
+INTERFACE pj_geodetic_to_geocentric
+  FUNCTION pj_geodetic_to_geocentric_c(a, es, point_count, point_offset, x, y, z) &
    BIND(C,name='pj_geodetic_to_geocentric')
   IMPORT
   REAL(kind=c_double),VALUE :: a
@@ -87,36 +134,70 @@ INTERFACE
   REAL(kind=c_double) :: y(*)
   REAL(kind=c_double) :: z(*)
   INTEGER(kind=c_int) :: pj_geodetic_to_geocentric
-  END FUNCTION pj_geodetic_to_geocentric
-END INTERFACE
+  END FUNCTION pj_geodetic_to_geocentric_c
+
+  MODULE PROCEDURE pj_geodetic_to_geocentric_f
+
+END INTERFACE pj_geodetic_to_geocentric
 
 INTERFACE
   FUNCTION pj_compare_datums(srcdefn, dstdefn) BIND(C,name='pj_compare_datums')
   IMPORT
-  TYPE(c_ptr),VALUE :: srcdefn
-  TYPE(c_ptr),VALUE :: dstdefn
+  TYPE(pj_object),VALUE :: srcdefn
+  TYPE(pj_object),VALUE :: dstdefn
   INTEGER(kind=c_int) :: pj_compare_datums
   END FUNCTION pj_compare_datums
 END INTERFACE
 
 INTERFACE
-  FUNCTION pj_apply_gridshift(c, i, point_count, point_offset, x, y, z) &
-   BIND(C,name='pj_apply_gridshift')
+  FUNCTION pj_is_latlong(proj) BIND(C,name='pj_is_latlong')
   IMPORT
-  CHARACTER(kind=c_char) :: c(*)
-  INTEGER(kind=c_int),VALUE :: i
-  INTEGER(kind=c_long),VALUE :: point_count
-  INTEGER(kind=c_int),VALUE :: point_offset
-  REAL(kind=c_double) :: x(*)
-  REAL(kind=c_double) :: y(*)
-  REAL(kind=c_double) :: z(*)
-  INTEGER(kind=c_int) :: pj_apply_gridshift
-  END FUNCTION pj_apply_gridshift
+  TYPE(pj_object),VALUE :: proj
+  INTEGER(kind=c_int) :: pj_is_latlong
+  END FUNCTION pj_is_latlong
 END INTERFACE
 
 INTERFACE
-  SUBROUTINE pj_deallocate_grids() BIND(C,name='pj_deallocate_grids')
-  END SUBROUTINE pj_deallocate_grids
+  FUNCTION pj_is_geocent(proj) BIND(C,name='pj_is_geocent')
+  IMPORT
+  TYPE(pj_object),VALUE :: proj
+  INTEGER(kind=c_int) :: pj_is_geocent
+  END FUNCTION pj_is_geocent
+END INTERFACE
+
+INTERFACE
+  FUNCTION pj_latlong_from_proj(proj) BIND(C,name='pj_latlong_from_proj')
+  IMPORT
+  TYPE(pj_object),VALUE :: proj
+  TYPE(pj_object) :: pj_latlong_from_proj
+  END FUNCTION pj_latlong_from_proj
+END INTERFACE
+
+!INTERFACE
+!  FUNCTION pj_apply_gridshift(c, i, point_count, point_offset, x, y, z) &
+!   BIND(C,name='pj_apply_gridshift')
+!  IMPORT
+!  CHARACTER(kind=c_char) :: c(*)
+!  INTEGER(kind=c_int),VALUE :: i
+!  INTEGER(kind=c_long),VALUE :: point_count
+!  INTEGER(kind=c_int),VALUE :: point_offset
+!  REAL(kind=c_double) :: x(*)
+!  REAL(kind=c_double) :: y(*)
+!  REAL(kind=c_double) :: z(*)
+!  INTEGER(kind=c_int) :: pj_apply_gridshift
+!  END FUNCTION pj_apply_gridshift
+!END INTERFACE
+!
+!INTERFACE
+!  SUBROUTINE pj_deallocate_grids() BIND(C,name='pj_deallocate_grids')
+!  END SUBROUTINE pj_deallocate_grids
+!END INTERFACE
+
+INTERFACE
+  SUBROUTINE pj_free(proj) BIND(C,name='pj_free')
+  IMPORT
+  TYPE(pj_object),VALUE :: proj
+  END SUBROUTINE pj_free
 END INTERFACE
 
 !int pj_is_latlong(projPJ);
@@ -134,6 +215,64 @@ END INTERFACE
 !int *pj_get_errno_ref(void);
 !const char *pj_get_release(void);
 
+CONTAINS
+
+FUNCTION pj_transform_f(src, dst, x, y, z)
+TYPE(pj_object),VALUE :: src
+TYPE(pj_object),VALUE :: dst
+REAL(kind=c_double) :: x(:)
+REAL(kind=c_double) :: y(:)
+REAL(kind=c_double) :: z(:)
+INTEGER(kind=c_int) :: pj_transform_f
+
+pj_transform_f = pj_transform_c(src, dst, &
+ INT(MIN(SIZE(x),SIZE(y),SIZE(x)), kind=c_long), 1_c_int, x, y, z)
+
+END FUNCTION pj_transform_f
+
+
+FUNCTION pj_datum_transform_f(src, dst, x, y, z)
+TYPE(pj_object),VALUE :: src
+TYPE(pj_object),VALUE :: dst
+REAL(kind=c_double) :: x(:)
+REAL(kind=c_double) :: y(:)
+REAL(kind=c_double) :: z(:)
+INTEGER(kind=c_int) :: pj_datum_transform_f
+
+pj_datum_transform_f = pj_datum_transform_c(src, dst, &
+ INT(MIN(SIZE(x),SIZE(y),SIZE(x)), kind=c_long), 1_c_int, x, y, z)
+
+END FUNCTION pj_datum_transform_f
+
+
+FUNCTION pj_geocentric_to_geodetic_f(a, es, x, y, z)
+REAL(kind=c_double),VALUE :: a
+REAL(kind=c_double),VALUE :: es
+REAL(kind=c_double) :: x(:)
+REAL(kind=c_double) :: y(:)
+REAL(kind=c_double) :: z(:)
+INTEGER(kind=c_int) :: pj_geocentric_to_geodetic_f
+
+pj_geocentric_to_geodetic_f = &
+ pj_geocentric_to_geodetic_c(a, es, &
+ INT(MIN(SIZE(x),SIZE(y),SIZE(x)), kind=c_long), 1_c_int, x, y, z)
+
+END FUNCTION pj_geocentric_to_geodetic_f
+
+
+FUNCTION pj_geodetic_to_geocentric_f(a, es, x, y, z)
+REAL(kind=c_double),VALUE :: a
+REAL(kind=c_double),VALUE :: es
+REAL(kind=c_double) :: x(:)
+REAL(kind=c_double) :: y(:)
+REAL(kind=c_double) :: z(:)
+INTEGER(kind=c_int) :: pj_geodetic_to_geocentric_f
+
+pj_geodetic_to_geocentric_f = &
+ pj_geodetic_to_geocentric_c(a, es, &
+ INT(MIN(SIZE(x),SIZE(y),SIZE(x)), kind=c_long), 1_c_int, x, y, z)
+
+END FUNCTION pj_geodetic_to_geocentric_f
 
 
 END MODULE proj
