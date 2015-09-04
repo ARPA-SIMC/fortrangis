@@ -1,8 +1,8 @@
 PROGRAM ung2shp
 ! Silly application that converts an Arc/Info ungenerate arc file
-! into a shapefile, the inpute file is passed asa command-line argument.
+! into a shapefile, the input file is passed as a command-line argument.
 !
-! Source of datain this format:
+! Source of data in this format:
 !  http://www.ngdc.noaa.gov/mgg/coast/
 ! References:
 !  http://www.grass-kr.org/html/v.in.arc.html
