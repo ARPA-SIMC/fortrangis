@@ -37,6 +37,12 @@ if PROJ
 libfortrangis_la_SOURCES += proj.F90
 libfortrangis_la_LIBADD += $(PROJ_LIBS)
 nodist_include_HEADERS += proj.mod
+
+check_PROGRAMS += proj_test
+proj_test_SOURCES = proj_test.F90
+#proj_test_CPPFLAGS = -I../libfortranc
+#proj_test_FCFLAGS = -I../libfortranc
+proj_test_LDADD = libfortrangis.la ../libfortranc/libfortranc.la
 endif
 
 if GDAL

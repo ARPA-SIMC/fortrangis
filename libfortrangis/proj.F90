@@ -30,21 +30,35 @@ TYPE,BIND(C) :: pj_object
   TYPE(c_ptr) :: ptr = C_NULL_PTR
 END TYPE pj_object
 
-
-TYPE,BIND(C) :: pjuv_object
-  REAL(kind=c_double) :: u=HUGE(1.0_c_double)
-  REAL(kind=c_double) :: v=HUGE(1.0_c_double)
-END TYPE pjuv_object
-
 !> Object representing a null cartographic projection.
 !! It should be used for comparison of function results
 !! with the \a == operator for error checking.
 TYPE(pj_object),PARAMETER :: pj_object_null=pj_object(C_NULL_PTR)
 
+!> Object describing a coordinate pair.
+!! It can indicate either projected coordinate (u=x, v=y) or
+!! spherical coordinates (u=lon, v=lat).
+TYPE,BIND(C) :: pjuv_object
+  REAL(kind=c_double) :: u=HUGE(1.0_c_double)
+  REAL(kind=c_double) :: v=HUGE(1.0_c_double)
+END TYPE pjuv_object
+
+REAL(kind=c_double),PARAMETER :: pj_deg_to_rad=.0174532925199432958D0 !< equivalent to the C api symbol DEG_TO_RAD
+REAL(kind=c_double),PARAMETER :: pj_rad_to_deg=57.29577951308232D0 !< equivalent to the C api symbol RAD_TO_DEG
+
+!> Test whether an opaque object is valid.
+!! Please use the interface name pj_associated, but for the documentation
+!! see the specific function pj_associated_object.
+INTERFACE pj_associated
+  MODULE PROCEDURE pj_associated_object
+END INTERFACE pj_associated
+
+!> Initialize a projection from a string.
+!! It returns an object of pj_object type.
 INTERFACE
   FUNCTION pj_init_plus(name) BIND(C,name='pj_init_plus')
   IMPORT
-  CHARACTER(kind=c_char) :: name(*)
+  CHARACTER(kind=c_char) :: name(*) !< Projection string, must be terminated by //CHAR(0)
   TYPE(pj_object) :: pj_init_plus
   END FUNCTION pj_init_plus
 END INTERFACE
@@ -200,15 +214,11 @@ INTERFACE
   END SUBROUTINE pj_free
 END INTERFACE
 
-!int pj_is_latlong(projPJ);
-!int pj_is_geocent(projPJ);
 !void pj_pr_list(projPJ);
-!void pj_free(projPJ);
 !void pj_set_finder( const char *(*)(const char *) );
 !void pj_set_searchpath ( int count, const char **path );
 !projPJ pj_init(int, char **);
 !char *pj_get_def(projPJ, int);
-!projPJ pj_latlong_from_proj( projPJ );
 !void *pj_malloc(size_t);
 !void pj_dalloc(void *);
 !char *pj_strerrno(int);
@@ -216,6 +226,20 @@ END INTERFACE
 !const char *pj_get_release(void);
 
 CONTAINS
+
+!> Test whether the result of a pj_init_plus is a valid projection.
+!! Returns a logical value. If the second argument is provided, it
+!! checks whether they point to the same projection
+FUNCTION pj_associated_object(arg1, arg2) RESULT(associated_)
+TYPE(pj_object),INTENT(in) :: arg1 !< projecton object to test
+TYPE(pj_object),INTENT(in),OPTIONAL :: arg2 !< second argument for equality test instead of validity
+LOGICAL :: associated_
+IF(PRESENT(arg2)) THEN
+  associated_ = C_ASSOCIATED(arg1%ptr, arg2%ptr)
+ELSE
+  associated_ = C_ASSOCIATED(arg1%ptr)
+ENDIF
+END FUNCTION pj_associated_object
 
 FUNCTION pj_transform_f(src, dst, x, y, z)
 TYPE(pj_object),VALUE :: src
