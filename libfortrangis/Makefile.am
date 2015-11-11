@@ -31,6 +31,10 @@ ung2shp_LDADD = libfortrangis.la
 noinst_PROGRAMS += shapelib_dump
 shapelib_dump_SOURCES = shapelib_dump.F90
 shapelib_dump_LDADD = libfortrangis.la
+
+noinst_PROGRAMS += shp_fxtr
+shp_fxtr_SOURCES = shp_fxtr.F90
+shp_fxtr_LDADD = libfortrangis.la
 endif
 
 if PROJ
