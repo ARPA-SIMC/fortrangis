@@ -17,6 +17,31 @@
 !    <http://www.gnu.org/licenses/>.
 
 !> Fortran 2003 interface to the proj.4 http://trac.osgeo.org/proj/ library.
+!! The following functions are directly interfaced to their
+!! corresponding C version, so they are undocumented here, please
+!! refer to the original gdal C API documentation, e.g. at the address
+!! https://github.com/OSGeo/proj.4/wiki/ProjAPI , for their use:
+!!  - pj_init_plus() -> FUNCTION pj_init_plus()
+!!  - pj_transform()() -> FUNCTION pj_transform()()
+!!  - pj_datum_transform() -> FUNCTION pj_datum_transform()
+!!  - pj_fwd() -> FUNCTION pj_fwd()
+!!  - pj_inv() -> FUNCTION pj_inv()
+!!  - pj_geocentric_to_geodetic() -> FUNCTION pj_geocentric_to_geodetic()
+!!  - pj_geodetic_to_geocentric() -> FUNCTION pj_geodetic_to_geocentric()
+!!  - pj_compare_datums() -> FUNCTION pj_compare_datums()
+!!  - pj_is_latlong() -> FUNCTION pj_is_latlong()
+!!  - pj_is_geocent() -> FUNCTION pj_is_geocent()
+!!  - pj_latlong_from_proj() -> FUNCTION pj_latlong_from_proj()
+!!  - pj_free() -> SUBROUTINE pj_free()
+!! 
+!! Some of these functions have also a more Fortran-friendly interface
+!! explicitely documented here, with an \a _f appended to the name.
+!!
+!! For an example of application of the \a proj module, please refer
+!! to the following test program, which performs a forward and
+!! backward transformation:
+!! \include proj_test.F90
+!!
 !! \ingroup libfortrangis
 MODULE proj
 USE,INTRINSIC :: ISO_C_BINDING
@@ -63,8 +88,8 @@ INTERFACE
   END FUNCTION pj_init_plus
 END INTERFACE
 
-INTERFACE pj_transform
-  FUNCTION pj_transform_c(src, dst, point_count, point_offset, x, y, z) &
+INTERFACE
+  FUNCTION pj_transform(src, dst, point_count, point_offset, x, y, z) &
    BIND(C,name='pj_transform')
   IMPORT
   TYPE(pj_object),VALUE :: src
@@ -75,14 +100,11 @@ INTERFACE pj_transform
   REAL(kind=c_double) :: y(*)
   REAL(kind=c_double) :: z(*)
   INTEGER(kind=c_int) :: pj_transform
-  END FUNCTION pj_transform_c
-
-  MODULE PROCEDURE pj_transform_f
-
+  END FUNCTION pj_transform
 END INTERFACE
 
-INTERFACE pj_datum_transform
-  FUNCTION pj_datum_transform_c(src, dst, point_count, point_offset, x, y, z) &
+INTERFACE
+  FUNCTION pj_datum_transform(src, dst, point_count, point_offset, x, y, z) &
    BIND(C,name='pj_datum_transform')
   IMPORT
   TYPE(pj_object),VALUE :: src
@@ -93,12 +115,8 @@ INTERFACE pj_datum_transform
   REAL(kind=c_double) :: y(*)
   REAL(kind=c_double) :: z(*)
   INTEGER(kind=c_int) :: pj_datum_transform
-  END FUNCTION pj_datum_transform_c
-
-  MODULE PROCEDURE pj_datum_transform_f
-
+  END FUNCTION pj_datum_transform
 END INTERFACE
-
 
 INTERFACE
   FUNCTION pj_fwd(val, proj) BIND(C,name='pj_fwd')
@@ -118,8 +136,8 @@ INTERFACE
   END FUNCTION pj_inv
 END INTERFACE
 
-INTERFACE pj_geocentric_to_geodetic
-  FUNCTION pj_geocentric_to_geodetic_c(a, es, point_count, point_offset, x, y, z) &
+INTERFACE
+  FUNCTION pj_geocentric_to_geodetic(a, es, point_count, point_offset, x, y, z) &
    BIND(C,name='pj_geocentric_to_geodetic')
   IMPORT
   REAL(kind=c_double),VALUE :: a
@@ -130,14 +148,11 @@ INTERFACE pj_geocentric_to_geodetic
   REAL(kind=c_double) :: y(*)
   REAL(kind=c_double) :: z(*)
   INTEGER(kind=c_int) :: pj_geocentric_to_geodetic
-  END FUNCTION pj_geocentric_to_geodetic_c
+  END FUNCTION pj_geocentric_to_geodetic
+END INTERFACE
 
-  MODULE PROCEDURE pj_geocentric_to_geodetic_f
-
-END INTERFACE pj_geocentric_to_geodetic
-
-INTERFACE pj_geodetic_to_geocentric
-  FUNCTION pj_geodetic_to_geocentric_c(a, es, point_count, point_offset, x, y, z) &
+INTERFACE
+  FUNCTION pj_geodetic_to_geocentric(a, es, point_count, point_offset, x, y, z) &
    BIND(C,name='pj_geodetic_to_geocentric')
   IMPORT
   REAL(kind=c_double),VALUE :: a
@@ -148,11 +163,8 @@ INTERFACE pj_geodetic_to_geocentric
   REAL(kind=c_double) :: y(*)
   REAL(kind=c_double) :: z(*)
   INTEGER(kind=c_int) :: pj_geodetic_to_geocentric
-  END FUNCTION pj_geodetic_to_geocentric_c
-
-  MODULE PROCEDURE pj_geodetic_to_geocentric_f
-
-END INTERFACE pj_geodetic_to_geocentric
+  END FUNCTION pj_geodetic_to_geocentric
+END INTERFACE
 
 INTERFACE
   FUNCTION pj_compare_datums(srcdefn, dstdefn) BIND(C,name='pj_compare_datums')
@@ -229,10 +241,10 @@ CONTAINS
 
 !> Test whether the result of a pj_init_plus is a valid projection.
 !! Returns a logical value. If the second argument is provided, it
-!! checks whether they point to the same projection
+!! checks whether they point to the same projection.
 FUNCTION pj_associated_object(arg1, arg2) RESULT(associated_)
 TYPE(pj_object),INTENT(in) :: arg1 !< projecton object to test
-TYPE(pj_object),INTENT(in),OPTIONAL :: arg2 !< second argument for equality test instead of validity
+TYPE(pj_object),INTENT(in),OPTIONAL :: arg2 !< optional second argument for equality test instead of validity
 LOGICAL :: associated_
 IF(PRESENT(arg2)) THEN
   associated_ = C_ASSOCIATED(arg1%ptr, arg2%ptr)
@@ -241,59 +253,97 @@ ELSE
 ENDIF
 END FUNCTION pj_associated_object
 
+! Fortran specific version of some functions
+
+!> Fortran version of \a pj_transform proj API function.
+!! This is the Fortran version of \a pj_transform function, the array
+!! arguments are assumed-shape Fortran arrays of equal length so no
+!! array size nor offset need to be passed, see the original C API
+!! documentation for the use of the function.
 FUNCTION pj_transform_f(src, dst, x, y, z)
-TYPE(pj_object),VALUE :: src
-TYPE(pj_object),VALUE :: dst
-REAL(kind=c_double) :: x(:)
-REAL(kind=c_double) :: y(:)
-REAL(kind=c_double) :: z(:)
+TYPE(pj_object),VALUE :: src !< source coordinate system
+TYPE(pj_object),VALUE :: dst !< destination coordinate system
+REAL(kind=c_double) :: x(:) !< array of x coordinates
+REAL(kind=c_double) :: y(:) !< array of y coordinates
+REAL(kind=c_double),OPTIONAL :: z(:) !< optional array of z coordinates
 INTEGER(kind=c_int) :: pj_transform_f
 
-pj_transform_f = pj_transform_c(src, dst, &
- INT(MIN(SIZE(x),SIZE(y),SIZE(x)), kind=c_long), 1_c_int, x, y, z)
+REAL(kind=c_double),POINTER :: dummyz(:)
+
+IF (PRESENT(z)) THEN
+  pj_transform_f = pj_transform(src, dst, &
+   INT(MIN(SIZE(x),SIZE(y),SIZE(z)), kind=c_long), 1_c_int, x, y, z)
+ELSE
+  NULLIFY(dummyz)
+  pj_transform_f = pj_transform(src, dst, &
+   INT(MIN(SIZE(x),SIZE(y)), kind=c_long), 1_c_int, x, y, dummyz)
+ENDIF
 
 END FUNCTION pj_transform_f
 
 
+!> Fortran version of \a pj_datum_transform proj API function.
+!! This is the Fortran version of \a pj_datum_transform function, the array
+!! arguments are assumed-shape Fortran arrays of equal length so no
+!! array size nor offset need to be passed, see the original C API
+!! documentation for the use of the function.
 FUNCTION pj_datum_transform_f(src, dst, x, y, z)
-TYPE(pj_object),VALUE :: src
-TYPE(pj_object),VALUE :: dst
-REAL(kind=c_double) :: x(:)
-REAL(kind=c_double) :: y(:)
-REAL(kind=c_double) :: z(:)
+TYPE(pj_object),VALUE :: src !< source coordinate system
+TYPE(pj_object),VALUE :: dst !< destination coordinate system
+REAL(kind=c_double) :: x(:) !< array of x coordinates
+REAL(kind=c_double) :: y(:) !< array of y coordinates
+REAL(kind=c_double),OPTIONAL :: z(:) !< optional array of z coordinates
 INTEGER(kind=c_int) :: pj_datum_transform_f
 
-pj_datum_transform_f = pj_datum_transform_c(src, dst, &
- INT(MIN(SIZE(x),SIZE(y),SIZE(x)), kind=c_long), 1_c_int, x, y, z)
+REAL(kind=c_double),POINTER :: dummyz(:)
+
+IF (PRESENT(z)) THEN
+  pj_datum_transform_f = pj_datum_transform(src, dst, &
+   INT(MIN(SIZE(x),SIZE(y),SIZE(z)), kind=c_long), 1_c_int, x, y, z)
+ELSE
+  NULLIFY(dummyz)
+  pj_datum_transform_f = pj_datum_transform(src, dst, &
+   INT(MIN(SIZE(x),SIZE(y)), kind=c_long), 1_c_int, x, y, dummyz)
+ENDIF
 
 END FUNCTION pj_datum_transform_f
 
 
+!> Fortran version of \a pj_geocentric_to_geodetic proj API function.
+!! This is the Fortran version of \a pj_geocentric_to_geodetic function, the array
+!! arguments are assumed-shape Fortran arrays of equal length so no
+!! array size nor offset need to be passed, see the original C API
+!! documentation for the use of the function.
 FUNCTION pj_geocentric_to_geodetic_f(a, es, x, y, z)
-REAL(kind=c_double),VALUE :: a
-REAL(kind=c_double),VALUE :: es
-REAL(kind=c_double) :: x(:)
-REAL(kind=c_double) :: y(:)
-REAL(kind=c_double) :: z(:)
+REAL(kind=c_double),VALUE :: a !< Earth semi-major axis
+REAL(kind=c_double),VALUE :: es !< Earth flattening
+REAL(kind=c_double) :: x(:) !< array of x coordinates
+REAL(kind=c_double) :: y(:) !< array of y coordinates
+REAL(kind=c_double) :: z(:) !< array of z coordinates
 INTEGER(kind=c_int) :: pj_geocentric_to_geodetic_f
 
 pj_geocentric_to_geodetic_f = &
- pj_geocentric_to_geodetic_c(a, es, &
+ pj_geocentric_to_geodetic(a, es, &
  INT(MIN(SIZE(x),SIZE(y),SIZE(x)), kind=c_long), 1_c_int, x, y, z)
 
 END FUNCTION pj_geocentric_to_geodetic_f
 
 
+!> Fortran version of \a pj_geodetic_to_geocentric proj API function.
+!! This is the Fortran version of \a pj_geodetic_to_geocentric function, the array
+!! arguments are assumed-shape Fortran arrays of equal length so no
+!! array size nor offset need to be passed, see the original C API
+!! documentation for the use of the function.
 FUNCTION pj_geodetic_to_geocentric_f(a, es, x, y, z)
-REAL(kind=c_double),VALUE :: a
-REAL(kind=c_double),VALUE :: es
-REAL(kind=c_double) :: x(:)
-REAL(kind=c_double) :: y(:)
-REAL(kind=c_double) :: z(:)
+REAL(kind=c_double),VALUE :: a !< Earth semi-major axis
+REAL(kind=c_double),VALUE :: es !< Earth flattening
+REAL(kind=c_double) :: x(:) !< array of x coordinates
+REAL(kind=c_double) :: y(:) !< array of y coordinates
+REAL(kind=c_double) :: z(:) !< array of z coordinates
 INTEGER(kind=c_int) :: pj_geodetic_to_geocentric_f
 
 pj_geodetic_to_geocentric_f = &
- pj_geodetic_to_geocentric_c(a, es, &
+ pj_geodetic_to_geocentric(a, es, &
  INT(MIN(SIZE(x),SIZE(y),SIZE(x)), kind=c_long), 1_c_int, x, y, z)
 
 END FUNCTION pj_geodetic_to_geocentric_f
