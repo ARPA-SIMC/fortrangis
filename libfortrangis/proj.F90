@@ -16,7 +16,7 @@
 !    License along with FortranGIS.  If not, see
 !    <http://www.gnu.org/licenses/>.
 
-!> Fortran 2003 interface to the proj.4 http://trac.osgeo.org/proj/ library.
+!> Fortran 2003 interface to the proj.4 https://github.com/OSGeo/proj.4 library.
 !! The following functions are directly interfaced to their
 !! corresponding C version, so they are undocumented here, please
 !! refer to the original gdal C API documentation, e.g. at the address
@@ -31,9 +31,14 @@
 !!  - pj_compare_datums() -> FUNCTION pj_compare_datums()
 !!  - pj_is_latlong() -> FUNCTION pj_is_latlong()
 !!  - pj_is_geocent() -> FUNCTION pj_is_geocent()
+!!  - pj_get_def() -> FUNCTION pj_get_def()
 !!  - pj_latlong_from_proj() -> FUNCTION pj_latlong_from_proj()
 !!  - pj_free() -> SUBROUTINE pj_free()
-!! 
+!!
+!! Notice that, if relevant, the result of functions returning an
+!! integer has to be interpreted as 0=false, nonzero=true or 0=ok,
+!! nonzero=error.
+!!
 !! Some of these functions have also a more Fortran-friendly interface
 !! explicitely documented here, with an \a _f appended to the name.
 !!
@@ -190,6 +195,16 @@ INTERFACE
   INTEGER(kind=c_int) :: pj_is_geocent
   END FUNCTION pj_is_geocent
 END INTERFACE
+
+INTERFACE
+  FUNCTION pj_get_def(proj, options) BIND(C,name='pj_get_def')
+  IMPORT
+  TYPE(pj_object),VALUE :: proj
+  INTEGER(kind=c_int) :: options
+  TYPE(c_ptr) :: pj_get_def
+  END FUNCTION pj_get_def
+END INTERFACE
+  
 
 INTERFACE
   FUNCTION pj_latlong_from_proj(proj) BIND(C,name='pj_latlong_from_proj')

@@ -1,6 +1,6 @@
 PROGRAM proj_test
 USE,INTRINSIC :: iso_c_binding
-!USE fortranc
+USE fortranc
 USE proj
 IMPLICIT none
 
@@ -10,16 +10,27 @@ TYPE(pj_object) :: pj, pjll
 TYPE(pjuv_object) :: coordg, coordp, coordgc
 REAL(kind=c_double) :: x(4), y(4), z(4), xorig(4), yorig(4)
 INTEGER :: res
+CHARACTER(len=512) :: proj_string
 
+proj_string = &
+ '+proj=utm +zone=32 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0'
 ! initialize a projection object from a string, remember //char(0)!
-pj = pj_init_plus('+proj=utm +zone=32 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +towgs84=0,0,0'//CHAR(0))
+PRINT*,TRIM(proj_string)
+pj = pj_init_plus(TRIM(proj_string)//CHAR(0))
 PRINT*,'Associated:',pj_associated(pj)
 IF (.NOT.pj_associated(pj)) CALL EXIT(1)
+PRINT*,'Geographic:',pj_is_latlong(pj)
 
 ! build a corresponding latlon projection
+PRINT*,'Corresponding latlon projection'
 pjll = pj_latlong_from_proj(pj)
 IF (.NOT.pj_associated(pjll)) CALL EXIT(1)
 PRINT*,'Associated:',pj_associated(pjll)
+PRINT*,'Geographic:',pj_is_latlong(pjll)
+! retrieve the projection string defined by proj, the trick described
+! in the fortranc library is used
+proj_string = strtofchar(pj_get_def(pjll, 0), LEN(proj_string))
+PRINT*,TRIM(proj_string)
 
 PRINT*,'Converting through a pjuv object'
 ! define a coordinate set, it is latlong so convert to radians
