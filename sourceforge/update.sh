@@ -6,6 +6,6 @@ echo "Updating version $VERSION"
 
 scp README ../fortrangis-$VERSION.tar.gz \
     sffile:/home/frs/project/fortrangis/fortrangis/
-scp index.php projnews.html *.css sffile:/home/project-web/fortrangis/htdocs
+scp *.php projnews.html *.css sffile:/home/project-web/fortrangis/htdocs
 rsync -a --delete ../doc/html/ sffile:/home/project-web/fortrangis/htdocs/doc
 

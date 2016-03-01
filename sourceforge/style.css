@@ -29,7 +29,7 @@ A:hover {
 }
 
 #header_wrapper {
-  /* background: #4E7DD1 url('../img/menu_bg.png') bottom left repeat-x; */
+  /* background: #4E7DD1 url('img/menu_bg.png') bottom left repeat-x; */
   background: #7F8FC0;
   margin:0px; padding:0px;
 }
@@ -37,7 +37,7 @@ A:hover {
 #header {
   height: 60px;
   padding:15px;
-  background: url('../img/header_bg.jpg') top right repeat-x;
+  background: url('img/header_bg.jpg') top right repeat-x;
   margin:0px;
 }
 
@@ -61,14 +61,14 @@ A:hover {
   margin-top: 10px;
   float: left;
   width: 160px;
-  background: #F1F6FE url('../img/side_bg.png') bottom left repeat-x;
+  background: #F1F6FE url('img/side_bg.png') bottom left repeat-x;
 }
 
 #right_side {
   margin-top: 10px;
   float: right;
   width: 160px;
-  background: #F1F6FE url('../img/side_bg.png') bottom left repeat-x;
+  background: #F1F6FE url('img/side_bg.png') bottom left repeat-x;
 }
 
 #content {
@@ -184,7 +184,7 @@ A:hover {
   margin-left: 3px;
   border: 1px solid #0F3974;
   border-bottom: none;
-  background: #2153AA url('../img/tab_bg.png') bottom left repeat-x;
+  background: #2153AA url('img/tab_bg.png') bottom left repeat-x;
   text-decoration: none;
 }
 

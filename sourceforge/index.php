@@ -20,28 +20,12 @@
 
 <div id="navcontainer">
 <!-- <div class="rl2"> -->
-
 <ul id="navlist">
 <li id="active"><a href="#" id="current">Home</a></li>
-
-<?php
-#if (strpos($_SERVER['SERVER_NAME'],"berlios")) {
-#$summ = "http://developer.berlios.de/projects/fortrangis/";
-#$files = "http://developer.berlios.de/project/showfiles.php?group_id=12472";
-#} else {
-#$summ = "http://sourceforge.net/projects/fortrangis/";
-#$files = "http://sourceforge.net/projects/fortrangis/files/fortrangis/";
-$summ = "https://github.com/dcesari/fortrangis";
-$rawsource = "https://github.com/dcesari/fortrangis/releases";
-$confsource = "http://sourceforge.net/projects/fortrangis/files/fortrangis/";
-#}
-echo '<li><a href="' . $summ . '">Summary</a></li>';
-echo '<li><a href="' . $rawsource . '">Download&nbsp;gh</a></li>';
-echo '<li><a href="' . $confsource . '">Download&nbsp;sf</a></li>';
-?>
+<li><a href="https://github.com/dcesari/fortrangis">Summary</a></li>
+<li><a href="download.php">Download</a></li>
 <li><a href="https://github.com/dcesari/fortrangis">Browse&nbsp;source</a></li>
 <li><a href="doc/index.html">Documentation</a></li>
-
 </ul>
 </div>
 
