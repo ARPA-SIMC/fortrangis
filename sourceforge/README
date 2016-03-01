@@ -1,3 +1,6 @@
+New in version 2.5:
+- Improvement and stabilisation of proj interface
+
 New in version 2.4:
 - Bug fix for some gdal interfaces missing
 - Array arguments replaced by intent(out) where required

@@ -25,17 +25,21 @@
 <li id="active"><a href="#" id="current">Home</a></li>
 
 <?php
-if (strpos($_SERVER['SERVER_NAME'],"berlios")) {
-$summ = "http://developer.berlios.de/projects/fortrangis/";
-$files = "http://developer.berlios.de/project/showfiles.php?group_id=12472";
-} else {
-$summ = "http://sourceforge.net/projects/fortrangis/";
-$files = "http://sourceforge.net/projects/fortrangis/files/fortrangis/";
-}
+#if (strpos($_SERVER['SERVER_NAME'],"berlios")) {
+#$summ = "http://developer.berlios.de/projects/fortrangis/";
+#$files = "http://developer.berlios.de/project/showfiles.php?group_id=12472";
+#} else {
+#$summ = "http://sourceforge.net/projects/fortrangis/";
+#$files = "http://sourceforge.net/projects/fortrangis/files/fortrangis/";
+$summ = "https://github.com/dcesari/fortrangis";
+$rawsource = "https://github.com/dcesari/fortrangis/releases";
+$confsource = "http://sourceforge.net/projects/fortrangis/files/fortrangis/";
+#}
 echo '<li><a href="' . $summ . '">Summary</a></li>';
-echo '<li><a href="' . $files . '">Download</a></li>';
+echo '<li><a href="' . $rawsource . '">Download&nbsp;gh</a></li>';
+echo '<li><a href="' . $confsource . '">Download&nbsp;sf</a></li>';
 ?>
-<li><a href="https://sourceforge.net/p/fortrangis/code/HEAD/tree/">Browse SVN</a></li>
+<li><a href="https://github.com/dcesari/fortrangis">Browse&nbsp;source</a></li>
 <li><a href="doc/index.html">Documentation</a></li>
 
 </ul>
@@ -46,11 +50,7 @@ echo '<li><a href="' . $files . '">Download</a></li>';
 <div id="left_side">
 
 <?php
-if (strpos($_SERVER['SERVER_NAME'],"berlios")) {
-echo '<a href="http://developer.berlios.de"><img src="http://developer.berlios.de/bslogo.php?group_id=12472" width="124" height="32" border="0" alt="BerliOS Logo" /></a>';
-} else {
 echo '<a href="http://sourceforge.net/projects/fortrangis"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=603237&amp;type=15" width="150" height="40" alt="Get FortranGIS at SourceForge.net. Fast, secure and Free Open Source software downloads" /></a>';
-}
 ?>
 
 <h3>News from the project</h3>
@@ -86,8 +86,7 @@ and ReadOSM.</p>
 <a href="http://shapelib.maptools.org/">Shapelib</a> is a library for
 handling ESRI shapefiles, a very common vector file format in
 GIS. This Fortran interface covers the full Shapelib API, including
-reading and writing of all kinds of shapes and dbf attributes
-supported.<br />
+reading and writing of all kinds of shapes and dbf attributes.<br />
 
 All the procedures interfaced in Fortran are documented with
 Doxygen.<br />
@@ -127,8 +126,11 @@ you should refer to the original GDAL C API documentation.<br />
 
 <a href="http://trac.osgeo.org/proj/">Proj</a> is a library for
 handling a big number of geographical projections and coordinate
-conversions. The Fortran interface covers much of the library but is
-still untested and undocumented.<br />
+conversions. The Fortran interface covers the most common procedures
+of the proj library and is considered stable.<br />
+
+Here as well a Fortran-specific interface is available for some
+procedures.</br />
 
 </div>
 
@@ -157,9 +159,10 @@ Fortran 2003 features besides bindings to C, thus gfortran version 4.6
 or higher is recommended.</p>
 
 <p>The main hosting for this project is now
-<a href="http://fortrangis.sourceforge.net/">Sourceforge</a>,
-the original and no more updated pages on
-<a href="http://fortrangis.berlios.de/">Berlios</a> will remain online until the closure of the site.</p>
+<a href="https://github.com/dcesari/fortrangis">Github</a>,
+Sourceforge will continue to provide file releases and web pages but
+source repository is not updated there.
+</p>
 
 </div>
 

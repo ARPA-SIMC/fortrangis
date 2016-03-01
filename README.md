@@ -1,4 +1,4 @@
-## FortranGIS project
+## [FortranGIS project](http://fortrangis.sourceforge.net/index.php)
 
 FortranGIS project includes a collection of Fortran interfaces to some
 common Open Source GIS (Geographic Information System) software
@@ -12,18 +12,18 @@ ReadOSM.
 [Shapelib](http://shapelib.maptools.org/) is a library for handling ESRI shapefiles, a very common
 vector file format in GIS. This Fortran interface covers the full
 Shapelib API, including reading and writing of all kinds of shapes and
-dbf attributes supported.  All the procedures interfaced in Fortran
+dbf attributes.  All the procedures interfaced in Fortran
 are documented with Doxygen.  The Fortran API for Shapelib is stable
 and unlikely to undergo any change.
 
 #### Gdal
 
-[GDAL](http://www.gdal.org/) is a library for the input/output of a number of georeferenced
-raster (gridded) data formats. Since release 2.0, this Fortran
-interface includes bindings to almost all the GDAL C functions,
-allowing read and write of any file format supported by GDAL. This
-incidentally allows to read in Fortran also common graphic formats
-such as jpeg, png and gif. For some common procedures, a
+[GDAL](http://www.gdal.org/) is a library for the input/output of a
+number of georeferenced raster (gridded) data formats. Since release
+2.0, this Fortran interface includes bindings to almost all the GDAL C
+functions, allowing read and write of any file format supported by
+GDAL. This incidentally allows to read in Fortran also common graphic
+formats such as jpeg, png and gif. For some common procedures, a
 Fortran-specific interface is available, thus simplifying the work for
 Fortran programmers. The Fortran-specific procedures are documented
 with Doxygen, while for the procedures directly interfaced to the
@@ -32,16 +32,19 @@ documentation.
 
 #### Proj
 
-[Proj](http://trac.osgeo.org/proj/) is a library for handling a big number of geographical
-projections and coordinate conversions. The Fortran interface covers
-much of the library but is still untested and undocumented.
+[Proj](http://trac.osgeo.org/proj/) is a library for handling a big
+number of geographical projections and coordinate conversions. The
+Fortran interface covers the most common procedures of the proj
+library and is considered stable. Here as well a Fortran-specific
+interface is available for some procedures.
 
 #### ReadOSM
 
-[ReadOSM](https://www.gaia-gis.it/fossil/readosm/index) is a library for extracting data from Open Street Map .osm and
-.osm.pbf files which can be downloaded with various tools from the
-[OpenStreetMap](http://openstreetmap.org/) platform. It is still experimental and is not built by
-default.
+[ReadOSM](https://www.gaia-gis.it/fossil/readosm/index) is a library
+for extracting data from Open Street Map .osm and .osm.pbf files which
+can be downloaded with various tools from the
+[OpenStreetMap](http://openstreetmap.org/) platform. It is still
+experimental and is not built by default.
 
 ## Interfacing to C
 
