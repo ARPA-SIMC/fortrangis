@@ -67,9 +67,6 @@ make DESTDIR=%{buildroot} install
 %defattr(-,root,root,-)
 %doc %{_datadir}/doc/%{name}-%{version}/html
 
-%clean
-rm -rf %{buildroot}
-
 %pre
 
 %post
