@@ -57,11 +57,7 @@ make DESTDIR=%{buildroot} install
 %{_libdir}/*.a
 %{_libdir}/*.la
 %{_libdir}/*.so
-%if 0%{?fedora} < 9
-%{_includedir}/*
-%else
 %{_fmoddir}/*.mod
-%endif
 
 %files -n fortrangis-doc
 %defattr(-,root,root,-)
@@ -76,5 +72,5 @@ make DESTDIR=%{buildroot} install
 %postun
 
 %changelog
-* The Jul 12 2016 Daniele Branchini <dbranchini@arpae.it> - 2.4-2
+* Tue Jul 12 2016 Daniele Branchini <dbranchini@arpae.it> - 2.4-2
 - automatizing rpmbuild
