@@ -37,6 +37,9 @@ The libraries interfaced at the moment are Shapelib, GDAL and Proj.
 %setup -q -n %{name}-%{version}-%{release}
 
 %build
+
+autoreconf -ifv
+
 %configure CPPFLAGS=-I/usr/include/libshp
 make 
 
