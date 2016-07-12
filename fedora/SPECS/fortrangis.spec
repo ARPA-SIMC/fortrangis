@@ -1,18 +1,15 @@
 Summary: FortranGIS Fortran interfaces Open Source GIS libraries 
 Name: fortrangis
 Version: 2.4
-Release: 1
+Release: 2
 License: LGPL
 Group: Applications/GIS
 URL: http://fortrangis.berlios.de/
 Packager: Davide Cesari <dcesari69@gmail.com>
-Source: %{name}-%{version}.tar.gz
-BuildRoot: /var/tmp/%{name}-buildroot
+#Source: %{name}-%{version}.tar.gz
+Source: https://github.com/arpa-simc/%{name}/archive/v%{version}-%{release}.tar.gz#/%{name}-%{version}-%{release}.tar.gz
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildRequires: shapelib-devel gdal-devel proj-devel
-
-%if 0%{?fedora} < 9
-%define _fmoddir       %{_libdir}/gfortran/modules
-%endif
 
 %package -n fortrangis-devel
 Summary:  FortranGIS development files
@@ -37,18 +34,18 @@ Open Source GIS libraries, plus some more Fortran-specific tools.
 The libraries interfaced at the moment are Shapelib, GDAL and Proj.
 
 %prep
-%setup -q
+%setup -q -n %{name}-%{version}-%{release}
 
 %build
 %configure CPPFLAGS=-I/usr/include/libshp
 make 
 
 %install
+[ "%{buildroot}" != / ] && rm -rf "%{buildroot}"
 make DESTDIR=%{buildroot} install
-%if 0%{?fedora} >= 9
-mkdir -p $RPM_BUILD_ROOT%{_fmoddir}
-mv $RPM_BUILD_ROOT%{_includedir}/*.mod $RPM_BUILD_ROOT%{_fmoddir}
-%endif
+
+%clean
+[ "%{buildroot}" != / ] && rm -rf "%{buildroot}"
 
 %files
 %defattr(-, root, root)
@@ -82,3 +79,5 @@ rm -rf %{buildroot}
 %postun
 
 %changelog
+* The Jul 12 2016 Daniele Branchini <dbranchini@arpae.it> - 2.4-2
+- automatizing rpmbuild
