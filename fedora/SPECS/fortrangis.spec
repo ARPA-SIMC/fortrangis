@@ -46,6 +46,10 @@ make
 %install
 [ "%{buildroot}" != / ] && rm -rf "%{buildroot}"
 make DESTDIR=%{buildroot} install
+%if 0%{?fedora} >= 9
+mkdir -p $RPM_BUILD_ROOT%{_fmoddir}
+mv $RPM_BUILD_ROOT%{_includedir}/*.mod $RPM_BUILD_ROOT%{_fmoddir}
+%endif
 
 %clean
 [ "%{buildroot}" != / ] && rm -rf "%{buildroot}"
