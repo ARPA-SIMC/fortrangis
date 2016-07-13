@@ -38,6 +38,8 @@ The libraries interfaced at the moment are Shapelib, GDAL and Proj.
 
 %build
 
+unset FCFLAGS
+
 autoreconf -ifv
 
 %configure
@@ -58,7 +60,7 @@ mv $RPM_BUILD_ROOT%{_includedir}/*.mod $RPM_BUILD_ROOT%{_fmoddir}
 %defattr(-, root, root)
 %{_libdir}/*.so.*
 %doc %{_datadir}/doc/%{name}-%{version}/COPYING
-%doc %{_datadir}/doc/%{name}-%{version}/README
+%doc %{_datadir}/doc/%{name}-%{version}/README.md
 
 %files -n fortrangis-devel
 %{_libdir}/*.a
@@ -79,7 +81,7 @@ mv $RPM_BUILD_ROOT%{_includedir}/*.mod $RPM_BUILD_ROOT%{_fmoddir}
 %postun
 
 %changelog
-* Wed Jul 13 2016 Daniele Branchini <dbranchini@arpae.it> - 2.5-1
+* Wed Jul 13 2016 Daniele Branchini <dbranchini@arpae.it> - 2.6-1
 - upstream patch for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=68040
 
 * Tue Jul 12 2016 Daniele Branchini <dbranchini@arpae.it> - 2.4-2
