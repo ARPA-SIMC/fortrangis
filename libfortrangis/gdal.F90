@@ -114,7 +114,7 @@ INCLUDE 'gdalproto_type.f90'
 INTERFACE
   SUBROUTINE gdalapplygeotransform(padfgeotransform, dfpixel, dfline, pdfgeox, pdfgeoy) BIND(C,name='GDALApplyGeoTransform')
   IMPORT
-!GCC$ ATTRIBUTES STDCALL :: GDALApplyGeoTransform
+!!GCC$ ATTRIBUTES STDCALL :: GDALApplyGeoTransform
   REAL(kind=c_double) :: padfgeotransform(*)
   REAL(kind=c_double),VALUE :: dfpixel
   REAL(kind=c_double),VALUE :: dfline
@@ -127,7 +127,7 @@ INTERFACE
   FUNCTION gdalgcpstogeotransform(ngcpcount, pasgcps, padfgeotransform, bapproxok) &
    BIND(C,name='GDALGCPsToGeoTransform')
   IMPORT
-!GCC$ ATTRIBUTES STDCALL :: GDALGCPsToGeoTransform
+!!GCC$ ATTRIBUTES STDCALL :: GDALGCPsToGeoTransform
   INTEGER(kind=c_int),VALUE :: ngcpcount
   TYPE(gdal_gcp),INTENT(in) :: pasgcps
   REAL(kind=c_double) :: padfgeotransform(*)
