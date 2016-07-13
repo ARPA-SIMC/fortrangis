@@ -1,7 +1,7 @@
 Summary: FortranGIS Fortran interfaces Open Source GIS libraries 
 Name: fortrangis
-Version: 2.4
-Release: 2
+Version: 2.6
+Release: 1
 License: LGPL
 Group: Applications/GIS
 URL: http://fortrangis.berlios.de/
@@ -79,5 +79,9 @@ mv $RPM_BUILD_ROOT%{_includedir}/*.mod $RPM_BUILD_ROOT%{_fmoddir}
 %postun
 
 %changelog
+* Wed Jul 12 2016 Daniele Branchini <dbranchini@arpae.it> - 2.5-1
+- upstream patch for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=68040
+
 * Tue Jul 12 2016 Daniele Branchini <dbranchini@arpae.it> - 2.4-2
 - automatizing rpmbuild
+
