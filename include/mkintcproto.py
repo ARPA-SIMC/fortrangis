@@ -5,6 +5,8 @@ import textwrap
 
 # usage:
 # cpp -Ixx src.c | cproto | ../mkintcproto.py > interface.f90
+# no!
+# mkintcproto.py gdalproto.c
 
 declre = re.compile(r"^(const )?(.*[ *] ?)([a-zA-Z_][a-zA-Z_0-9]*)\((.*)\) *; *(/\* *out\*/)? *$")
 argre = re.compile(r"^(const )?([a-zA-Z_][a-zA-Z_0-9]* ?)(\*\*?)? ?([a-zA-Z_][a-zA-Z_0-9]*)")
@@ -176,7 +178,8 @@ for line in ic.readlines():
                 width=127, initial_indent="  ", subsequent_indent="   ")))
         ointerf.write("\n  IMPORT\n")
 # for interfacing to win32 libs with gcc/gfortran
-        ointerf.write("!GCC$ ATTRIBUTES STDCALL :: %s\n" % (name,))
+# double commented because of a bug with gfortran 5>
+        ointerf.write("!!GCC$ ATTRIBUTES STDCALL :: %s\n" % (name,))
         odoxy.write("!!  - %s() -> %s %s()\n" % (name, proc, name.lower()))
 
         for line in argdecllist: ointerf.write("  "+line+"\n")
