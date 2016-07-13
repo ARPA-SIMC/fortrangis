@@ -40,7 +40,7 @@ The libraries interfaced at the moment are Shapelib, GDAL and Proj.
 
 autoreconf -ifv
 
-%configure CPPFLAGS=-I/usr/include/libshp
+%configure
 make 
 
 %install
@@ -79,7 +79,7 @@ mv $RPM_BUILD_ROOT%{_includedir}/*.mod $RPM_BUILD_ROOT%{_fmoddir}
 %postun
 
 %changelog
-* Wed Jul 12 2016 Daniele Branchini <dbranchini@arpae.it> - 2.5-1
+* Wed Jul 13 2016 Daniele Branchini <dbranchini@arpae.it> - 2.5-1
 - upstream patch for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=68040
 
 * Tue Jul 12 2016 Daniele Branchini <dbranchini@arpae.it> - 2.4-2
