@@ -334,7 +334,7 @@ END FUNCTION fchartrimtostr
 
 SUBROUTINE strtofchararr_assign(fchar, string)
 #ifdef DLL_EXPORT
-!GCC$ ATTRIBUTES DLLEXPORT :: strtofchar_chararr
+!GCC$ ATTRIBUTES DLLEXPORT :: strtofchararr_assign
 #endif
 CHARACTER(kind=c_char,len=1),ALLOCATABLE,INTENT(out) :: fchar(:)
 TYPE(c_ptr),INTENT(in) :: string
