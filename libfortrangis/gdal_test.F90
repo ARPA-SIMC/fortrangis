@@ -33,8 +33,10 @@ PRINT*,'Creating a GeoTIFF gdal dataset'
 i1 = 120
 j1 = 80
 k1 = 3
+!ds = gdalcreate(driver, TRIM(file)//CHAR(0), i1, j1, k1, gdt_byte, &
+! c_ptr_ptr_getobject(c_ptr_ptr_new((/('',i=1,0)/))))
 ds = gdalcreate(driver, TRIM(file)//CHAR(0), i1, j1, k1, gdt_byte, &
- c_ptr_ptr_getobject(c_ptr_ptr_new((/('',i=1,0)/))))
+ c_ptr_ptr_getobject(c_ptr_ptr_new((/'BIGTIFF=YES     ','COMPRESS=DEFLATE'/))))
 ! (/('',i=1,0)/) is a trick to define a zero-length array on the fly,
 ! since we do not want to pass any specific option
 IF (.NOT.gdalassociated(ds)) THEN
