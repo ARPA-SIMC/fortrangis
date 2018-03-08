@@ -9,7 +9,7 @@ Packager: Davide Cesari <dcesari69@gmail.com>
 #Source: %{name}-%{version}.tar.gz
 Source: https://github.com/arpa-simc/%{name}/archive/v%{version}-%{release}.tar.gz#/%{name}-%{version}-%{release}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
-BuildRequires: shapelib-devel gdal-devel proj-devel
+BuildRequires: libtool, doxygen, gcc-gfortran, shapelib-devel, gdal-devel, proj-devel
 
 %package -n fortrangis-devel
 Summary:  FortranGIS development files
