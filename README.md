@@ -1,7 +1,6 @@
 ## [FortranGIS project](http://fortrangis.sourceforge.net/index.php)
 
 #### Build status
-------------
 
 | Environment | Status |
 | ----------- | ------ |
