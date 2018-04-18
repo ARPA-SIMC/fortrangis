@@ -1,7 +1,7 @@
 Summary: FortranGIS Fortran interfaces Open Source GIS libraries 
 Name: fortrangis
 Version: 2.6
-Release: 2
+Release: 3
 License: LGPL
 Group: Applications/GIS
 URL: http://fortrangis.berlios.de/
@@ -94,6 +94,9 @@ mv $RPM_BUILD_ROOT%{_includedir}/*.mod $RPM_BUILD_ROOT%{_fmoddir}
 %postun
 
 %changelog
+* Wed Apr 18 2018 Daniele Branchini <dbranchini@arpae.it> - 2.6-3
+- enabling integration with SIMC copr repo
+
 * Wed Mar 14 2018 Daniele Branchini <dbranchini@arpae.it> - 2.6-2
 - enabling CentOs build and travis integration
 
