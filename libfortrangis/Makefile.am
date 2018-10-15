@@ -21,20 +21,25 @@ nodist_include_HEADERS += shapelib.mod
 
 check_PROGRAMS += shapelib_test
 shapelib_test_SOURCES = shapelib_test.F90
-#shapelib_test_CPPFLAGS = -I../libfortranc
 shapelib_test_LDADD = libfortrangis.la
 
 noinst_PROGRAMS += ung2shp
 ung2shp_SOURCES = ung2shp.F90
 ung2shp_LDADD = libfortrangis.la
+# add since F29, needed because of .mod, the dependency on
+# shapelib.$(OBJEXT), more logical, does not work
+ung2shp.o: libfortrangis.la
+#ung2shp.o: shapelib.$(OBJEXT)
 
 noinst_PROGRAMS += shapelib_dump
 shapelib_dump_SOURCES = shapelib_dump.F90
 shapelib_dump_LDADD = libfortrangis.la
+shapelib_dump.o: libfortrangis.la
 
 noinst_PROGRAMS += shp_fxtr
 shp_fxtr_SOURCES = shp_fxtr.F90
 shp_fxtr_LDADD = libfortrangis.la
+shp_fxtr_dump.o: libfortrangis.la
 endif
 
 if PROJ
