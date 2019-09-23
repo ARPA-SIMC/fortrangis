@@ -1,10 +1,14 @@
+# moved from libfortrangis_ to AM_ to avoid private _FCFLAGS for
+# programs, which break object file naming, similar to
+# https://stackoverflow.com/questions/42226738/why-is-automake-prefixing-my-object-files-with-the-package-name
+AM_FCFLAGS = -I../libfortranc -I../include
 lib_LTLIBRARIES = libfortrangis.la
 libfortrangis_la_SOURCES = 
 libfortrangis_la_LIBADD = ../libfortranc/libfortranc.la
-libfortrangis_la_CPPFLAGS = -I../libfortranc -I../include
 libfortrangis_la_LDFLAGS =
 nodist_include_HEADERS = 
 noinst_PROGRAMS =
+
 
 if VERSIONINFO
 libfortrangis_la_LDFLAGS += -version-info @VERSIONLIB@
@@ -21,20 +25,22 @@ nodist_include_HEADERS += shapelib.mod
 
 check_PROGRAMS += shapelib_test
 shapelib_test_SOURCES = shapelib_test.F90
-#shapelib_test_CPPFLAGS = -I../libfortranc
 shapelib_test_LDADD = libfortrangis.la
 
 noinst_PROGRAMS += ung2shp
 ung2shp_SOURCES = ung2shp.F90
 ung2shp_LDADD = libfortrangis.la
+ung2shp.$(OBJEXT): libfortrangis.la
 
 noinst_PROGRAMS += shapelib_dump
 shapelib_dump_SOURCES = shapelib_dump.F90
 shapelib_dump_LDADD = libfortrangis.la
+shapelib_dump.$(OBJEXT): libfortrangis.la
 
 noinst_PROGRAMS += shp_fxtr
 shp_fxtr_SOURCES = shp_fxtr.F90
 shp_fxtr_LDADD = libfortrangis.la
+shp_fxtr.$(OBJEXT): libfortrangis.la
 endif
 
 if PROJ
