@@ -34,7 +34,7 @@ CHARACTER(len=lencharattr) :: charattrr
 INTEGER :: intattrr
 REAL(kind=c_double) :: doubleattrr
 
-!CALL getarg(1,filename)
+!CALL get_command_argument(1,filename)
 !IF (filename == '') THEN
 !  PRINT'(A)','Usage: shape_test <shp_file>'
 !  STOP
