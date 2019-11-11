@@ -8,7 +8,15 @@ URL: http://fortrangis.berlios.de/
 Packager: Davide Cesari <dcesari69@gmail.com>
 Source: https://github.com/arpa-simc/%{name}/archive/v%{version}-%{release}.tar.gz#/%{name}-%{version}-%{release}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
-BuildRequires: libtool, doxygen, gcc-gfortran, shapelib-devel, gdal-devel, proj-devel
+BuildRequires: libtool
+BuildRequires: doxygen
+BuildRequires: gcc-gfortran
+BuildRequires: shapelib-devel
+BuildRequires: proj-devel
+# Gdal not available in el8
+# waiting for https://bugzilla.redhat.com/show_bug.cgi?id=1741567
+%{!?el8:Buildrequires: gdal-devel}
+
 
 %if 0%{?fedora} < 9 || 0%{?rhel}
 %define _fmoddir       %{_libdir}/gfortran/modules
@@ -49,7 +57,7 @@ unset FCFLAGS
 
 autoreconf -ifv
 
-%configure %{?fedora:CPPFLAGS=-I/usr/include/libshp} %{?rhel:--disable-doxydoc}
+%configure %{?fedora:CPPFLAGS=-I/usr/include/libshp} %{?rhel:--disable-doxydoc} %{?el8:--disable-gdal}
 make 
 
 %install
