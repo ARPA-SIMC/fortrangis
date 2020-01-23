@@ -1,7 +1,7 @@
 Summary: FortranGIS Fortran interfaces Open Source GIS libraries 
 Name: fortrangis
 Version: 2.6
-Release: 4
+Release: 5
 License: LGPL
 Group: Applications/GIS
 URL: http://fortrangis.berlios.de/
@@ -13,10 +13,7 @@ BuildRequires: doxygen
 BuildRequires: gcc-gfortran
 BuildRequires: shapelib-devel
 BuildRequires: proj-devel
-# Gdal not available in el8
-# waiting for https://bugzilla.redhat.com/show_bug.cgi?id=1741567
-%{!?el8:Buildrequires: gdal-devel}
-
+Buildrequires: gdal-devel
 
 %if 0%{?fedora} < 9 || 0%{?rhel}
 %define _fmoddir       %{_libdir}/gfortran/modules
@@ -57,7 +54,7 @@ unset FCFLAGS
 
 autoreconf -ifv
 
-%configure %{?fedora:CPPFLAGS=-I/usr/include/libshp} %{?rhel:--disable-doxydoc} %{?el8:--disable-gdal}
+%configure %{?fedora:CPPFLAGS=-I/usr/include/libshp} %{?rhel:--disable-doxydoc}
 make 
 
 %install
@@ -102,6 +99,9 @@ mv $RPM_BUILD_ROOT%{_includedir}/*.mod $RPM_BUILD_ROOT%{_fmoddir}
 %postun
 
 %changelog
+* Thu Jan 23 2020 Daniele Branchini <dbranchini@arpae.it> - 2.6-5
+- Restored gdal dependency for CentOS 8 build
+
 * Mon Oct 15 2018 Daniele Branchini <dbranchini@arpae.it> - 2.6-4
 - added dependencies for example programs (hotfix for f29 builds)
 
@@ -116,4 +116,3 @@ mv $RPM_BUILD_ROOT%{_includedir}/*.mod $RPM_BUILD_ROOT%{_fmoddir}
 
 * Tue Jul 12 2016 Daniele Branchini <dbranchini@arpae.it> - 2.4-2
 - automatizing rpmbuild
-
