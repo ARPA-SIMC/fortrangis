@@ -1,7 +1,7 @@
 Summary: FortranGIS Fortran interfaces Open Source GIS libraries 
 Name: fortrangis
 Version: 2.6
-Release: 5
+Release: 6
 License: LGPL
 Group: Applications/GIS
 URL: http://fortrangis.berlios.de/
@@ -99,6 +99,9 @@ mv $RPM_BUILD_ROOT%{_includedir}/*.mod $RPM_BUILD_ROOT%{_fmoddir}
 %postun
 
 %changelog
+* Fri Jun  5 2020 Daniele Branchini <dbranchini@arpae.it> - 2.6-6
+- Bogus release to rebuild on new official gdal CentOS 8 package
+
 * Thu Jan 23 2020 Daniele Branchini <dbranchini@arpae.it> - 2.6-5
 - Restored gdal dependency for CentOS 8 build
 
