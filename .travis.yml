@@ -23,3 +23,4 @@ deploy:
   true:
     branch: master
     condition: $DOCKER_IMAGE = centos:8
+dist: bionic
