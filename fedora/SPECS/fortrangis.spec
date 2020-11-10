@@ -50,15 +50,12 @@ The libraries interfaced at the moment are Shapelib, GDAL and Proj.
 
 %build
 
-unset FCFLAGS
-
 autoreconf -ifv
 
 %configure %{?fedora:CPPFLAGS=-I/usr/include/libshp} %{?rhel:--disable-doxydoc}
 make 
 
 %install
-[ "%{buildroot}" != / ] && rm -rf "%{buildroot}"
 make DESTDIR=%{buildroot} install
 %if 0%{?fedora} >= 9  || 0%{?rhel}
 mkdir -p $RPM_BUILD_ROOT%{_fmoddir}
@@ -119,3 +116,8 @@ mv $RPM_BUILD_ROOT%{_includedir}/*.mod $RPM_BUILD_ROOT%{_fmoddir}
 
 * Tue Jul 12 2016 Daniele Branchini <dbranchini@arpae.it> - 2.4-2
 - automatizing rpmbuild
+
+* Tue Mar 22 2016 Dario Mastropasqua,,, <dariomas@users.noreply.github.com> 2.4-2
+- disabled fortrangis-doc package in RHEL (CentOS) because doxygen crashes
+- corrected Fortran mod dir for RHEL (CentOS)
+

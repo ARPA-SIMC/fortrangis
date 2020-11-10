@@ -16,6 +16,7 @@ libtool
 Makefile.in
 Makefile
 Doxyfile
+doc/html/
 .deps
 .libs
 *.o
@@ -23,3 +24,9 @@ Doxyfile
 *.la
 *.mod
 *.tar.gz
+*.trs
+*.log
+CMakeCache.txt
+*CMakeFiles/
+Testing/
+*.cmake

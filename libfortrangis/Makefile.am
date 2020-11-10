@@ -1,10 +1,14 @@
+# moved from libfortrangis_ to AM_ to avoid private _FCFLAGS for
+# programs, which break object file naming, similar to
+# https://stackoverflow.com/questions/42226738/why-is-automake-prefixing-my-object-files-with-the-package-name
+AM_FCFLAGS = -I../libfortranc -I../include
 lib_LTLIBRARIES = libfortrangis.la
 libfortrangis_la_SOURCES = 
 libfortrangis_la_LIBADD = ../libfortranc/libfortranc.la
-libfortrangis_la_CPPFLAGS = -I../libfortranc -I../include
 libfortrangis_la_LDFLAGS =
 nodist_include_HEADERS = 
 noinst_PROGRAMS =
+
 
 if VERSIONINFO
 libfortrangis_la_LDFLAGS += -version-info @VERSIONLIB@
