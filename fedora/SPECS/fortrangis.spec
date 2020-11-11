@@ -1,14 +1,19 @@
 Summary: FortranGIS Fortran interfaces Open Source GIS libraries 
 Name: fortrangis
 Version: 2.6
-Release: 2
+Release: 6
 License: LGPL
 Group: Applications/GIS
 URL: http://fortrangis.berlios.de/
 Packager: Davide Cesari <dcesari69@gmail.com>
 Source: https://github.com/arpa-simc/%{name}/archive/v%{version}-%{release}.tar.gz#/%{name}-%{version}-%{release}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
-BuildRequires: shapelib-devel gdal-devel proj-devel gcc-gfortran libtool
+BuildRequires: libtool
+BuildRequires: doxygen
+BuildRequires: gcc-gfortran
+BuildRequires: shapelib-devel
+BuildRequires: proj-devel
+Buildrequires: gdal-devel
 
 %if 0%{?fedora} < 9 || 0%{?rhel}
 %define _fmoddir       %{_libdir}/gfortran/modules
@@ -91,6 +96,21 @@ mv $RPM_BUILD_ROOT%{_includedir}/*.mod $RPM_BUILD_ROOT%{_fmoddir}
 %postun
 
 %changelog
+* Fri Jun  5 2020 Daniele Branchini <dbranchini@arpae.it> - 2.6-6
+- Bogus release to rebuild on new official gdal CentOS 8 package
+
+* Thu Jan 23 2020 Daniele Branchini <dbranchini@arpae.it> - 2.6-5
+- Restored gdal dependency for CentOS 8 build
+
+* Mon Oct 15 2018 Daniele Branchini <dbranchini@arpae.it> - 2.6-4
+- added dependencies for example programs (hotfix for f29 builds)
+
+* Wed Apr 18 2018 Daniele Branchini <dbranchini@arpae.it> - 2.6-3
+- enabling integration with SIMC copr repo
+
+* Wed Mar 14 2018 Daniele Branchini <dbranchini@arpae.it> - 2.6-2
+- enabling CentOs build and travis integration
+
 * Wed Jul 13 2016 Daniele Branchini <dbranchini@arpae.it> - 2.6-1
 - upstream patch for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=68040
 
@@ -100,3 +120,4 @@ mv $RPM_BUILD_ROOT%{_includedir}/*.mod $RPM_BUILD_ROOT%{_fmoddir}
 * Tue Mar 22 2016 Dario Mastropasqua,,, <dariomas@users.noreply.github.com> 2.4-2
 - disabled fortrangis-doc package in RHEL (CentOS) because doxygen crashes
 - corrected Fortran mod dir for RHEL (CentOS)
+
