@@ -4,7 +4,7 @@ VERSION=$(shell debian/vercheck)
 RELEASE_PACKAGE=fortrangis
 
 %:
-	dh $@ --no-parallel
+	dh $@ --with=fortran_mod --no-parallel
 
 vercheck:
 	debian/vercheck > /dev/null

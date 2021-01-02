@@ -3,7 +3,7 @@ Section: misc
 Priority: optional
 Maintainer: Enrico Zini <enrico@debian.org>
 Build-Depends:
-  debhelper (>= 12), dh-buildinfo, pkg-config,
+  debhelper (>= 12), dh-buildinfo, dh-fortran-mod (>= 0.11), pkg-config,
   doxygen, gfortran, libshp-dev, libproj-dev, libgdal-dev
 Standards-Version: 4.1.5
 Rules-Requires-Root: no
