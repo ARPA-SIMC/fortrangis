@@ -1,0 +1,13 @@
+#!/bin/sh
+VERSION_SRC=`sed -nre 's/^AC_INIT\([^[]+\[([^]]+)\].+/\1/p' configure.ac`
+VERSION_DEB=`sed -re 's/[^(]+\(([^-]+)-[^)]+\).+/\1/' -e 'q' debian/changelog`
+VERSION="$VERSION_SRC"
+
+if [ "$VERSION_SRC" != "$VERSION_DEB" ]
+then
+	echo "Version mismatch between source ($VERSION_SRC) and debian/changelog ($VERSION_DEB)" >&2
+	exit 1
+fi
+
+echo "$VERSION"
+exit 0
