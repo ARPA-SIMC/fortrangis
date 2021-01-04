@@ -96,7 +96,7 @@ AC_CHECK_LIB([readosm], [readosm_open],
 fi
 
 dnl Locate Fortran 90 compiler among these if not specified
-AC_PROG_FC([gfortran g95 pgf90 ifort xlf90 f90])
+AC_PROG_FC([ifort gfortran g95 pgf90 xlf90 f90])
 F77=$FC
 FFLAGS=$FCFLAGS
 
