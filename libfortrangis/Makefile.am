@@ -55,7 +55,7 @@ check_PROGRAMS += proj_test
 proj_test_SOURCES = proj_test.F90
 #proj_test_CPPFLAGS = -I../libfortranc
 proj_test_FCFLAGS = -I../libfortranc
-proj_test_LDADD = libfortrangis.la ../libfortranc/libfortranc.la
+proj_test_LDADD = libfortrangis.la ../libfortranc/libfortranc.la $(PROJ_LIBS)
 endif
 
 if GDAL
@@ -69,7 +69,7 @@ check_PROGRAMS += gdal_test
 gdal_test_SOURCES = gdal_test.F90
 gdal_test_CPPFLAGS = -I../libfortranc
 gdal_test_FCFLAGS = -I../libfortranc
-gdal_test_LDADD = libfortrangis.la ../libfortranc/libfortranc.la
+gdal_test_LDADD = libfortrangis.la ../libfortranc/libfortranc.la $(GDAL_LIBS)
 endif
 
 if READOSM

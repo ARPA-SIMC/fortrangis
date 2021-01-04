@@ -1,0 +1,44 @@
+Source: fortrangis
+Section: misc
+Priority: optional
+Maintainer: Enrico Zini <enrico@debian.org>
+Build-Depends:
+  debhelper (>= 12), dh-buildinfo, dh-fortran-mod (>= 0.11), pkg-config,
+  doxygen, gfortran, libshp-dev, libproj-dev, libgdal-dev
+Standards-Version: 4.1.5
+Rules-Requires-Root: no
+Homepage: https://github.com/ARPA-SIMC/fortrangis
+Vcs-Git: https://github.com/ARPA-SIMC/fortrangis.git
+
+Package: libfortrangis-dev
+Section: libdevel
+Architecture: any
+Depends: libfortrangis2 (= ${binary:Version}), ${misc:Depends}
+Recommends: pkg-config
+Description: FortranGIS development files
+ FortranGIS is a collection of Fortran interfaces to the most common
+ Open Source GIS libraries, plus some more Fortran-specific tools.
+ .
+ The libraries interfaced at the moment are Shapelib, GDAL and Proj.
+
+Package: libfortrangis-doc
+Section: doc
+Architecture: all
+Depends: ${misc:Depends}
+Description: Doxygen documentation for FortranGIS package
+ FortranGIS is a collection of Fortran interfaces to the most common
+ Open Source GIS libraries, plus some more Fortran-specific tools.
+ .
+ The libraries interfaced at the moment are Shapelib, GDAL and Proj.
+
+Package: libfortrangis2
+Section: libs
+Architecture: any
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: FortranGIS shared library
+ FortranGIS is a collection of Fortran interfaces to the most common
+ Open Source GIS libraries, plus some more Fortran-specific tools.
+ .
+ The libraries interfaced at the moment are Shapelib, GDAL and Proj.
