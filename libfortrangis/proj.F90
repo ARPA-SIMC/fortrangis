@@ -101,9 +101,9 @@ INTERFACE
   TYPE(pj_object),VALUE :: dst
   INTEGER(kind=c_long),VALUE :: point_count
   INTEGER(kind=c_int),VALUE :: point_offset
-  REAL(kind=c_double) :: x(*)
-  REAL(kind=c_double) :: y(*)
-  REAL(kind=c_double) :: z(*)
+  TYPE(C_PTR), VALUE :: x !< Must be C-pointer to an array real(kind=c_double) :: x(:)
+  TYPE(C_PTR), VALUE :: y !< Must be C-pointer to an array real(kind=c_double) :: y(:)
+  TYPE(C_PTR), VALUE :: z !< Must be C-pointer to an array real(kind=c_double) :: z(:)
   INTEGER(kind=c_int) :: pj_transform
   END FUNCTION pj_transform
 END INTERFACE
@@ -278,20 +278,17 @@ END FUNCTION pj_associated_object
 FUNCTION pj_transform_f(src, dst, x, y, z)
 TYPE(pj_object),VALUE :: src !< source coordinate system
 TYPE(pj_object),VALUE :: dst !< destination coordinate system
-REAL(kind=c_double) :: x(:) !< array of x coordinates
-REAL(kind=c_double) :: y(:) !< array of y coordinates
-REAL(kind=c_double),OPTIONAL :: z(:) !< optional array of z coordinates
+REAL(kind=c_double), TARGET           :: x(:) !< array of x coordinates
+REAL(kind=c_double), TARGET           :: y(:) !< array of y coordinates
+REAL(kind=c_double), TARGET, OPTIONAL :: z(:) !< optional array of z coordinates
 INTEGER(kind=c_int) :: pj_transform_f
-
-REAL(kind=c_double),POINTER :: dummyz(:)
 
 IF (PRESENT(z)) THEN
   pj_transform_f = pj_transform(src, dst, &
-   INT(MIN(SIZE(x),SIZE(y),SIZE(z)), kind=c_long), 1_c_int, x, y, z)
+   INT(MIN(SIZE(x),SIZE(y),SIZE(z)), kind=c_long), 1_c_int, C_LOC(x), C_LOC(y), C_LOC(z))
 ELSE
-  NULLIFY(dummyz)
   pj_transform_f = pj_transform(src, dst, &
-   INT(MIN(SIZE(x),SIZE(y)), kind=c_long), 1_c_int, x, y, dummyz)
+   INT(MIN(SIZE(x),SIZE(y)), kind=c_long), 1_c_int, C_LOC(x), C_LOC(y), C_NULL_PTR)
 ENDIF
 
 END FUNCTION pj_transform_f
