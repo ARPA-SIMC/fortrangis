@@ -285,10 +285,10 @@ INTEGER(kind=c_int) :: pj_transform_f
 
 IF (PRESENT(z)) THEN
   pj_transform_f = pj_transform(src, dst, &
-   INT(MIN(SIZE(x),SIZE(y),SIZE(z)), kind=c_long), 1_c_int, C_LOC(x), C_LOC(y), C_LOC(z))
+   INT(MIN(SIZE(x),SIZE(y),SIZE(z)), kind=c_long), 1_c_int, C_LOC(x(1)), C_LOC(y(1)), C_LOC(z(1)))
 ELSE
   pj_transform_f = pj_transform(src, dst, &
-   INT(MIN(SIZE(x),SIZE(y)), kind=c_long), 1_c_int, C_LOC(x), C_LOC(y), C_NULL_PTR)
+   INT(MIN(SIZE(x),SIZE(y)), kind=c_long), 1_c_int, C_LOC(x(1)), C_LOC(y(1)), C_NULL_PTR)
 ENDIF
 
 END FUNCTION pj_transform_f
