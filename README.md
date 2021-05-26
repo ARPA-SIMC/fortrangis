@@ -1,14 +1,10 @@
-[![Build Status](https://badges.herokuapp.com/travis/ARPA-SIMC/fortrangis?branch=master&env=DOCKER_IMAGE=centos:7&label=centos7)](https://travis-ci.org/ARPA-SIMC/fortrangis)
-[![Build Status](https://badges.herokuapp.com/travis/ARPA-SIMC/fortrangis?branch=master&env=DOCKER_IMAGE=centos:8&label=centos8)](https://travis-ci.org/ARPA-SIMC/fortrangis)
-[![Build Status](https://badges.herokuapp.com/travis/ARPA-SIMC/fortrangis?branch=master&env=DOCKER_IMAGE=fedora:32&label=fedora32)](https://travis-ci.org/ARPA-SIMC/fortrangis)
-[![Build Status](https://badges.herokuapp.com/travis/ARPA-SIMC/fortrangis?branch=master&env=DOCKER_IMAGE=fedora:33&label=fedora33)](https://travis-ci.org/ARPA-SIMC/fortrangis)
-[![Build Status](https://badges.herokuapp.com/travis/ARPA-SIMC/fortrangis?branch=master&env=DOCKER_IMAGE=fedora:rawhide&label=fedorarawhide)](https://travis-ci.org/ARPA-SIMC/fortrangis)
+[![Build Status](https://simc.arpae.it/moncic-ci/fortrangis/centos7.png)](https://simc.arpae.it/moncic-ci/fortrangis/)
+[![Build Status](https://simc.arpae.it/moncic-ci/fortrangis/centos8.png)](https://simc.arpae.it/moncic-ci/fortrangis/)
+[![Build Status](https://simc.arpae.it/moncic-ci/fortrangis/fedora32.png)](https://simc.arpae.it/moncic-ci/fortrangis/)
+[![Build Status](https://simc.arpae.it/moncic-ci/fortrangis/fedora34.png)](https://simc.arpae.it/moncic-ci/fortrangis/)
 [![Build Status](https://copr.fedorainfracloud.org/coprs/simc/stable/package/fortrangis/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/simc/stable/package/fortrangis/)
 
 ## [FortranGIS project](http://fortrangis.sourceforge.net/index.php)
-
-
-
 
 FortranGIS project includes a collection of Fortran interfaces to some
 common Open Source GIS (Geographic Information System) software

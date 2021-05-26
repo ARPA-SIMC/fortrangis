@@ -47,8 +47,6 @@ then
     cp fedora/SPECS/fortrangis.spec ~/rpmbuild/SPECS/fortrangis.spec
     git archive --prefix=$pkgname/ --format=tar HEAD | gzip -c > ~/rpmbuild/SOURCES/$pkgname.tar.gz
     rpmbuild -ba ~/rpmbuild/SPECS/fortrangis.spec
-    find ~/rpmbuild/{RPMS,SRPMS}/ -name "${pkgname}*rpm" -exec cp -v {} . \;
-    # TODO upload ${pkgname}*.rpm to github release on deploy stage
 else
     autoreconf -ifv
     ./configure
