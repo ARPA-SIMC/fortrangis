@@ -1,3 +1,6 @@
+# Note: define srcarchivename in CI build only.
+%{!?srcarchivename: %global srcarchivename %{name}-%{version}-%{release}}
+
 Summary: FortranGIS Fortran interfaces Open Source GIS libraries 
 Name: fortrangis
 Version: 2.6
@@ -6,7 +9,8 @@ License: LGPL
 Group: Applications/GIS
 URL: http://fortrangis.berlios.de/
 Packager: Davide Cesari <dcesari69@gmail.com>
-Source: https://github.com/arpa-simc/%{name}/archive/v%{version}-%{release}.tar.gz#/%{name}-%{version}-%{release}.tar.gz
+Source: https://github.com/arpa-simc/%{name}/archive/v%{version}-%{release}.tar.gz#/%{srcarchivename}.tar.gz
+
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildRequires: libtool
 BuildRequires: doxygen
@@ -46,7 +50,7 @@ Open Source GIS libraries, plus some more Fortran-specific tools.
 The libraries interfaced at the moment are Shapelib, GDAL and Proj.
 
 %prep
-%setup -q -n %{name}-%{version}-%{release}
+%setup -q -n %{srcarchivename}
 
 %build
 
