@@ -5,13 +5,8 @@
 # Require the minimum version for CMake - as suggested by CMake itself
 #
 cmake_minimum_required(VERSION 3.6)
-
-#
+PROJECT(fortrangis LANGUAGES C Fortran)
 # We need at least Fortran and C is required by CMake
-#
-enable_language(C)
-enable_language(Fortran)
-
 #
 # TODO: check ISO_C_BINDING
 #
