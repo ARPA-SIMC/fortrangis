@@ -22,6 +22,7 @@ option(BUILD_GDAL "Build Gdal library" ON)
 option(BUILD_READOSM "Build ReadOSM library" OFF)
 
 if(BUILD_SHAPELIB)
+  find_path(Shapelib_INCLUDE_DIR NAMES shapefil.h REQUIRED)
   find_library(SHAPELIB_LIBRARY
     NAMES shp shapelib
     )
