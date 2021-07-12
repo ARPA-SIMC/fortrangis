@@ -26,7 +26,5 @@ doc/html/
 *.tar.gz
 *.trs
 *.log
-CMakeCache.txt
-*CMakeFiles/
 Testing/
 *.cmake

@@ -5,13 +5,8 @@
 # Require the minimum version for CMake - as suggested by CMake itself
 #
 cmake_minimum_required(VERSION 3.6)
-
-#
+PROJECT(fortrangis LANGUAGES C Fortran)
 # We need at least Fortran and C is required by CMake
-#
-enable_language(C)
-enable_language(Fortran)
-
 #
 # TODO: check ISO_C_BINDING
 #
@@ -27,6 +22,7 @@ option(BUILD_GDAL "Build Gdal library" ON)
 option(BUILD_READOSM "Build ReadOSM library" OFF)
 
 if(BUILD_SHAPELIB)
+  find_path(Shapelib_INCLUDE_DIR NAMES shapefil.h REQUIRED)
   find_library(SHAPELIB_LIBRARY
     NAMES shp shapelib
     )
