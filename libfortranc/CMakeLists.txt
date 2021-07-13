@@ -7,7 +7,13 @@ set(fortranc_LIB_SRCS
     )
 
 add_library(fortranc ${fortranc_LIB_SRCS})
-target_include_directories(fortranc PRIVATE ${CMAKE_BINARY_DIR})
+
+set_target_properties(fortranc PROPERTIES Fortran_MODULE_DIRECTORY
+  ${PROJECT_BINARY_DIR}/modules)
+
+target_include_directories(fortranc PUBLIC
+  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/modules> PRIVATE
+  ${CMAKE_BINARY_DIR})
 
 # Skipping this: it relies on a Unix/Linx specific include file
 #add_executable(fortranc_test fortranc_test.F90 c_test.c)
