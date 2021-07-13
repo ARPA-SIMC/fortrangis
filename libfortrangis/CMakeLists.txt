@@ -39,7 +39,7 @@ endif(READOSM_LIBRARY)
 
 message(STATUS "${fortrangis_LIB_SRCS}")
 
-include_directories(${CMAKE_BINARY_DIR}/libfortranc ${CMAKE_BINARY_DIR}/include)
+include_directories(${CMAKE_BINARY_DIR}/libfortranc)
 add_library(fortranGIS ${fortrangis_LIB_SRCS} ${fortrangisc_LIB_SRCS})
 target_include_directories(fortranGIS PRIVATE ${Shapelib_INCLUDE_DIR})
 
