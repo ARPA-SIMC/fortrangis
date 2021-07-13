@@ -39,9 +39,9 @@ endif(READOSM_LIBRARY)
 
 message(STATUS "${fortrangis_LIB_SRCS}")
 
-include_directories(${CMAKE_BINARY_DIR}/libfortranc)
 add_library(fortranGIS ${fortrangis_LIB_SRCS} ${fortrangisc_LIB_SRCS})
 target_include_directories(fortranGIS PRIVATE ${Shapelib_INCLUDE_DIR})
+target_link_libraries(fortranGIS PRIVATE fortranc)
 
 if(SHAPELIB_LIBRARY)
    add_executable(shapelib_test shapelib_test.F90)
