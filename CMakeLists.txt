@@ -96,3 +96,20 @@ configure_file(
     )
 
 #summary()
+
+include(CMakePackageConfigHelpers)
+configure_package_config_file(Config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+    INSTALL_DESTINATION lib/cmake/${PROJECT_NAME})
+
+set(install_include_dir include/${PROJECT_NAME})
+
+install(DIRECTORY ${PROJECT_BINARY_DIR}/modules/ DESTINATION
+  ${install_include_dir})
+
+install(TARGETS fortranc fortranGIS EXPORT ${PROJECT_NAME}Targets LIBRARY
+  INCLUDES DESTINATION ${install_include_dir})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+  DESTINATION lib/cmake/${PROJECT_NAME})
+install(EXPORT ${PROJECT_NAME}Targets DESTINATION lib/cmake/${PROJECT_NAME})
+export(EXPORT ${PROJECT_NAME}Targets)
