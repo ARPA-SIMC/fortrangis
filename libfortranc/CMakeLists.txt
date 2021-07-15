@@ -13,7 +13,7 @@ set_target_properties(fortranc PROPERTIES Fortran_MODULE_DIRECTORY
 
 target_include_directories(fortranc PUBLIC
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/modules> PRIVATE
-  ${CMAKE_BINARY_DIR})
+  ${PROJECT_BINARY_DIR})
 
 # Skipping this: it relies on a Unix/Linx specific include file
 #add_executable(fortranc_test fortranc_test.F90 c_test.c)
