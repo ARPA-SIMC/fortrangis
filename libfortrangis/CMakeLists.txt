@@ -40,7 +40,7 @@ endif(READOSM_LIBRARY)
 message(STATUS "${fortrangis_LIB_SRCS}")
 
 add_library(fortranGIS ${fortrangis_LIB_SRCS} ${fortrangisc_LIB_SRCS})
-target_link_libraries(fortranGIS PRIVATE fortranc)
+target_link_libraries(fortranGIS PRIVATE fortranc ${SHAPELIB_LIBRARY})
 
 set_target_properties(fortranGIS PROPERTIES Fortran_MODULE_DIRECTORY
   ${PROJECT_BINARY_DIR}/modules)
