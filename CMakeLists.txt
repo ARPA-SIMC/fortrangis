@@ -97,13 +97,11 @@ configure_file(
 
 #summary()
 
-set(install_include_dir include/${PROJECT_NAME})
-
 install(DIRECTORY ${PROJECT_BINARY_DIR}/modules/ DESTINATION
-  ${install_include_dir})
+  include/${PROJECT_NAME})
 
 install(TARGETS fortranc fortranGIS EXPORT ${PROJECT_NAME}Targets LIBRARY
-  INCLUDES DESTINATION ${install_include_dir})
+  INCLUDES DESTINATION include/${PROJECT_NAME})
 install(EXPORT ${PROJECT_NAME}Targets DESTINATION lib/cmake/${PROJECT_NAME}
   FILE ${PROJECT_NAME}Config.cmake)
 export(EXPORT ${PROJECT_NAME}Targets)
