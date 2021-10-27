@@ -7,6 +7,7 @@ set(fortranc_LIB_SRCS
     )
 
 add_library(fortranc ${fortranc_LIB_SRCS})
+add_library(${PROJECT_NAME}::fortranc ALIAS fortranc)
 
 set_target_properties(fortranc PROPERTIES Fortran_MODULE_DIRECTORY
   ${PROJECT_BINARY_DIR}/modules)
