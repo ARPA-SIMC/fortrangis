@@ -1,6 +1,5 @@
 [![Build Status](https://simc.arpae.it/moncic-ci/fortrangis/centos7.png)](https://simc.arpae.it/moncic-ci/fortrangis/)
 [![Build Status](https://simc.arpae.it/moncic-ci/fortrangis/centos8.png)](https://simc.arpae.it/moncic-ci/fortrangis/)
-[![Build Status](https://simc.arpae.it/moncic-ci/fortrangis/fedora32.png)](https://simc.arpae.it/moncic-ci/fortrangis/)
 [![Build Status](https://simc.arpae.it/moncic-ci/fortrangis/fedora34.png)](https://simc.arpae.it/moncic-ci/fortrangis/)
 [![Build Status](https://copr.fedorainfracloud.org/coprs/simc/stable/package/fortrangis/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/simc/stable/package/fortrangis/)
 
