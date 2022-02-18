@@ -1,16 +1,16 @@
+%global releaseno 1
 # Note: define srcarchivename in CI build only.
-%{!?srcarchivename: %global srcarchivename %{name}-%{version}-%{release}}
+%{!?srcarchivename: %global srcarchivename %{name}-%{version}-%{releaseno}}
 
 Summary: FortranGIS Fortran interfaces Open Source GIS libraries 
 Name: fortrangis
-Version: 2.6
-Release: 6
+Version: 2.7
+Release: %{releaseno}%{dist}
 License: LGPL
 Group: Applications/GIS
 URL: http://fortrangis.berlios.de/
 Packager: Davide Cesari <dcesari69@gmail.com>
-Source: https://github.com/arpa-simc/%{name}/archive/v%{version}-%{release}.tar.gz#/%{srcarchivename}.tar.gz
-
+Source: https://github.com/arpa-simc/%{name}/archive/v%{version}-%{releaseno}.tar.gz#/%{srcarchivename}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildRequires: libtool
 BuildRequires: doxygen
@@ -100,6 +100,14 @@ mv $RPM_BUILD_ROOT%{_includedir}/*.mod $RPM_BUILD_ROOT%{_fmoddir}
 %postun
 
 %changelog
+* Fri Feb 18 2022 Daniele Branchini <dbranchini@arpae.it> - 2.7-1
+- Fixed spec for new CI
+- Fix interfacing witj proj C API (#10)
+- Improvements for cmake build system (#11,#12)
+- Fixed segmentation fault of `pj_transform_f`
+- Fixed issues in makefiles (#4)
+- Added autogen.sh (#6)
+
 * Fri Jun  5 2020 Daniele Branchini <dbranchini@arpae.it> - 2.6-6
 - Bogus release to rebuild on new official gdal CentOS 8 package
 
