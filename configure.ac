@@ -57,7 +57,7 @@ AC_ARG_ENABLE(proj, AC_HELP_STRING([--disable-proj],
 AM_CONDITIONAL(PROJ, test "x$enableval" = "xyes")
 
 if test "x$enableval" = "xyes"; then
-AC_CHECK_LIB([proj], [pj_init],
+AC_CHECK_LIB([proj], [proj_info],
  proj=yes
  PROJ_LIBS="-lproj"
  AC_SUBST(PROJ_LIBS)
