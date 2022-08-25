@@ -37,11 +37,14 @@ documentation.
 
 #### Proj
 
-[Proj](http://trac.osgeo.org/proj/) is a library for handling a big
-number of geographical projections and coordinate conversions. The
-Fortran interface covers the most common procedures of the proj
-library and is considered stable. Here as well a Fortran-specific
-interface is available for some procedures.
+[Proj](https://proj.org/) is a library for handling a big number of
+geographical projections and coordinate conversions. The Fortran
+interface covers bith the deprecated proj.4 API (available as legacy
+bindings up to proj version 7) and the new proj version 6 API. The
+availability of each of the interfaces is detected automatically at
+configure time. In both cases the most common procedures of the proj
+library are interfaced and they are considered stable. Here as well a
+Fortran-specific interface is available for some procedures.
 
 #### ReadOSM
 
