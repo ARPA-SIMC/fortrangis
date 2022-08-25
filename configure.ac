@@ -57,12 +57,17 @@ AC_ARG_ENABLE(proj, AC_HELP_STRING([--disable-proj],
 AM_CONDITIONAL(PROJ, test "x$enableval" = "xyes")
 
 if test "x$enableval" = "xyes"; then
-AC_CHECK_LIB([proj], [pj_init],
- proj=yes
- PROJ_LIBS="-lproj"
- AC_SUBST(PROJ_LIBS)
- AC_DEFINE(HAVE_LIBPROJ, 1, [Enable proj]),
- AC_MSG_ERROR([proj library not found]), )
+    AC_CHECK_LIB([proj], [pj_init], [proj=yes], [proj=no])
+    if test x$proj = xno; then
+        AC_CHECK_LIB([proj], [proj_info], [proj=yes], [proj=no])
+    fi
+    if test x$proj = xyes; then
+        PROJ_LIBS="-lproj"
+        AC_SUBST(PROJ_LIBS)
+        AC_DEFINE(HAVE_LIBPROJ, 1, [Enable proj])
+    else
+        AC_MSG_ERROR([proj library not found])
+    fi
 fi
 
 AC_ARG_ENABLE(shapelib, AC_HELP_STRING([--disable-shapelib],
