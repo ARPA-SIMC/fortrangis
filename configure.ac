@@ -57,9 +57,19 @@ AC_ARG_ENABLE(proj, AC_HELP_STRING([--disable-proj],
 AM_CONDITIONAL(PROJ, test "x$enableval" = "xyes")
 
 if test "x$enableval" = "xyes"; then
-    AC_CHECK_LIB([proj], [pj_init], [proj=yes], [proj=no])
-    if test x$proj = xno; then
-        AC_CHECK_LIB([proj], [proj_info], [proj=yes], [proj=no])
+    AC_CHECK_LIB([proj], [pj_init], [proj4=yes], [proj4=no])
+    AC_CHECK_LIB([proj], [proj_info], [proj6=yes], [proj6=no])
+    dnl AM_CONDITIONAL and AC_DEFINE for all 3 variants may be too much
+    dnl keep only what is really needed when closing issue15
+    AM_CONDITIONAL(PROJ4, test "x$proj4" = "xyes")
+    AM_CONDITIONAL(PROJ6, test "x$proj6" = "xyes")
+    if test x$proj4 = xyes; then
+        proj=yes
+        AC_DEFINE(HAVE_LIBPROJ4, 1, [Enable proj <=4])
+    fi
+    if test x$proj6 = xyes; then
+        proj=yes
+        AC_DEFINE(HAVE_LIBPROJ6, 1, [Enable proj >=6])
     fi
     if test x$proj = xyes; then
         PROJ_LIBS="-lproj"
