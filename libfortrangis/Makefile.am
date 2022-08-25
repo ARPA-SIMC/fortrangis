@@ -60,6 +60,10 @@ endif
 if PROJ6
 libfortrangis_la_SOURCES += proj6.F90
 nodist_include_HEADERS += proj6.mod
+check_PROGRAMS += proj_test6
+proj_test6_SOURCES = proj_test6.F90
+proj_test6_FCFLAGS = -I../libfortranc
+proj_test6_LDADD = libfortrangis.la ../libfortranc/libfortranc.la $(PROJ_LIBS)
 endif
 endif
 
