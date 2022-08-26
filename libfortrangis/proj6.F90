@@ -16,10 +16,10 @@
 !    License along with FortranGIS.  If not, see
 !    <http://www.gnu.org/licenses/>.
 
-!> Fortran 2003 interface to the proj 6 https://github.com/OSGeo/PROJ library.
+!> Fortran 2003 interface to the proj https://proj.org/ library, API version 6.
 !! The following functions and subroutines are directly interfaced to
 !! their corresponding C version, so they are undocumented here,
-!! please refer to the original gdal C API documentation, e.g. at the
+!! please refer to the original proj C API documentation, e.g. at the
 !! address https://proj.org/development/reference/index.html , for their
 !! use:
 !!  - proj_context_create()
@@ -37,41 +37,38 @@
 !!  - proj_get_type(obj)
 !!  - proj_torad(angle_in_degrees)
 !!  - proj_todeg(angle_in_radians)
-!!  - proj_area_set_bbox(area, west_lon_degree, south_lat_degree, ...)
+!!  - proj_area_set_bbox(area, west_lon_degree, south_lat_degree, east_lon_degree, north_lat_degree)
 !!  - proj_area_destroy(area)
-!!
-!! Notice that, if relevant, the result of functions returning an
-!! integer has to be interpreted as 0=false, nonzero=true or 0=ok,
-!! nonzero=error.
 !!
 !! Some of these functions have also a more Fortran-friendly interface
 !! explicitely documented here, with an \a _f appended to the name.
 !!
+!! For an example of application of the \a proj6 module, please refer
+!! to the following test program, which performs a forward and
+!! backward transformation:
+!! \include proj6_test.F90
+!!
 !! \ingroup libfortrangis
-! For an example of application of the \a proj6 module, please refer
-! to the following test program, which performs a forward and
-! backward transformation:
-! \include proj_test.F90
 MODULE proj6
 USE,INTRINSIC :: ISO_C_BINDING
 IMPLICIT NONE
 
-!> Object describing a cartographic projection.
-!! Its components are private so they should not be manipulated
-!! directly.
+!> Object describing a projection or a transformation.
+!! It is the equivalent of the PJ C type. Its components are private
+!! so they should not be manipulated directly.
 TYPE,BIND(C) :: pj_object
   PRIVATE
   TYPE(c_ptr) :: ptr = C_NULL_PTR
 END TYPE pj_object
 
-!> Object representing a null cartographic projection.
+!> Object representing a null projection or transformation.
 !! It should be used for comparison of function results
 !! with the \a == operator for error checking.
 TYPE(pj_object),PARAMETER :: pj_object_null=pj_object(C_NULL_PTR)
 
-!> Object describing a proj context.
-!! Its components are private so they should not be manipulated
-!! directly.
+!> Object describing a proj multithread context.
+!! It is the equivalent of the PJ_CONTEXT C type. Its components are
+!! private so they should not be manipulated directly.
 TYPE,BIND(C) :: pj_context_object
   PRIVATE
   TYPE(c_ptr) :: ptr = C_NULL_PTR
@@ -81,14 +78,17 @@ END TYPE pj_context_object
 !! It should be used in single threaded programs.
 TYPE(pj_context_object),PARAMETER :: pj_default_ctx=pj_context_object(C_NULL_PTR)
 
-!> Object describing a coordinate pair.
-!! It can indicate either projected coordinate (u=x, v=y) or
-!! spherical coordinates (u=lon, v=lat).
+!> Object describing a general-purpose georeferenced coordinate.
+!! It is the equivalent of the PJ_COORD C type. Depending on the
+!! context, the 4 or less coordinate values may be intepreted in
+!! different ways. By default the first 2 values (usually x and y) are
+!! initialised to HUGE (invalid), while the following (usually z and
+!! t) are initialised to 0.
 TYPE,BIND(C) :: pj_coord_object
-  REAL(kind=c_double) :: x=HUGE(1.0_c_double)
-  REAL(kind=c_double) :: y=HUGE(1.0_c_double)
-  REAL(kind=c_double) :: z=0.0_c_double
-  REAL(kind=c_double) :: t=0.0_c_double
+  REAL(kind=c_double) :: x=HUGE(1.0_c_double) !< x, 1st axis, longitude, easting...
+  REAL(kind=c_double) :: y=HUGE(1.0_c_double) !< y, 2nd axis, latitude, northing...
+  REAL(kind=c_double) :: z=0.0_c_double !< z
+  REAL(kind=c_double) :: t=0.0_c_double !< time
 END TYPE pj_coord_object
 
 !> Object describing a proj area.
@@ -120,7 +120,9 @@ TYPE,BIND(C) :: pj_proj_info_object
   REAL(kind=c_double) :: accuracy !< Expected accuracy of the transformation. -1 if unknown
 END TYPE pj_proj_info_object
 
-ENUM, BIND(c) ! PJ_TYPE
+!> Enumerator indicating the type of projection. It is the equivalent of
+!! PJ_TYPE in the C API.
+ENUM, BIND(c)
   ENUMERATOR :: PJ_TYPE_UNKNOWN, &
    PJ_TYPE_ELLIPSOID, &
    PJ_TYPE_PRIME_MERIDIAN, &
@@ -137,20 +139,14 @@ ENUM, BIND(c) ! PJ_TYPE
     PJ_TYPE_TEMPORAL_DATUM, PJ_TYPE_ENGINEERING_DATUM, PJ_TYPE_PARAMETRIC_DATUM
 END ENUM
 
-
-ENUM, BIND(c) ! PROJ_DIRECTION
+!> Enumerator indicating projection direction. It is the equivalent of
+!! PROJ_DIRECTION in the C API.
+ENUM, BIND(c)
   ENUMERATOR :: &
-   PJ_FWD = 1, & !< Forward
-   PJ_IDENT= 0, & !< DO nothing
-   PJ_INV = -1 !< Inverse
+   PJ_FWD = 1, &
+   PJ_IDENT= 0, &
+   PJ_INV = -1
 END ENUM
-
-!> Test whether an opaque object is valid.
-!! Please use the interface name pj_associated, but for the documentation
-!! see the specific function pj_associated_object.
-!INTERFACE pj_associated
-!  MODULE PROCEDURE pj_associated_object
-!END INTERFACE pj_associated
 
 INTERFACE
   FUNCTION proj_context_create() BIND(C,name='proj_context_create')
@@ -260,9 +256,10 @@ INTERFACE
   FUNCTION proj_trans_array(p, direction, n, coord) BIND(C,name='proj_trans_array')
   IMPORT
   TYPE(pj_object),VALUE :: p
-  INTEGER(kind=kind(PJ_FWD)),VALUE :: direction ! warning this is an enum
+  INTEGER(kind=KIND(PJ_FWD)),VALUE :: direction ! warning this is an enum
+  INTEGER(kind=c_size_t),VALUE :: n
   TYPE(pj_coord_object) :: coord(*)
-  TYPE(pj_coord_object) :: proj_trans_array
+  INTEGER(kind=c_int) :: proj_trans_array
   END FUNCTION proj_trans_array
 END INTERFACE
 
@@ -305,6 +302,87 @@ INTERFACE
   END FUNCTION proj_todeg
 END INTERFACE
 
+INTERFACE
+  FUNCTION proj_errno(p) BIND(C,name='proj_errno')
+  IMPORT
+  TYPE(pj_object),VALUE :: p
+  INTEGER(kind=c_int) :: proj_errno
+  END FUNCTION proj_errno
+END INTERFACE
+
+INTERFACE
+  FUNCTION proj_context_errno(ctx) BIND(C,name='proj_context_errno')
+  IMPORT
+  TYPE(pj_context_object),VALUE :: ctx
+  INTEGER(kind=c_int) :: proj_context_errno
+  END FUNCTION proj_context_errno
+END INTERFACE
+
+INTERFACE
+  FUNCTION proj_errno_string(err) BIND(C,name='proj_errno_string')
+  IMPORT
+  INTEGER(kind=c_int),VALUE :: err
+  TYPE(c_ptr) :: proj_errno_string
+  END FUNCTION proj_errno_string
+END INTERFACE
+
+INTERFACE
+  FUNCTION proj_context_errno_string(ctx, err) BIND(C,name='proj_context_errno_string')
+  IMPORT
+  TYPE(pj_context_object),VALUE :: ctx
+  INTEGER(kind=c_int),VALUE :: err
+  TYPE(c_ptr) :: proj_context_errno_string
+  END FUNCTION proj_context_errno_string
+END INTERFACE
+
+
+!> Test whether an opaque object is valid.
+!! This is a generic interface, it can be called with objects of type
+!! pj_object, pj_context_object, pj_area_object. It returns .TRUE. if
+!! the object has been associated or correctly initialised.
+!!
+!! \param object the object to be tested
+INTERFACE proj_associated
+  MODULE PROCEDURE proj_associated_pj, proj_associated_context, &
+   proj_associated_area
+END INTERFACE proj_associated
+
 ! TODO
 ! pj_latlong_from_proj: proj_crs_get_horizontal_datum() and proj_create_geographic_crs_from_datum()?
+
+CONTAINS
+
+FUNCTION proj_associated_pj(object) RESULT(associated_)
+TYPE(pj_object),INTENT(in) :: object
+LOGICAL :: associated_
+associated_ = C_ASSOCIATED(object%ptr)
+END FUNCTION proj_associated_pj
+
+FUNCTION proj_associated_context(object) RESULT(associated_)
+TYPE(pj_context_object),INTENT(in) :: object
+LOGICAL :: associated_
+associated_ = C_ASSOCIATED(object%ptr)
+END FUNCTION proj_associated_context
+
+FUNCTION proj_associated_area(object) RESULT(associated_)
+TYPE(pj_area_object),INTENT(in) :: object
+LOGICAL :: associated_
+associated_ = C_ASSOCIATED(object%ptr)
+END FUNCTION proj_associated_area
+
+!> Fortran-style interface to proj_trans_array
+FUNCTION proj_trans_f(p, direction, coord)
+TYPE(pj_object),VALUE :: p !< transfor
+INTEGER(kind=KIND(PJ_FWD)),VALUE :: direction ! warning this is an enum
+TYPE(pj_coord_object) :: coord(:)
+INTEGER :: proj_trans_f
+
+INTEGER(kind=c_size_t) :: n
+
+n = SIZE(coord)
+proj_trans_f = proj_trans_array(p, direction, n, coord)
+
+END FUNCTION proj_trans_f
+
+
 END MODULE proj6
