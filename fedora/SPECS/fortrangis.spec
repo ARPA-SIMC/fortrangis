@@ -77,7 +77,7 @@ mv $RPM_BUILD_ROOT%{_includedir}/*.mod $RPM_BUILD_ROOT%{_fmoddir}
 
 %files -n fortrangis-devel
 %{_libdir}/*.a
-%{_libdir}/*.la
+%exclude %{_libdir}/*.la
 %{_libdir}/*.so
 %if 0%{?fedora} < 9  && !0%{?rhel}
 %{_includedir}/*
@@ -102,7 +102,7 @@ mv $RPM_BUILD_ROOT%{_includedir}/*.mod $RPM_BUILD_ROOT%{_fmoddir}
 %changelog
 * Fri Feb 18 2022 Daniele Branchini <dbranchini@arpae.it> - 2.7-1
 - Fixed spec for new CI
-- Fix interfacing witj proj C API (#10)
+- Fix interfacing with proj C API (#10)
 - Improvements for cmake build system (#11,#12)
 - Fixed segmentation fault of `pj_transform_f`
 - Fixed issues in makefiles (#4)

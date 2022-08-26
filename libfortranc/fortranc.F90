@@ -40,7 +40,9 @@ IMPLICIT NONE
 !> Fortran derived type for handling <tt>void**</tt>, <tt>char**</tt>,
 !! etc C objects (pointer to pointer or array of pointers).  The array
 !! of pointers is assumed to be terminated by a <tt>NULL</tt>
-!! pointer. Methods are provided both for receiving the data structure
+!! pointer. Each pointer of the array typically points to a
+!! null-terminated string, although this is not always the
+!! case. Methods are provided both for receiving the data structure
 !! from C and unpacking it in Fortran as well as for creating it in
 !! Fortran and passing it to C.
 !!
@@ -98,6 +100,10 @@ END INTERFACE
 !!  - (more frequently) converting a string returned by a C function
 !!    declared as <tt>char*</tt>, interfaced as <tt>TYPE(c_ptr)</tt>
 !!    for its subsequent use in Fortran
+!!
+!!  - converting a string contained in an C-interoperable derived
+!!    type, declared in C as <tt>char*</tt>, interfaced as
+!!    <tt>TYPE(c_ptr)</tt> for its subsequent use in Fortran
 !!
 !! \param string null-terminated C-style string to convert
 INTERFACE strtofchar

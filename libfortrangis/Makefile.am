@@ -47,15 +47,24 @@ shp_fxtr_dump.o: libfortrangis.la
 endif
 
 if PROJ
-libfortrangis_la_SOURCES += proj.F90
 libfortrangis_la_LIBADD += $(PROJ_LIBS)
+if PROJ4
+libfortrangis_la_SOURCES += proj.F90
 nodist_include_HEADERS += proj.mod
-
 check_PROGRAMS += proj_test
 proj_test_SOURCES = proj_test.F90
-#proj_test_CPPFLAGS = -I../libfortranc
 proj_test_FCFLAGS = -I../libfortranc
 proj_test_LDADD = libfortrangis.la ../libfortranc/libfortranc.la $(PROJ_LIBS)
+endif
+
+if PROJ6
+libfortrangis_la_SOURCES += proj6.F90
+nodist_include_HEADERS += proj6.mod
+check_PROGRAMS += proj6_test
+proj6_test_SOURCES = proj6_test.F90
+proj6_test_FCFLAGS = -I../libfortranc
+proj6_test_LDADD = libfortrangis.la ../libfortranc/libfortranc.la $(PROJ_LIBS)
+endif
 endif
 
 if GDAL
