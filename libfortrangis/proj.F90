@@ -19,7 +19,7 @@
 !> Fortran 2003 interface to the proj.4 https://github.com/OSGeo/proj.4 library.
 !! The following functions are directly interfaced to their
 !! corresponding C version, so they are undocumented here, please
-!! refer to the original gdal C API documentation, e.g. at the address
+!! refer to the original proj C API documentation, e.g. at the address
 !! https://github.com/OSGeo/proj.4/wiki/ProjAPI , for their use:
 !!  - pj_init_plus() -> FUNCTION pj_init_plus()
 !!  - pj_transform()() -> FUNCTION pj_transform()()
