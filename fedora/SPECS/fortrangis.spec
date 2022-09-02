@@ -4,7 +4,7 @@
 
 Summary: FortranGIS Fortran interfaces Open Source GIS libraries 
 Name: fortrangis
-Version: 2.7
+Version: 3.0
 Release: %{releaseno}%{dist}
 License: LGPL
 Group: Applications/GIS
@@ -100,6 +100,11 @@ mv $RPM_BUILD_ROOT%{_includedir}/*.mod $RPM_BUILD_ROOT%{_fmoddir}
 %postun
 
 %changelog
+* Fri Sep  2 2022 Daniele Branchini <dbranchini@arpae.it> - 3.0-1
+- Added support for proj6 (#15)
+- Removed .la files
+- cmake bugfix (#16)
+
 * Fri Feb 18 2022 Daniele Branchini <dbranchini@arpae.it> - 2.7-1
 - Fixed spec for new CI
 - Fix interfacing with proj C API (#10)
