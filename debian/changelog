@@ -1,3 +1,9 @@
+fortrangis (3.0-1) unstable; urgency=low
+
+  * Reflecting the upstream version
+
+ -- Emanuele Di Giacomo <edigiacomo@arpae.it>  Fri, 30 Sep 2022 07:23:29 +0200
+
 fortrangis (2.6-1) unstable; urgency=low
 
   * Initial packaging
