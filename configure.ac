@@ -56,6 +56,8 @@ AC_ARG_ENABLE(proj, AC_HELP_STRING([--disable-proj],
 [enableval=yes])dnl default enable
 AM_CONDITIONAL(PROJ, test "x$enableval" = "xyes")
 
+AM_CONDITIONAL(PROJ4, false)
+AM_CONDITIONAL(PROJ6, false)
 if test "x$enableval" = "xyes"; then
     AC_CHECK_LIB([proj], [pj_init], [proj4=yes], [proj4=no])
     AC_CHECK_LIB([proj], [proj_info], [proj6=yes], [proj6=no])
