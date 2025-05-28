@@ -1,7 +1,7 @@
 [![Build Status](https://simc.arpae.it/moncic-ci/fortrangis/rocky8.png)](https://simc.arpae.it/moncic-ci/fortrangis/)
 [![Build Status](https://simc.arpae.it/moncic-ci/fortrangis/rocky9.png)](https://simc.arpae.it/moncic-ci/fortrangis/)
-[![Build Status](https://simc.arpae.it/moncic-ci/fortrangis/fedora38.png)](https://simc.arpae.it/moncic-ci/fortrangis/)
 [![Build Status](https://simc.arpae.it/moncic-ci/fortrangis/fedora40.png)](https://simc.arpae.it/moncic-ci/fortrangis/)
+[![Build Status](https://simc.arpae.it/moncic-ci/fortrangis/fedora42.png)](https://simc.arpae.it/moncic-ci/fortrangis/)
 [![Build Status](https://copr.fedorainfracloud.org/coprs/simc/stable/package/fortrangis/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/simc/stable/package/fortrangis/)
 
 ## [FortranGIS project](http://fortrangis.sourceforge.net/index.php)
