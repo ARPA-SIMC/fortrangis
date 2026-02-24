@@ -1,4 +1,4 @@
-%global releaseno 1
+%global releaseno 2
 # Note: define srcarchivename in CI build only.
 %{!?srcarchivename: %global srcarchivename %{name}-%{version}-%{releaseno}}
 
@@ -100,6 +100,9 @@ mv $RPM_BUILD_ROOT%{_includedir}/*.mod $RPM_BUILD_ROOT%{_fmoddir}
 %postun
 
 %changelog
+* Tue Feb 24 2026 Daniele Branchini  <dbranchini@arpae.it> - 3.0-2
+- Bogus release to trigger build on new proj for epel9 
+
 * Fri Sep  2 2022 Daniele Branchini <dbranchini@arpae.it> - 3.0-1
 - Added support for proj6 (#15)
 - Removed .la files
